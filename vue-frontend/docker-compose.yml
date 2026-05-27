@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  vue-app:
+    build: .
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app # ローカルのコードをコンテナの/appに同期
+      - /app/node_modules # コンテナ内のnode_modulesをローカルで上書きしない措置
+    environment:
+      - CHOKIDAR_USEPOLLING=true # ファイル変更の検知を確実にする設定

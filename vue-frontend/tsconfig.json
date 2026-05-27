@@ -1,0 +1,26 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    /* --- 厳格化設定 --- */
+    "strict": true,
+    "noUncheckedIndexedAccess": true, // 配列アクセスを厳格化
+    "noImplicitReturns": true, // return漏れを防止
+    "noFallthroughCasesInSwitch": true, // switch文のフォールスルー防止
+    /* --- プロジェクト設定 --- */
+    "jsx": "preserve",
+    "allowJs": false,
+    "noEmit": true, // Viteがビルドを行うため、TSによるファイル出力は不要
+    "isolatedModules": true, // Vite（esbuild）の仕様に合わせる
+    "esModuleInterop": true, // CommonJSとの互換性
+    "lib": ["ESNext", "DOM"],
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+}

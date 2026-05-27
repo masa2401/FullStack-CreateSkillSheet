@@ -1,0 +1,38 @@
+/* リセット・基本設定 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --p-4: 0.5rem;
+  --p-8: 1rem;
+  --p-12: 1.5rem;
+  --p-16: 2rem;
+  --p-20: 2.5rem;
+  --p-24: 3rem;
+  --p-28: 3.5rem;
+  --p-32: 4rem;
+  --radius: 12px;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* リスト */
+ul,
+ol {
+  list-style: none;
+}
+
+/* ボタン */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

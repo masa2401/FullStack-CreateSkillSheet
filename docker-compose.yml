@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: ./spring-backend
+    ports:
+      - "8080:8080" # 通常の8080番に戻します
+    # volumesの同期も一旦外して、コンテナ内のファイルを純粋に動かします
+
+  frontend:
+    build: ./vue-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./vue-frontend:/app
+      - /app/node_modules
+    working_dir: /app
+#    command: npm run dev
