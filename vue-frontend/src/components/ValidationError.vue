@@ -52,7 +52,8 @@ const getTextPreview = (text?: string) => {
 
 <template>
   <transition name="fade">
-    <div v-if="errors.length > 0" class="error-message" id="error-message" role="alert" aria-live="assertive">
+    <div v-if="errors.length > 0" class="error-message" id="error-message" role="alert" aria-live="assertive"
+      tabindex="-1">
       <div class="error-content">
         <div class="error-title">
           <div class="error-icon">

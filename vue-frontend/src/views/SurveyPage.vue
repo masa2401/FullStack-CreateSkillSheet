@@ -43,6 +43,7 @@ const onSubmit = async (): Promise<void> => {
     await nextTick();
     const target = document.getElementById('error-message');
     target?.scrollIntoView({ behavior: 'smooth' });
+    target?.focus();
     return;
   }
   router.push(ROUTES.RESULT);

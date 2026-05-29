@@ -9,6 +9,8 @@ export default defineConfig({
   plugins: [vue(), vueDevTools()],
   test: {
     environment: 'happy-dom',
+    globals: true,
+    restoreMocks: true,
   },
   resolve: {
     alias: {

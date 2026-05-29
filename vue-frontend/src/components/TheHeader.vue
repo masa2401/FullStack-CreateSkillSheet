@@ -14,7 +14,8 @@ const goToTop = () => {
 
 <template>
   <header class="header">
-    <h1 class="title" @click="goToTop">
+    <h1 class="title" @click="goToTop" @keydown.enter="goToTop" @keydown.space.prevent="goToTop" role="button"
+      tabindex="0" :aria-label="route.path !== ROUTES.TOP ? 'トップページへ戻る' : '現在のページ（トップページ）'">
       <span class="icon">
         <font-awesome-icon icon="fa-solid fa-pen-to-square" />
       </span>

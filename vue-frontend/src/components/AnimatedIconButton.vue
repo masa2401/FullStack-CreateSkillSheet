@@ -8,9 +8,9 @@ interface Props {
   buttonClass?: string;
 }
 defineProps<Props>();
+defineOptions({ inheritAttrs: false })
 
 const isHovering = ref(false);
-
 const emit = defineEmits<{
   click: [];
 }>();
@@ -20,7 +20,8 @@ const handleClick = () => {
 </script>
 
 <template>
-  <button @click="handleClick" :class="buttonClass" @mouseenter="isHovering = true" @mouseleave="isHovering = false">
+  <button type="button" v-bind="$attrs" @click="handleClick" :class="buttonClass" @mouseenter="isHovering = true"
+    @mouseleave="isHovering = false">
     <span class="button-icon" aria-hidden="true">
       <font-awesome-icon :icon="icon" :beat="animationType === 'beat' && isHovering"
         :bounce="animationType === 'bounce' && isHovering" :fade="animationType === 'fade' && isHovering"

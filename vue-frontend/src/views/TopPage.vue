@@ -262,6 +262,11 @@ const validateAndProceed = (): void => {
   box-shadow: 0 8px 24px rgba(72, 60, 50, 0.3);
 }
 
+.category-card:focus-within {
+  outline: 3px solid #483c32;
+  outline-offset: 2px;
+}
+
 .category-card.active .card-category-title,
 .category-card.active .card-category-desc,
 .category-card.active .card-icon-large {

@@ -23,9 +23,6 @@ onMounted((): void => {
     return;
   }
 
-  // ストアにユーザー名がなければアンケートページへ
-  // （直接アクセスや未回答状態の場合）
-  if (!store.userName) router.push(ROUTES.SURVEY);
   surveyData.value = store.surveyData;
   isSharedView.value = false;
 });
