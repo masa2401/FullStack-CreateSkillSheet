@@ -13,7 +13,7 @@ const mockSurveyData: SurveyData = {
         {
           id: 1,
           questionText: 'Q1 テスト質問',
-          answers: [{ label: 'テスト回答', isChecked: true, value: 3 }],
+          answers: [{ label: 'テスト回答', isChecked: true, value: 3 as const }],
         },
       ],
     },

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { ref } from 'vue';
 import { useSurveyValidation } from './useSurveyValidation';
-import type { Category } from '@/types';
+import type { CategoryState } from '@/types';
 
-const makeCategory = (overrides?: Partial<Category>) => ({
+const makeCategory = (overrides?: Partial<CategoryState>) => ({
   id: 1,
   genre: '共通の質問',
   isChecked: true,

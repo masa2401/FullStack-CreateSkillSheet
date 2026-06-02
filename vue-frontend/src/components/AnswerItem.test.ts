@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
-import type { Answer } from '@/types';
+import type { AnswerState } from '@/types';
 import AnswerItem from '@/components/AnswerItem.vue';
 
 describe('AnswerItem.vue', () => {
-  const createWrapper = (propsAnswer: Partial<Answer> = {}) =>
+  const createWrapper = (propsAnswer: Partial<AnswerState> = {}) =>
     mount(AnswerItem, {
       props: {
         answer: { label: 'テスト回答', isChecked: false, value: undefined, ...propsAnswer },

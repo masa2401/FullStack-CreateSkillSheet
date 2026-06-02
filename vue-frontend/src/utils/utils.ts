@@ -5,30 +5,15 @@ import type { Question, QuestionState } from '@/types';
 // ========================================
 
 /**
- * 質問データをQuestionState形式に変換するユーティリティ関数
- * @param {Question} question - 変換対象の質問データ
- * @returns {QuestionState} 変換された質問状態オブジェクト
+ * 質問マスターデータを QuestionState 形式（UI初期状態）に変換する。
+ * AnswerDef に isChecked: false を付与して AnswerState を生成する。
+ * @param {Question} question - 変換対象の質問マスターデータ
+ * @returns {QuestionState} UI初期状態の質問オブジェクト
  */
-
 const toQuestionState = (question: Question): QuestionState => ({
   ...question,
-  answers: question.answers.map((label) => ({ label })),
+  answers: question.answers.map((a) => ({ isChecked: false, ...a })),
 });
 
-export const initQuestionStates = (questions: Question[]) => questions.map(toQuestionState); // Question[] → QuestionState[]
-
-/** 質問状態オブジェクトから質問データを抽出するユーティリティ関数
- * @param {QuestionState[]} questions - 抽出対象の質問状態オブジェクトの配列
- * @returns {Question[]} 抽出された質問データの配列
- */
-
-export const extractQuestionData = (questions: QuestionState[]): QuestionState[] =>
-  questions.map((q) => ({
-    id: q.id,
-    questionText: q.questionText,
-    answers: q.answers.map((a) => ({
-      label: a.label,
-      isChecked: a.isChecked,
-      value: a.value,
-    })),
-  }));
+export const initQuestionStates = (questions: Question[]): QuestionState[] =>
+  questions.map(toQuestionState);

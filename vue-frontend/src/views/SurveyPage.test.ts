@@ -1,6 +1,6 @@
 import { createMemoryHistory, createRouter } from 'vue-router';
 import SurveyPage from './SurveyPage.vue';
-import type { Category, QuestionState } from '@/types/index.ts';
+import type { CategoryState, QuestionState } from '@/types/index.ts';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ROUTES } from '@/utils/constants.ts';
 import { createTestingPinia } from '@pinia/testing';
@@ -17,7 +17,7 @@ const buildRouter = () =>
     ],
   });
 
-const makeCategory = (overrides: Partial<Category> = {}): Category => ({
+const makeCategory = (overrides: Partial<CategoryState> = {}): CategoryState => ({
   id: 1,
   genre: '共通の質問',
   icon: 'fa-solid fa-briefcase',

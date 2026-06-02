@@ -11,7 +11,7 @@ const mockQuestion: QuestionState = {
   questionText: 'Q1. テスト質問',
   answers: [
     { label: '回答A', isChecked: false },
-    { label: '回答B', isChecked: true, value: 3 },
+    { label: '回答B', isChecked: true, value: 3 as const },
   ],
 };
 

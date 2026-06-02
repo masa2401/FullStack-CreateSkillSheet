@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { Answer, StarLevel } from '@/types';
+import type { AnswerState, StarLevel } from '@/types';
 import { LEVEL_LABELS } from '@/utils/constants';
 
 interface Props {
-  answer: Answer;
+  answer: AnswerState;
   answerIndex: number;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-  'update:answer': [answer: Answer];
+  'update:answer': [answer: AnswerState];
 }>();
 
 // チェックボックスの変更

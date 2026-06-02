@@ -6,7 +6,7 @@ import { getDataFromUrl } from '@/utils/shareUtils';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import type { SurveyData, Answer } from '@/types';
+import type { SurveyData, AnswerState } from '@/types';
 
 const router = useRouter();
 const store = useSurveyStore();
@@ -30,7 +30,7 @@ onMounted((): void => {
 /**
  * チェックされた回答のみ返す。
  */
-const getCheckedAnswers = (answers: Answer[]): Answer[] => {
+const getCheckedAnswers = (answers: AnswerState[]): AnswerState[] => {
   return answers.filter((answer) => answer.isChecked);
 };
 
