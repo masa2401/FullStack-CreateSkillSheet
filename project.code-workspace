@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "name": "Frontend",
+      "path": "vue-frontend"
+    },
+    {
+      "name": "Backend",
+      "path": "spring-backend"
+    }
+  ],
+  "settings": {
+    "java.compile.nullAnalysis.mode": "disabled"
+  }
+}
