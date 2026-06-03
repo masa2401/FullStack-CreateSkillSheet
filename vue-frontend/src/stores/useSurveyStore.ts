@@ -68,6 +68,15 @@ export const useSurveyStore = defineStore(
         const shared = data.categories.find((c) => c.id === cat.id);
         return shared ? { ...cat, isChecked: shared.isChecked, questions: shared.questions } : cat;
       });
+
+      try {
+        localStorage.setItem(
+          'survey',
+          JSON.stringify({ userName: userName.value, categoryData: categoryData.value }),
+        );
+      } catch (e) {
+        console.error('Failed to update localStorage manually:', e);
+      }
     };
 
     const reset = (): void => {

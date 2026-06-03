@@ -42,6 +42,13 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // メタフィールドに `requiresName` が指定されているページかチェック
   if (to.meta.requiresName) {
+    // ハッシュ（to.fullPath や window.location.hash）の中に '?data=' が含まれているか確認
+    const hasSharedData = window.location.hash.includes('data=') || to.fullPath.includes('data=');
+    // 共有データがある場合は、名前チェックをスキップしてそのままページへの遷移を許可する
+    if (hasSharedData) {
+      next();
+      return;
+    }
     const store = useSurveyStore();
     // ストアの名前が空、または空白のみの場合はTopページへ強制リダイレクト
     if (!store.userName || store.userName.trim() === '') {

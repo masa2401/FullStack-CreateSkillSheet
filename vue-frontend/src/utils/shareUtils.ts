@@ -1,10 +1,10 @@
 import LZString from 'lz-string';
 import type { CategoryState, SurveyData } from '@/types';
- 
+
 // ========================================
 // 型ガード
 // ========================================
- 
+
 const isCategoryState = (value: unknown): value is CategoryState =>
   typeof value === 'object' &&
   value !== null &&
@@ -12,7 +12,7 @@ const isCategoryState = (value: unknown): value is CategoryState =>
   typeof (value as CategoryState).genre === 'string' &&
   typeof (value as CategoryState).isChecked === 'boolean' &&
   Array.isArray((value as CategoryState).questions);
- 
+
 const isSurveyData = (value: unknown): value is SurveyData =>
   typeof value === 'object' &&
   value !== null &&
@@ -20,11 +20,11 @@ const isSurveyData = (value: unknown): value is SurveyData =>
   !!(value as SurveyData).userName &&
   Array.isArray((value as SurveyData).categories) &&
   (value as SurveyData).categories.every(isCategoryState);
- 
+
 // ========================================
 // データの圧縮・展開
 // ========================================
- 
+
 /**
  * オブジェクトをJSON文字列に変換し、LZ-stringで圧縮してURL安全なBase64形式でエンコード
  * @param data - 圧縮・エンコード対象のオブジェクト
@@ -39,7 +39,7 @@ export const encodeData = (data: SurveyData): string | null => {
     return null;
   }
 };
- 
+
 /**
  * LZ-stringで圧縮されたURL安全なBase64形式の文字列をデコードし、JSONオブジェクトに変換
  * @param compressedString - デコード対象の圧縮・エンコードされた文字列
@@ -57,11 +57,11 @@ export const decodeData = (compressedString: string): SurveyData | null => {
     return null;
   }
 };
- 
+
 // ========================================
 // URL生成・解析
 // ========================================
- 
+
 /**
  * SurveyDataオブジェクトをエンコードしてURLのクエリパラメータに埋め込み、結果ページへの完全なURLを生成
  */
@@ -71,31 +71,37 @@ export const createShareUrl = (surveyData: SurveyData): string => {
     throw new Error('データのエンコードに失敗しました');
   }
   const url = new URL(window.location.href);
-  url.hash = `/result`;
-  url.searchParams.set('data', encoded);
+  url.hash = `/result?data=${encoded}`;
+
+  url.search = '';
+
   return url.toString();
 };
- 
+
 /**
  * URLからエンコードされたデータを抽出してデコードし、SurveyDataオブジェクトを返す
  */
 export const getDataFromUrl = (): SurveyData | null => {
   try {
     const url = new URL(window.location.href);
-    if (!url.hash) return null;
-    const [, hashPath] = url.hash.split('?');
-    if (!hashPath) return null;
- 
-    const urlParams = new URLSearchParams(hashPath);
+    // ハッシュ（#）が含まれていない、またはハッシュ内に『?』が含まれていない場合は処理しない
+    if (!url.hash || !url.hash.includes('?')) return null;
+
+    // 『?』で分割し、後半のクエリ文字列（data=xxxx...）を取得する
+    const [, hashQuery] = url.hash.split('?');
+    if (!hashQuery) return null;
+
+    // クエリ文字列をパースする
+    const urlParams = new URLSearchParams(hashQuery);
     const encodedData = urlParams.get('data');
     if (!encodedData) return null;
- 
+
     const decoded = decodeData(encodedData);
     if (!decoded) {
       console.error('データのデコードに失敗しました。URLが破損している可能性があります。');
       return null;
     }
- 
+
     if (!isSurveyData(decoded)) {
       console.error('デコードされたデータの構造が無効です');
       return null;
@@ -107,11 +113,11 @@ export const getDataFromUrl = (): SurveyData | null => {
     return null;
   }
 };
- 
+
 // ========================================
 // クリップボード操作
 // ========================================
- 
+
 /**
  * テキストをクリップボードにコピーするユーティリティ関数
  * @param text - コピーするテキスト
