@@ -1,4 +1,4 @@
-# スキルシート作成ページ
+# スキルシート作成ページ（バックエンド拡張版）
 
 &nbsp;
 
@@ -10,18 +10,21 @@
 ## 概要
 
 就職活動や社内の技術レベルの把握に使う目的で  
-(Vue + TypeScript) の構成で制作したスキルシート作成アプリです。
+フロントエンド (Vue + TypeScript)  
+バックエンド (SpringBoot / Java)  
+の構成で制作したスキルシート作成アプリです。
 
-自身に必要なスキルセットの把握を行っていた時に、スキルシート形式でまとめると楽だと思い、簡単に操作できるものを作りました。
-技術的な挑戦と実用性の両面から、メイン機能以外にも共有機能やバリデーション機能の追加、プリントフォーマットの作成などを行いました。
+フロントエンドで製作したものに対し、機能拡張を行うためバックエンドと  
+接続しています。実装（予定）の機能としては、URL
 
 ### 使用技術
 
-- FrameWork: Vue 3 (Composition API)
-- Language: TypeScript
-- BuildTool: Vite
-- Linter/Formatter: ESLint, Prettier
-- Deployment: GitHub Pages
+- Framework: Spring Boot 4.0.6
+- Language: Java 21
+- Build Tool: Maven
+- Database: H2 Database (In-Memory)
+- ORM: Spring Data JPA (Hibernate)
+- Other Tools: Lombok
 
 &nbsp;
 
