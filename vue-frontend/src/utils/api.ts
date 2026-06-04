@@ -1,10 +1,10 @@
 import type { SurveyData } from '@/types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-export const isBackendEnable = (): boolean => !!API_BASE;
+export const isBackendEnabled = (): boolean => !!API_BASE;
 
 export const saveSheet = async (data: SurveyData): Promise<string | null> => {
-  if (!isBackendEnable()) return null;
+  if (!isBackendEnabled()) return null;
 
   // バックエンドのDTO形式に変換
   const requestBody = {
@@ -41,7 +41,7 @@ export const saveSheet = async (data: SurveyData): Promise<string | null> => {
 };
 
 export const fetchSheet = async (id: string): Promise<SurveyData | null> => {
-  if (!isBackendEnable()) return null;
+  if (!isBackendEnabled()) return null;
   const res = await fetch(`${API_BASE}/api/sheets/${id}`);
   if (!res.ok) return null;
   return res.json();

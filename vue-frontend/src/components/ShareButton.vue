@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { createShareUrl, copyToClipboard } from '@/utils/shareUtils';
 import { downloadCSV } from '@/utils/csvUtils';
 import type { SurveyData } from '@/types';
+import { isBackendEnabled, saveSheet } from '@/utils/api';
 
 interface Props {
   surveyData: SurveyData;
@@ -13,28 +14,40 @@ const props = defineProps<Props>();
 const showMenu = ref<boolean>(false);
 const copySuccess = ref<boolean>(false);
 const downloadSuccess = ref<boolean>(false);
+const isSaving = ref<boolean>(false)
 
-// 共有URLを生成
-const shareUrl = computed((): string => {
-  try {
-    return createShareUrl(props.surveyData);
-  } catch (error) {
-    console.error('URL生成エラー:', error);
-    return '';
-  }
-});
-
-// クリップボードにコピー
 const handleCopy = async () => {
-  const success = await copyToClipboard(shareUrl.value);
-  if (success) {
-    copySuccess.value = true;
-    setTimeout(() => {
-      copySuccess.value = false;
-      showMenu.value = false;
-    }, 2000);
+  isSaving.value = true;
+  let url: string;
+
+  try {
+    if (isBackendEnabled()) {
+      // バックエンドあり → DBに保存してIDベースのURLを生成
+      const id = await saveSheet(props.surveyData);
+      url = `${window.location.origin}/#/result?id=${id}`;
+    } else {
+      // バックエンドなし → 既存のURLエンコード方式
+      url = createShareUrl(props.surveyData);
+    }
+
+    const success = await copyToClipboard(url);
+    if (success) {
+      copySuccess.value = true;
+      setTimeout(() => {
+        copySuccess.value = false;
+        showMenu.value = false
+      }, 2000)
+    }
+  } catch (error) {
+    console.error('URL生成エラー', error);
+    // バックエンドが失敗した場合はフォールバック
+    url = createShareUrl(props.surveyData);
+    await copyToClipboard(url);
+  } finally {
+    isSaving.value = false;
   }
-};
+}
+
 
 // CSVダウンロード
 const handleDownloadCSV = () => {
@@ -68,14 +81,13 @@ const toggleMenu = () => {
 
     <transition name="slide-fade">
       <div v-if="showMenu" class="share-menu">
-        <button @click="handleCopy" class="menu-item" :class="{ success: copySuccess }">
-          <span class="menu-icon" v-if="copySuccess">
-            <font-awesome-icon icon="fa-solid fa-check" />
+        <button @click="handleCopy" class="menu-item" :class="{ success: copySuccess }" :disabled="isSaving">
+          <span class="menu-icon">
+            <font-awesome-icon v-if="copySuccess" icon="fa-solid fa-check" />
+            <font-awesome-icon v-else-if="isSaving" icon="fa-solid fa-spinner" spin />
+            <font-awesome-icon v-else icon="fa-regular fa-copy" />
           </span>
-          <span class="menu-icon" v-else>
-            <font-awesome-icon icon="fa-regular fa-copy" />
-          </span>
-          <span class="menu-text">{{ copySuccess ? 'コピー完了' : 'URLをコピー' }}</span>
+          <span class="menu-text">{{ copySuccess ? 'コピー完了' : isSaving ? '保存中...' : 'URLをコピー' }}</span>
         </button>
 
         <button @click="handleDownloadCSV" class="menu-item" :class="{ success: downloadSuccess }">
