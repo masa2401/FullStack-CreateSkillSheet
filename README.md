@@ -9,13 +9,14 @@
 
 ## 概要
 
-就職活動や社内の技術レベルの把握に使う目的で  
-フロントエンド (Vue + TypeScript)  
-バックエンド (SpringBoot / Java)  
-の構成で制作したスキルシート作成アプリです。
+就職活動や社内の技術レベルの把握に使う目的で
 
-フロントエンドで製作したものに対し、機能拡張を行うためバックエンドと  
-接続しています。実装（予定）の機能としては、URL
+フロントエンド (Vue + TypeScript)  
+バックエンド (SpringBoot / Java)
+
+の構成で制作したスキルシート作成アプリです。フロントエンドで製作したものに対し、機能拡張を行うためバックエンドと接続しています。
+
+実装（予定）の機能としては、URL共有機能（DBのID管理）、期限付きURL機能、PDF出力API、集計機能、WebHook通知機能などを実装予定です。
 
 ### 使用技術
 
@@ -32,19 +33,20 @@
 
 ```text
 root/
-├── src/                # ソースコード
-│   ├── assets/         # 共通CSSと画像
-│   ├── components/     # UIコンポーネント
-│   ├── composable/     # Validation機能
-│   ├── data/           # 質問データ
-│   ├── router/         # Vue router
-│   ├── stores/         # 状態管理(Pinia)
-│   ├── test/           # テスト用データ
-│   ├── types/          # 型データ
-│   ├── utils/          # 共通関数
-│   └── views/          # 見た目データ
-├── App.vue
-├── main.ts
-├── package.json
-└── README.md           # 本ファイル
+├── spring-backend/      # バックエンド（Spring Boot）
+│   └── src/
+│       ├── main/
+│       │   └── java/com/example/skillsheet/
+│       │       ├── config/              # 各種設定クラス
+│       │       ├── controller/          # APIエンドポイント
+│       │       ├── dto/                 # データ転送オブジェクト
+│       │       ├── entity/              # DBテーブル連携用クラス
+│       │       ├── exception/           # 例外処理
+│       │       ├── repository/          # DBアクセス機能
+│       │       ├── service/             # ビジネスロジック
+│       │       └── SkillSheetApplication.java
+│       │           # 起動クラス
+│       └── test/        # テストコード
+├── vue-frontend/        # フロントエンド
+└── README.md            # 本ファイル
 ```
