@@ -57,7 +57,7 @@ public class SkillSheetService {
     }
 
     /** IDでスキルシートを取得する */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public SaveSheetRequest findById(UUID id) {
         SkillSheet sheet = sheetRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("スキルシートが見つかりません"));

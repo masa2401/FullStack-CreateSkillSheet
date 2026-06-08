@@ -2,8 +2,8 @@
 
 &nbsp;
 
-[サイトはこちら](https://masa2401.github.io/CreateYourSkillSheet/#/)  
-(こちらのURLにアクセスいただくと、そのまま利用できます）
+[サイトはこちら](https://full-stack-create-skill-sheet.vercel.app/#/)  
+(現在フロントエンドのみvercelでデプロイ中。バックエンドは作業中です）
 
 &nbsp;
 
