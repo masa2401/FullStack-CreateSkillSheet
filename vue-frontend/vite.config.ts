@@ -5,7 +5,7 @@ import vueDevTools from 'vite-plugin-vue-devtools';
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/CreateYourSkillSheet/',
+  base: '/',
   plugins: [vue(), vueDevTools()],
   test: {
     environment: 'happy-dom',

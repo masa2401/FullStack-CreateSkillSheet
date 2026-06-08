@@ -37,16 +37,15 @@ root/
 │   └── src/
 │       ├── main/
 │       │   └── java/com/example/skillsheet/
-│       │       ├── config/              # 各種設定クラス
-│       │       ├── controller/          # APIエンドポイント
-│       │       ├── dto/                 # データ転送オブジェクト
-│       │       ├── entity/              # DBテーブル連携用クラス
-│       │       ├── exception/           # 例外処理
-│       │       ├── repository/          # DBアクセス機能
-│       │       ├── service/             # ビジネスロジック
-│       │       └── SkillSheetApplication.java
-│       │           # 起動クラス
-│       └── test/        # テストコード
-├── vue-frontend/        # フロントエンド
-└── README.md            # 本ファイル
+│       │       ├── config/                     # 各種設定クラス
+│       │       ├── controller/                 # APIエンドポイント
+│       │       ├── dto/                        # データ転送オブジェクト
+│       │       ├── entity/                     # DBテーブル連携用クラス
+│       │       ├── exception/                  # 例外処理
+│       │       ├── repository/                 # DBアクセス機能
+│       │       ├── service/                    # ビジネスロジック
+│       │       └── SkillSheetApplication.java  # 起動クラス
+│       └── test/                               # テストコード
+├── vue-frontend/                               # フロントエンド
+└── README.md                                   # 本ファイル
 ```
