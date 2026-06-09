@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import { ref } from 'vue';
-import { createShareUrl, copyToClipboard } from '@/utils/shareUtils';
-import { downloadCSV } from '@/utils/csvUtils';
+import { useSurveyStore } from '@/stores/useSurveyStore';
 import type { SurveyData } from '@/types';
-import { isBackendEnabled, saveSheet } from '@/utils/api';
+import { isBackendEnabled } from '@/utils/api';
+import { downloadCSV } from '@/utils/csvUtils';
+import { copyToClipboard, createShareUrl } from '@/utils/shareUtils';
+import { ref } from 'vue';
 
 interface Props {
   surveyData: SurveyData;
@@ -23,7 +24,8 @@ const handleCopy = async () => {
   try {
     if (isBackendEnabled()) {
       // バックエンドあり → DBに保存してIDベースのURLを生成
-      const id = await saveSheet(props.surveyData);
+      const store = useSurveyStore();
+      const id = await store.getSavedIdOrSave();
       url = `${window.location.origin}/#/result?id=${id}`;
     } else {
       // バックエンドなし → 既存のURLエンコード方式

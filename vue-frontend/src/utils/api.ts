@@ -46,3 +46,12 @@ export const fetchSheet = async (id: string): Promise<SurveyData | null> => {
   if (!res.ok) return null;
   return res.json();
 };
+
+export const checkSheetExists = async (id: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`${API_BASE}/api/sheets/${id}`);
+    return res.ok; // 200ならtrue、404ならfalse
+  } catch {
+    return false;
+  }
+};

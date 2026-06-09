@@ -23,7 +23,7 @@
 - Framework: Spring Boot 4.0.6
 - Language: Java 21
 - Build Tool: Maven
-- Database: H2 Database (In-Memory)
+- Database: MySQL
 - ORM: Spring Data JPA (Hibernate)
 - Other Tools: Lombok
 
@@ -37,15 +37,15 @@ root/
 │   └── src/
 │       ├── main/
 │       │   └── java/com/example/skillsheet/
-│       │       ├── config/                     # 各種設定クラス
-│       │       ├── controller/                 # APIエンドポイント
-│       │       ├── dto/                        # データ転送オブジェクト
-│       │       ├── entity/                     # DBテーブル連携用クラス
-│       │       ├── exception/                  # 例外処理
-│       │       ├── repository/                 # DBアクセス機能
-│       │       ├── service/                    # ビジネスロジック
-│       │       └── SkillSheetApplication.java  # 起動クラス
-│       └── test/                               # テストコード
-├── vue-frontend/                               # フロントエンド
-└── README.md                                   # 本ファイル
+│       │       ├── config/                      # 各種設定クラス
+│       │       ├── controller/                  # APIエンドポイント
+│       │       ├── dto/                         # データ転送オブジェクト
+│       │       ├── entity/                      # DBテーブル連携用クラス
+│       │       ├── exception/                   # 例外処理
+│       │       ├── repository/                  # DBアクセス機能
+│       │       ├── service/                     # ビジネスロジック
+│       │       └── SkillSheetApplication.java   # 起動クラス
+│       └── test/                                # テストコード
+├── vue-frontend/                                # フロントエンド
+└── README.md                                    # 本ファイル
 ```
