@@ -1,0 +1,54 @@
+name: Fullstack Automated Tests
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # 1. フロントエンドのテストジョブ
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          # フロントエンド用のpackage-lock.jsonの場所を指定
+          cache-dependency-path: './vue-frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./vue-frontend # フロントエンドのディレクトリで実行
+
+      - name: Run Frontend tests
+        run: npm run test:unit
+        working-directory: ./vue-frontend
+
+  # 2. バックエンドのテストジョブ（SpringBoot + Maven）
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 # お使いのJavaバージョン（17, 21など）に合わせて変更してください
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin' # 一般的な検証済み配布元です
+          cache: 'maven' # 依存関係をキャッシュして2回目以降を高速化
+
+      - name: Run Backend tests (Maven)
+        # ./spring-backend フォルダに移動して、テストを実行（mvn test）します
+        run: mvn test -DfailIfNoTests=false #テスト未実装のため通過するようにしています。
+        working-directory: ./spring-backend
