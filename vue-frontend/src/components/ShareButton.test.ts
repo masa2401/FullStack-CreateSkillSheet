@@ -1,9 +1,10 @@
 import { globalStubs } from '@/test/utils';
 import type { SurveyData } from '@/types';
 import * as apiUtils from '@/utils/api';
+import * as csvUtils from '@/utils/csvUtils.ts';
 import * as shareUtils from '@/utils/shareUtils';
 import { flushPromises, mount, type ComponentMountingOptions } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ShareButton from './ShareButton.vue';
 // ─── テスト用定数 ────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ const createOpenMenuWrapper = async (
 
 describe('ShareButton', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.restoreAllMocks();
     vi.spyOn(shareUtils, 'createShareUrl').mockReturnValue('https://example.com');
     vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false);
@@ -121,7 +123,7 @@ describe('ShareButton', () => {
 
         const wrapper = await createOpenMenuWrapper();
         await wrapper.findAll('.menu-item')[0]?.trigger('click');
-        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         expect(wrapper.findAll('.menu-item')[0]?.classes()).toContain('success');
       });
@@ -187,14 +189,136 @@ describe('ShareButton', () => {
 
     // ─── 多重送信抑制 ──────────────────────────────────────────────
 
-    // describe('多重送信の抑制', () => {});
+    describe('多重送信の抑制', () => {
+      it('保存中は URL コピーボタンが disabled になる', async () => {
+        // 解決しない Promise で「保存中」状態を維持する
+        mockGetSavedIdOrSave.mockReturnValue(new Promise(() => {}));
+        vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true);
 
+        const wrapper = await createOpenMenuWrapper();
+        const copyButton = wrapper.findAll('.menu-item')[0]!;
+
+        // await しない → isSaving=true のまま止まる
+        copyButton.trigger('click');
+        // マイクロタスクを1ステップ進めて isSaving=true がリアクティブに反映されるのを待つ
+        await wrapper.vm.$nextTick();
+
+        expect(copyButton.attributes('disabled')).toBeDefined();
+      });
+
+      it('保存中に再度クリックしても getSavedIdOrSave は1回しか呼ばれない', async () => {
+        let resolvePromise!: (value: string) => void;
+        mockGetSavedIdOrSave.mockReturnValue(
+          new Promise<string>((resolve) => {
+            resolvePromise = resolve;
+          }),
+        );
+        vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true);
+        vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true);
+
+        const wrapper = await createOpenMenuWrapper();
+        const copyButton = wrapper.findAll('.menu-item')[0]!;
+
+        // 1回目クリック（保存中になる）
+        copyButton.trigger('click');
+        await wrapper.vm.$nextTick(); // isSaving=true が反映される
+
+        // disabled 状態なのでクリックイベント自体がブラウザにより無視されるが、
+        // テスト環境では trigger が disabled を無視して発火するため
+        // disabled チェックを明示的に確認しておく
+        expect(copyButton.attributes('disabled')).toBeDefined();
+        copyButton.trigger('click'); // 2回目（disabled だが trigger は通る）
+        await wrapper.vm.$nextTick();
+
+        // Promise を解決して非同期処理を完了させる
+        resolvePromise('sheet-id-123');
+        await flushPromises();
+
+        // handleCopy 自体の disabled チェックはないが、
+        // disabled ボタンへの trigger が実際にコールを増やしていないことを確認する
+        expect(mockGetSavedIdOrSave).toHaveBeenCalledTimes(1);
+      });
+
+      it('保存完了後は disabled が解除される', async () => {
+        vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true);
+        vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true);
+
+        const wrapper = await createOpenMenuWrapper();
+        const copyButton = wrapper.findAll('.menu-item')[0]!;
+
+        await copyButton.trigger('click');
+        // finally ブロック（isSaving=false）まで含めて全 Promise を解決する
+        await flushPromises();
+
+        expect(copyButton.attributes('disabled')).toBeUndefined();
+      });
+    });
     // ─── CSV ダウンロード ─────────────────────────────────────────
 
-    // describe('CSV ダウンロード', () => {});
+    describe('CSV ダウンロード', () => {
+      it('ダウンロード成功時に success クラスが付与される', async () => {
+        vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true);
 
+        const wrapper = await createOpenMenuWrapper();
+        // handleDownloadCSV は同期処理なので trigger だけで反映される
+        await wrapper.findAll('.menu-item')[1]!.trigger('click');
+
+        expect(wrapper.findAll('.menu-item')[1]!.classes()).toContain('success');
+      });
+
+      it('ダウンロード失敗時は success クラスが付与されない', async () => {
+        vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false);
+
+        const wrapper = await createOpenMenuWrapper();
+        await wrapper.findAll('.menu-item')[1]!.trigger('click');
+
+        expect(wrapper.findAll('.menu-item')[1]!.classes()).not.toContain('success');
+      });
+    });
     // ─── 自動クローズ ──────────────────────────────────────────────
 
-    // describe('成功後の自動クローズ', () => {});
+    describe('成功後の自動クローズ', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('URLコピー成功の2秒後にメニューが閉じる', async () => {
+        vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true);
+        vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false);
+
+        const wrapper = await createOpenMenuWrapper();
+        await wrapper.findAll('.menu-item')[0]?.trigger('click');
+        // fakeTimers 環境では Promise のマイクロタスクと setTimeout が混在するため
+        // flushPromises で非同期チェーンを先に解決してから timer を進める
+        await flushPromises();
+
+        // setTimeout 発火前はメニューがまだ表示されている
+        expect(wrapper.find('.share-menu').exists()).toBe(true);
+
+        vi.advanceTimersByTime(2000);
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.find('.share-menu').exists()).toBe(false);
+      });
+
+      it('CSVダウンロード成功の2秒後にメニューが閉じる', async () => {
+        vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true);
+
+        const wrapper = await createOpenMenuWrapper();
+        // handleDownloadCSV は同期なので trigger で即座に反映される
+        await wrapper.findAll('.menu-item')[1]!.trigger('click');
+
+        expect(wrapper.find('.share-menu').exists()).toBe(true);
+
+        vi.advanceTimersByTime(2000);
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.find('.share-menu').exists()).toBe(false);
+      });
+    });
   });
 });
