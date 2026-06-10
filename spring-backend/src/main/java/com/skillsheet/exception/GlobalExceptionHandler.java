@@ -1,7 +1,8 @@
-package com.example.skillsheet.exception;
+package com.skillsheet.exception;
 
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;

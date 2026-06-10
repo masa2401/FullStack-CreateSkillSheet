@@ -2,8 +2,11 @@
 
 &nbsp;
 
-[サイトはこちら](https://full-stack-create-skill-sheet.vercel.app/#/)  
-(現在フロントエンドのみvercelでデプロイ中。バックエンドは作業中です）
+[サイトはこちら](https://full-stack-create-skill-sheet.vercel.app/#/)
+
+実装済：IDでのURL共有機能
+
+実装予定：期限付きURL作成、PDFは出力API、集計機能、WebHook追加機能
 
 &nbsp;
 
@@ -15,8 +18,6 @@
 バックエンド (SpringBoot / Java)
 
 の構成で制作したスキルシート作成アプリです。フロントエンドで製作したものに対し、機能拡張を行うためバックエンドと接続しています。
-
-実装（予定）の機能としては、URL共有機能（DBのID管理）、期限付きURL機能、PDF出力API、集計機能、WebHook通知機能などを実装予定です。
 
 ### 使用技術
 
@@ -36,7 +37,7 @@ root/
 ├── spring-backend/      # バックエンド（Spring Boot）
 │   └── src/
 │       ├── main/
-│       │   └── java/com/example/skillsheet/
+│       │   └── java/com/skillsheet/
 │       │       ├── config/                      # 各種設定クラス
 │       │       ├── controller/                  # APIエンドポイント
 │       │       ├── dto/                         # データ転送オブジェクト

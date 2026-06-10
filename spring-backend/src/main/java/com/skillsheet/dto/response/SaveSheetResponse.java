@@ -1,4 +1,4 @@
-package com.example.skillsheet.dto.response;
+package com.skillsheet.dto.response;
 
 import java.util.UUID;
 

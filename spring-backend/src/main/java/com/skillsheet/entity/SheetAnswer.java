@@ -1,4 +1,4 @@
-package com.example.skillsheet.entity;
+package com.skillsheet.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -1,10 +1,12 @@
-package com.example.skillsheet.entity;
+package com.skillsheet.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import org.hibernate.annotations.CreationTimestamp;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

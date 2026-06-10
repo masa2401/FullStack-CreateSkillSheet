@@ -1,7 +1,8 @@
-package com.example.skillsheet.repository;
+package com.skillsheet.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.example.skillsheet.entity.SheetCategory;
+
+import com.skillsheet.entity.SheetCategory;
 
 public interface SheetCategoryRepository extends JpaRepository<SheetCategory, Long> {
 }
