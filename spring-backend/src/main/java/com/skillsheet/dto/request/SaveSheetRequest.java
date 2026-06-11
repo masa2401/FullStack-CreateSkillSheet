@@ -8,6 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SaveSheetRequest(
-                @NotBlank String userName,
-                @NotNull List<CategoryDto> categories) {
+        @NotBlank String userName,
+        @NotNull List<CategoryDto> categories) {
 }

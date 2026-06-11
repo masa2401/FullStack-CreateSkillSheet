@@ -1,33 +1,84 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# ==========================================
+# Global / OS / Common Editors
+# ==========================================
+.DS_Store
+Thumbs.db
+*.local
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+### VS Code ###
+.vscode/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# ==========================================
+# Back-End (spring-backend)
+# ==========================================
+spring-backend/target/
+spring-backend/.mvn/wrapper/maven-wrapper.jar
+!**/spring-backend/src/main/**/target/
+!**/spring-backend/src/test/**/target/
 
-### VS Code ###
-.vscode/
+### STS ###
+spring-backend/.apt_generated
+spring-backend/.classpath
+spring-backend/.factorypath
+spring-backend/.project
+spring-backend/.settings
+spring-backend/.springBeans
+spring-backend/.sts4-cache
+
+### NetBeans ###
+/spring-backend/nbproject/private/
+/spring-backend/nbbuild/
+/spring-backend/dist/
+/spring-backend/nbdist/
+/spring-backend/.nb-gradle/
+spring-backend/build/
+!**/spring-backend/src/main/**/build/
+!**/spring-backend/src/test/**/build/
+
+# ==========================================
+# Front-End (vue-frontend)
+# ==========================================
+# Logs
+vue-frontend/logs
+vue-frontend/*.log
+vue-frontend/npm-debug.log*
+vue-frontend/yarn-debug.log*
+vue-frontend/yarn-error.log*
+vue-frontend/pnpm-debug.log*
+vue-frontend/lerna-debug.log*
+
+# Dependencies & Build Artifacts
+vue-frontend/node_modules/
+vue-frontend/dist/
+vue-frontend/dist-ssr/
+vue-frontend/coverage/
+vue-frontend/*.tsbuildinfo
+vue-frontend/.eslintcache
+
+# Tooling-specific Editor files
+vue-frontend/*.suo
+vue-frontend/*.ntvs*
+vue-frontend/*.njsproj
+vue-frontend/*.sln
+vue-frontend/*.sw?
+
+# Testing Frameworks (Cypress / Vitest / Playwright)
+vue-frontend/cypress/videos/
+vue-frontend/cypress/screenshots/
+vue-frontend/__screenshots__/
+vue-frontend/test-results/
+vue-frontend/playwright-report/
+vue-frontend/blob-report/
+vue-frontend/playwright/.cache/
+vue-frontend/playwright/.auth/
+
+# Environment Variables (Crucial Secret Protection)
+vue-frontend/.env
+vue-frontend/.env.local
+vue-frontend/.env.*.local

@@ -12,7 +12,7 @@ import type { Question, QuestionState } from '@/types';
  */
 const toQuestionState = (question: Question): QuestionState => ({
   ...question,
-  answers: question.answers.map((a) => ({ isChecked: false, ...a })),
+  answers: question.answers.map((a) => ({ ...a, isChecked: false })),
 });
 
 export const initQuestionStates = (questions: Question[]): QuestionState[] =>
