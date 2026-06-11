@@ -1,6 +1,6 @@
 package com.skillsheet.dto;
 
 public record AnswerDto(
-                String label,
-                Integer value) {
+        String label,
+        Integer value) {
 }

@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import type { Question } from '@/types';
+import { describe, expect, it } from 'vitest';
 import { initQuestionStates } from './utils';
-import type { Question, QuestionState } from '@/types';
 
 // ─── データ変換 ───────────────────────────────────────────────────────────────
 
@@ -40,13 +40,17 @@ describe('initQuestionStates', () => {
 
   it('answer の isChecked がマスターデータ側に存在しても false で上書きされる', () => {
     // AnswerDef に isChecked が混入していた場合でも初期化できること
+    const dirtyAnswer: Record<string, unknown> = {
+      label: '回答',
+      isChecked: true,
+    };
     const questions = [
       {
         id: 3,
         questionText: 'Q3',
-        answers: [{ label: '回答', isChecked: true as unknown as never }],
+        answers: [dirtyAnswer],
       },
-    ] as QuestionState[];
+    ] as unknown as Question[];
     const [result] = initQuestionStates(questions);
     expect(result!.answers[0]!.isChecked).toBe(false);
   });

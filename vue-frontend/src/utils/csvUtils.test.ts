@@ -1,6 +1,6 @@
 import type { SurveyData } from '@/types';
+import { describe, expect, it } from 'vitest';
 import { convertToCSV } from './csvUtils';
-import { describe, it, expect } from 'vitest';
 
 const mockData: SurveyData = {
   userName: 'テストユーザー',
@@ -101,7 +101,7 @@ describe('convertToCSV', () => {
       categories: [
         {
           id: 1,
-          genre: 'カテゴリ',
+          genre: 'テストカテゴリ',
           isChecked: false,
           questions: [],
         },
@@ -109,7 +109,7 @@ describe('convertToCSV', () => {
     };
     const csv = convertToCSV(emptyData);
     expect(csv).toContain('空ユーザー');
-    expect(csv).not.toContain('カテゴリ');
+    expect(csv).not.toContain('テストカテゴリ');
   });
 
   it('改行を含む値はクォートで囲まれ壊れない', () => {
