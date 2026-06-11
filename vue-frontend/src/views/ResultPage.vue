@@ -1,12 +1,13 @@
 ﻿<script setup lang="ts">
-import ShareButton from '@/components/ShareButton.vue';
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import { ROUTES, LEVEL_LABELS } from '@/utils/constants';
-import { getDataFromUrl } from '@/utils/shareUtils';
+import ShareButton from '@/components/ShareButton.vue';
 import { useSurveyStore } from '@/stores/useSurveyStore';
-import { ref, onMounted, computed } from 'vue';
+import type { AnswerState, SurveyData } from '@/types';
+import { fetchSheet, isBackendEnabled } from '@/utils/api';
+import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
+import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { SurveyData, AnswerState } from '@/types';
 
 const router = useRouter();
 const store = useSurveyStore();
@@ -15,18 +16,26 @@ const surveyData = ref<SurveyData | null>(null);
 
 // ─── データ取得 ──────────────────────────────────────────────────────────────
 
-onMounted((): void => {
+onMounted(async () => {
+  const sharedId = getIdFromUrl();
+  if (sharedId && isBackendEnabled()) {
+    const fetched = await fetchSheet(sharedId);
+    if (fetched) {
+      store.loadFromSharedData(fetched)
+      surveyData.value = store.surveyData;
+      isSharedView.value = true;
+      return;
+    }
+  }
   const urlData = getDataFromUrl();
   if (urlData) {
     // 1. ストアにURLのデータをロードする（これでストアとlocalStorageが同期されます）
     store.loadFromSharedData(urlData);
-
     // 2. 画面表示用のデータとして、ストアの最新データを参照する
     surveyData.value = store.surveyData;
     isSharedView.value = true;
     return;
   }
-
   // URLにデータがない（通常の自分の結果表示）場合
   surveyData.value = store.surveyData;
   isSharedView.value = false;
@@ -94,12 +103,8 @@ const handlePrint = (): void => {
     </div>
 
     <div class="content-wrapper">
-      <div
-        v-for="category in displayCategories"
-        :key="category.id"
-        v-show="category.isChecked"
-        class="category-section"
-      >
+      <div v-for="category in displayCategories" :key="category.id" v-show="category.isChecked"
+        class="category-section">
         <div class="category-header">
           <font-awesome-icon :icon="category.icon" class="category-icon" />
           <h3 class="category-title">{{ category.genre }}</h3>
@@ -113,7 +118,7 @@ const handlePrint = (): void => {
                 <div class="skill-level">
                   <span class="level-stars">{{
                     LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
-                  }}</span>
+                    }}</span>
                 </div>
               </div>
             </div>
@@ -123,31 +128,16 @@ const handlePrint = (): void => {
 
       <div class="button-group no-print">
         <template v-if="!isSharedView">
-          <AnimatedIconButton
-            icon="fa-solid fa-arrow-left"
-            label="修正する"
-            animationType="beat"
-            button-class="action-button secondary-button"
-            @click="goBack"
-          />
+          <AnimatedIconButton icon="fa-solid fa-arrow-left" label="修正する" animationType="beat"
+            button-class="action-button secondary-button" @click="goBack" />
 
-          <AnimatedIconButton
-            icon="fa-solid fa-print"
-            label="印刷する"
-            animationType="bounce"
-            button-class="action-button print-button"
-            @click="handlePrint"
-          />
+          <AnimatedIconButton icon="fa-solid fa-print" label="印刷する" animationType="bounce"
+            button-class="action-button print-button" @click="handlePrint" />
 
           <ShareButton :surveyData="surveyData" />
 
-          <AnimatedIconButton
-            icon="fa-regular fa-house"
-            label="トップへ戻る"
-            animationType="beat"
-            button-class="action-button primary-button"
-            @click="goToTop"
-          />
+          <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animationType="beat"
+            button-class="action-button primary-button" @click="goToTop" />
         </template>
 
         <template v-else>
@@ -162,13 +152,7 @@ const handlePrint = (): void => {
     </div>
   </div>
 
-  <div
-    v-else
-    class="loading-container"
-    role="status"
-    aria-label="データを読み込んでいます"
-    aria-live="polite"
-  >
+  <div v-else class="loading-container" role="status" aria-label="データを読み込んでいます" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>
     <p class="loading-text">データを読み込んでいます...</p>
   </div>
