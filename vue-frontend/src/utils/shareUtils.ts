@@ -1,5 +1,5 @@
-import LZString from 'lz-string';
 import type { CategoryState, SurveyData } from '@/types';
+import LZString from 'lz-string';
 
 // ========================================
 // 型ガード
@@ -86,11 +86,9 @@ export const getDataFromUrl = (): SurveyData | null => {
     const url = new URL(window.location.href);
     // ハッシュ（#）が含まれていない、またはハッシュ内に『?』が含まれていない場合は処理しない
     if (!url.hash || !url.hash.includes('?')) return null;
-
     // 『?』で分割し、後半のクエリ文字列（data=xxxx...）を取得する
     const [, hashQuery] = url.hash.split('?');
     if (!hashQuery) return null;
-
     // クエリ文字列をパースする
     const urlParams = new URLSearchParams(hashQuery);
     const encodedData = urlParams.get('data');
@@ -112,6 +110,16 @@ export const getDataFromUrl = (): SurveyData | null => {
     console.error('URLからのデータ取得中に予期しないエラーが発生しました:', error);
     return null;
   }
+};
+
+export const getIdFromUrl = (): string | null => {
+  const url = new URL(window.location.href);
+  if (!url.hash || !url.hash.includes('?')) return null;
+
+  const [, hashQuery] = url.hash.split('?');
+  if (!hashQuery) return null;
+
+  return new URLSearchParams(hashQuery).get('id');
 };
 
 // ========================================

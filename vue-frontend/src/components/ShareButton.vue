@@ -2,9 +2,9 @@
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import type { SurveyData } from '@/types';
-import { isBackendEnabled } from '@/utils/api';
 import { downloadCSV } from '@/utils/csvUtils';
 import { copyToClipboard, createShareUrl } from '@/utils/shareUtils';
+import { isBackendEnabled } from '@/utils/api';
 import { ref } from 'vue';
 
 interface Props {
@@ -15,7 +15,7 @@ const props = defineProps<Props>();
 const showMenu = ref<boolean>(false);
 const copySuccess = ref<boolean>(false);
 const downloadSuccess = ref<boolean>(false);
-const isSaving = ref<boolean>(false)
+const isSaving = ref<boolean>(false);
 
 const handleCopy = async () => {
   isSaving.value = true;
@@ -37,8 +37,8 @@ const handleCopy = async () => {
       copySuccess.value = true;
       setTimeout(() => {
         copySuccess.value = false;
-        showMenu.value = false
-      }, 2000)
+        showMenu.value = false;
+      }, 2000);
     }
   } catch (error) {
     console.error('URL生成エラー', error);
@@ -48,8 +48,7 @@ const handleCopy = async () => {
   } finally {
     isSaving.value = false;
   }
-}
-
+};
 
 // CSVダウンロード
 const handleDownloadCSV = () => {
@@ -78,18 +77,32 @@ const toggleMenu = () => {
 
 <template>
   <div class="share-button-container">
-    <AnimatedIconButton icon="fa-solid fa-arrow-up-right-from-square" label="結果を共有" :aria-expanded="showMenu"
-      aria-haspopup="true" animationType="bounce" button-class="share-button" @click="toggleMenu" />
+    <AnimatedIconButton
+      icon="fa-solid fa-arrow-up-right-from-square"
+      label="結果を共有"
+      :aria-expanded="showMenu"
+      aria-haspopup="true"
+      animationType="bounce"
+      button-class="share-button"
+      @click="toggleMenu"
+    />
 
     <transition name="slide-fade">
       <div v-if="showMenu" class="share-menu">
-        <button @click="handleCopy" class="menu-item" :class="{ success: copySuccess }" :disabled="isSaving">
+        <button
+          @click="handleCopy"
+          class="menu-item"
+          :class="{ success: copySuccess }"
+          :disabled="isSaving"
+        >
           <span class="menu-icon">
             <font-awesome-icon v-if="copySuccess" icon="fa-solid fa-check" />
             <font-awesome-icon v-else-if="isSaving" icon="fa-solid fa-spinner" spin />
             <font-awesome-icon v-else icon="fa-regular fa-copy" />
           </span>
-          <span class="menu-text">{{ copySuccess ? 'コピー完了' : isSaving ? '保存中...' : 'URLをコピー' }}</span>
+          <span class="menu-text">{{
+            copySuccess ? 'コピー完了' : isSaving ? '保存中...' : 'URLをコピー'
+          }}</span>
         </button>
 
         <button @click="handleDownloadCSV" class="menu-item" :class="{ success: downloadSuccess }">

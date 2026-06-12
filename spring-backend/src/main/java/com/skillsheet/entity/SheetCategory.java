@@ -34,7 +34,6 @@ public class SheetCategory {
 
     private Integer categoryId;
     private String genre;
-    private String icon;
 
     @OneToMany(mappedBy = "sheetCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SheetAnswer> answers = new ArrayList<>();

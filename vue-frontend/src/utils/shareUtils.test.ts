@@ -8,6 +8,7 @@ const mockSurveyData: SurveyData = {
     {
       id: 1,
       genre: '共通の質問',
+      icon: 'fa-solid fa-briefcase',
       isChecked: true,
       questions: [
         {

@@ -38,7 +38,6 @@ public class SkillSheetService {
             SheetCategory category = new SheetCategory();
             category.setCategoryId(catDto.id());
             category.setGenre(catDto.genre());
-            category.setIcon(catDto.icon());
             category.setSkillSheet(sheet); // 親への参照をセット
 
             // 3. 回答をエンティティに変換して追加
@@ -70,7 +69,6 @@ public class SkillSheetService {
                 .map(cat -> new CategoryDto(
                         cat.getCategoryId(),
                         cat.getGenre(),
-                        cat.getIcon(),
                         buildQustions(cat.getAnswers())))
                 .toList();
 
