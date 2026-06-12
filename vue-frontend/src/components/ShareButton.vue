@@ -2,9 +2,9 @@
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import type { SurveyData } from '@/types';
-import { isBackendEnabled } from '@/utils/api';
 import { downloadCSV } from '@/utils/csvUtils';
 import { copyToClipboard, createShareUrl } from '@/utils/shareUtils';
+import { isBackendEnabled } from '@/utils/sheetMapper';
 import { ref } from 'vue';
 
 interface Props {

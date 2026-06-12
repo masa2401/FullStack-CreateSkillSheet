@@ -3,9 +3,10 @@ import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import ShareButton from '@/components/ShareButton.vue';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import type { AnswerState, SurveyData } from '@/types';
-import { fetchSheet, isBackendEnabled } from '@/utils/api';
+import { fetchSheet } from '@/utils/api';
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
 import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils';
+import { isBackendEnabled } from '@/utils/sheetMapper';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -118,7 +119,7 @@ const handlePrint = (): void => {
                 <div class="skill-level">
                   <span class="level-stars">{{
                     LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
-                    }}</span>
+                  }}</span>
                 </div>
               </div>
             </div>
