@@ -8,6 +8,7 @@ const mockData: SurveyData = {
     {
       id: 1,
       genre: '共通の質問',
+      icon: 'fa-solid fa-briefcase',
       isChecked: true,
       questions: [
         {
@@ -53,6 +54,7 @@ describe('convertToCSV', () => {
         {
           id: 2,
           genre: '除外カテゴリ',
+          icon: '',
           isChecked: false,
           questions: [
             {
@@ -74,6 +76,7 @@ describe('convertToCSV', () => {
         {
           id: 1,
           genre: 'カテゴリA',
+          icon: '',
           isChecked: true,
           questions: [
             {
@@ -102,6 +105,7 @@ describe('convertToCSV', () => {
         {
           id: 1,
           genre: 'テストカテゴリ',
+          icon: '',
           isChecked: false,
           questions: [],
         },

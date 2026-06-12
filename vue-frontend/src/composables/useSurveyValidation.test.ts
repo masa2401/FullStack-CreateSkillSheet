@@ -7,6 +7,7 @@ const makeCategory = (overrides?: Partial<CategoryState>) => ({
   id: 1,
   genre: '共通の質問',
   isChecked: true,
+  icon: 'fa-solid fa-briefcase',
   questions: [
     {
       id: 1,
