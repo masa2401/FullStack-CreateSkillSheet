@@ -2,15 +2,21 @@
   "folders": [
     {
       "name": "Frontend",
-      "path": "vue-frontend"
+      "path": "vue-frontend",
     },
     {
       "name": "Backend",
-      "path": "spring-backend"
-    }
+      "path": "spring-backend",
+    },
   ],
   "settings": {
     "java.compile.nullAnalysis.mode": "disabled",
-    "java.configuration.updateBuildConfiguration": "automatic"
-  }
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.jdt.ls.java.home": "/usr/lib/jvm/java-21-openjdk-amd64",
+    "java.project.sourcePaths": [
+      "spring-backend/src/main/java",
+      "spring-backend/src/test/java",
+    ],
+    "java.import.maven.enabled": true,
+  },
 }
