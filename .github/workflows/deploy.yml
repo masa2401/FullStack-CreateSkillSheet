@@ -44,6 +44,6 @@ jobs:
 
       # 4. Railwayへのデプロイ実行
       - name: Deploy to Railway
-        run: railway up --detach
+        run: railway redeploy --service ${{ secrets.RAILWAY_SERVICE_NAME }} -y
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
