@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # ユーザー名とリポジトリ名を小文字に変換して環境変数（IMAGE_NAME）に格納
       - name: Downcase repository name
         run: |
           echo "IMAGE_NAME=$(echo 'ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-backend' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
@@ -34,7 +36,7 @@ jobs:
           context: ./spring-backend
           file: ./spring-backend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-backend:latest
+          tags: ${{ env.IMAGE_NAME }}:latest
 
       # 3. Railway CLIのセットアップ
       - name: Install Railway CLI
@@ -42,6 +44,6 @@ jobs:
 
       # 4. Railwayへのデプロイ実行
       - name: Deploy to Railway
-        run: railway deploy --image ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-backend:latest --service ${{ secrets.RAILWAY_SERVICE_NAME }}
+        run: railway deploy --image ${{ env.IMAGE_NAME }}:latest --service ${{ secrets.RAILWAY_SERVICE_NAME }}
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
