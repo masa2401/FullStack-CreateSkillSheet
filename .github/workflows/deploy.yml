@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Downcase repository name
+        run: |
+          echo "IMAGE_NAME=$(echo 'ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-backend' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       # 1. GitHub Container Registry (GHCR) へのログイン
       - name: Log in to GitHub Container Registry
