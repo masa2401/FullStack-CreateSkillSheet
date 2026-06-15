@@ -1,16 +1,25 @@
-# 1. ビルド用の環境
-FROM maven:3.9-eclipse-temurin-21-alpine AS build
+# 1. ビルドステージ (Mavenでのコンパイル・パッケージング)
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-# エラーを無視して強制的にjarファイルをビルドする
-RUN mvn clean package -DskipTests
 
-# 2. 実行用の軽量環境
-FROM eclipse-temurin:21-jdk-alpine
+# 依存関係のキャッシュ効率化のため、まずラッパーとpom.xmlをコピー
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:go-offline -B
+
+# ソースコードをコピーしてビルド（テストはスキップ）
+COPY src ./src
+RUN ./mvnw clean package -DskipTests -B
+
+# 2. 実行ステージ
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-# ビルドしたプログラム（jarファイル）をコピー
+
+# ビルドステージから生成されたJARファイルをコピー
 COPY --from=build /app/target/*.jar app.jar
 
-# 💡 Java 21 を直接起動する（これでプラグインのバグは絶対に起きません）
-CMD ["java", "-jar", "app.jar"]
+# Spring Bootのデフォルトポート（必要に応じて変更してください）
+EXPOSE 8080
+
+# アプリケーションの起動
+ENTRYPOINT ["java", "-jar", "app.jar"]
