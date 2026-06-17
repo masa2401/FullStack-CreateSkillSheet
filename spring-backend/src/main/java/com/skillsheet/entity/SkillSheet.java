@@ -39,6 +39,9 @@ public class SkillSheet {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+
     // CascadeType.ALL → シートを削除すれば子も消える
     // orphanRemoval → シートから外れたカテゴリも消える
     @OneToMany(mappedBy = "skillSheet", cascade = CascadeType.ALL, orphanRemoval = true)
