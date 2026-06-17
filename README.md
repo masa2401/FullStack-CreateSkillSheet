@@ -2,30 +2,79 @@
 
 &nbsp;
 
-[サイトはこちら](https://full-stack-create-skill-sheet.vercel.app/#/)
+[【 サイトはこちら 】](https://full-stack-create-skill-sheet.vercel.app/#/)
 
 実装済：IDでのURL共有機能  
 実装予定：期限付きURL作成、PDFを出力API、集計機能、WebHook追加機能
 
 &nbsp;
 
+[【 フロントエンドの開発リポジトリ 】](https://github.com/masa2401/CreateYourSkillSheet)
+
 ## 概要
 
-就職活動や社内の技術レベルの把握に使う目的で
+本アプリは、就職活動における自己PRや、社内メンバーの技術レベルを効率的に把握・管理することを目的としたスキルシート作成ツールです。
+元々フロントエンド（Vue 3 + TypeScript）中心で制作したシステムに対し、実務運用を想定した機能拡張を行うため、バックエンド（Spring Boot）およびデータベースを接続してフルスタックな構成へと刷新しました。
 
-フロントエンド (Vue + TypeScript)  
-バックエンド (SpringBoot / Java)
+## システム構成図（アーキテクチャ）
 
-の構成で制作したスキルシート作成アプリです。  
-フロントエンドで製作したものに対し、機能拡張を行うためバックエンドと接続しています。
+```mermaid
+graph TD
+    %% 開発とCI/CDの流れ
+    subgraph CICDflow [開発とCI/CDフロー]
+        Developer[開発者] -->|1. 機能開発/コミット| FeatureBranch[featureブランチ]
+        FeatureBranch -->|2. プルリクエスト作成| GitHub[GitHub]
+        GitHub -->|3. mainブランチへマージ| GHA[GitHub Actions起動]
+        GHA -->|4. テスト自動実行| GHA
+        GHA -->|5. Dockerイメージ作成| Docker[Docker]
+        Docker -->|6. コンテナをデプロイ| Railway[Railway]
+    end
+
+    %% 本番環境とユーザーの流れ
+    subgraph ProductionEnv [本番と運用環境]
+        User[ユーザー] -->|ブラウザからアクセス| Vercel[Vercel]
+        Vercel -->|API通信| Railway[Railway]
+        Railway -->|データ保存・取得| MySQL[(MySQL)]
+    end
+
+    %% スタイルの微調整
+    style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
+    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
+    style MySQL fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+
+```
+
+## 本プロジェクトのこだわり（実務・運用を意識した取り組み）
+
+- **フロントエンドの疎結合設計と保守性の向上**
+  - 将来的な仕様変更や機能拡張に柔軟に対応できるよう、関数の切り出しやコンポーネントの疎結合化を徹底。コードの可読性を高め、修正作業の影響範囲を最小限に抑える設計を意識しました。
+- **TypeScript導入による、API連携時の手戻り削減**
+  - フロントエンドに厳格な型定義を導入。バックエンド（Spring Boot）とのAPI接続時にデータ構造の不整合を未然に防ぐことができ、結果として統合フェーズでのバグ修正コストの大幅な削減を実感しました。
+- **CI/CDの構築とフロント・バック両環境での自動テスト**
+  - 継続的なコード品質の担保のため、フロント・バックエンド双方に自動テスト（Vitest / JUnit等）を導入。モックを活用したコンポーネントの動作確認や、関数の正常・異常系チェックといった単体テストをGitHub Actionsで自動実行する環境を構築しました。
+- **Docker + GitHub Actionsを活用したデプロイ最適化とコスト削減**
+  - インフラにはVercel（フロント）とRailway（バックエンド）を採用。初期はRailway側で都度ビルドを行っていたためメモリ消費が課題となっていましたが、GitHub Actions側でDockerコンテナをビルド・Pushし、デプロイ先ではコンテナの展開のみを行う構成へと最適化。これにより、リソース消費を抑えた効率的なインフラ運用（コスト削減）を実現しました。
+- **GitHub Projectsを活用したプロジェクト管理**
+  - 実務におけるチーム開発やタスク管理の流れを意識し、GitHub Projectsを用いてIssueやマイルストーンを管理。計画的なアジャイル開発のエッセンスを個人開発に取り入れています。
 
 ### 使用技術
 
-- Framework: Spring Boot 4.0.6
+#### フロントエンド
+
+- Framework: Vue 3 (Composition API)
+- Language: TypeScript
+- Build Tool: Vite
+- State Management: Pinia
+- Test: Vitest
+
+#### バックエンド / インフラ
+
+- Framework: Spring Boot 3.5.8
 - Language: Java 21
 - Build Tool: Maven
 - Database: MySQL
 - ORM: Spring Data JPA (Hibernate)
+- CI/CD / Infrastructure: GitHub Actions, Docker, Vercel, Railway
 - Other Tools: Lombok
 
 &nbsp;
@@ -55,7 +104,14 @@ root/
 
 ### IDによるURL共有機能
 
-フロントエンドとバックエンドの型を合わせる事が大変でした。  
-というのも、はじめフロントエンドのオブジェクトのプロパティに状態管理を割り当てていたこともあり、それを分離しつつバックエンドとつなぐ必要があったため、型の変換などの過程を取らなくてはいけなくなり大変でした。
+1. フロント・バックエンド間の型安全性の確保
+   フロントエンドの状態管理（Pinia等）に依存するオブジェクト構造と、バックエンドが要求するAPIのデータ構造（DTO）を分離・変換する処理の構築に苦労しました。
+   フロント側できちんと型を定義し、API通信専用のインターフェースへ変換する層を設けたことで、バックエンド接続時データ構造の不整合を未然に防ぎ、スムーズなAPI連携を実現できました。
 
-また、はじめの記述ではDBに対して多重送信を行うことが出来てしまい、そちらの修正作業もかなり苦労しました。現在ではAPI通信は初回の一度のみになり、DBの重複保存もなくなっています。
+2. 二重送信（多重送信）の防止と不整合データの排除
+   初期の実装では、ボタンの連打等によってDBに対して同一データの多重送信が発生してしまう課題がありました。
+   この対策として、フロントエンド側でAPI通信の制御（リクエスト中の状態管理や初回送信のみの制限）を行うようロジックを修正。不要な通信をカットし、DBへの重複保存のバグを完全に解消しました。
+
+## 今後の展望（ロードマップ）
+
+追加機能の一部をAWS Lambda等へ切り出し、外部APIとしてサーバーレスアーキテクチャ化を計画中。サーバーレス運用を通じた、さらなるインフラコスト最適化とモダンなバックエンド設計の学習を目標としています。
