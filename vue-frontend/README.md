@@ -3,7 +3,7 @@
 &nbsp;
 
 [サイトはこちら](https://masa2401.github.io/CreateYourSkillSheet/#/)  
-(こちらのURLにアクセスいただくと、そのまま利用できます）
+(GitHubPagesを利用）
 
 &nbsp;
 
