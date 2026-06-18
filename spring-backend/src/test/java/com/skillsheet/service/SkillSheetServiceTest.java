@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import com.skillsheet.dto.CategoryDto;
 import com.skillsheet.dto.QuestionDto;
 import com.skillsheet.dto.request.SaveSheetRequest;
 import com.skillsheet.entity.SkillSheet;
+import com.skillsheet.exception.SheetExpiredException;
 import com.skillsheet.repository.SkillSheetRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,14 +34,14 @@ class SkillSheetServiceTest {
   private SkillSheetRepository sheetRepository;
 
   @InjectMocks
-  private SkillSheetService service; 
+  private SkillSheetService service;
 
   @Test
   @DisplayName("save: リクエストが正常にエンティティに変換され、保存されてIDが返ること")
   void save_Success() {
     // GIVEN: 階層構造を持ったテストデータを作成
     AnswerDto answerDto = new AnswerDto("回答A", 3);
-    QuestionDto questionDto = new QuestionDto(1 , "Q1 テスト質問", List.of(answerDto));
+    QuestionDto questionDto = new QuestionDto(1, "Q1 テスト質問", List.of(answerDto));
     CategoryDto categoryDto = new CategoryDto(2, "テスト", List.of(questionDto));
     SaveSheetRequest request = new SaveSheetRequest("山田太郎", List.of(categoryDto));
 
@@ -67,6 +69,20 @@ class SkillSheetServiceTest {
     when(sheetRepository.findById(targetId)).thenReturn(Optional.empty());
 
     // WHEN & THEN: 例外が発生することを検証
-    assertThatThrownBy(() -> service.findById(targetId)).isInstanceOf(NoSuchElementException.class).hasMessageContaining("スキルシートが見つかりません");
-  }  
+    assertThatThrownBy(() -> service.findById(targetId)).isInstanceOf(NoSuchElementException.class)
+        .hasMessageContaining("スキルシートが見つかりません");
+  }
+
+  @Test
+  @DisplayName("findById: expiresAt が過去の場合、SheetExpiredException がスローされること")
+  void findById_Expired_ThrowsException() {
+    UUID targetId = UUID.randomUUID();
+    SkillSheet expiredSheet = new SkillSheet();
+    expiredSheet.setExpiresAt(LocalDateTime.now().minusDays(1)); // 1日前に期限切れ
+
+    when(sheetRepository.findById(targetId)).thenReturn(Optional.of(expiredSheet));
+
+    assertThatThrownBy(() -> service.findById(targetId))
+        .isInstanceOf(SheetExpiredException.class);
+  }
 }

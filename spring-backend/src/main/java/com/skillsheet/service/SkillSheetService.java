@@ -1,5 +1,6 @@
 package com.skillsheet.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import com.skillsheet.dto.request.SaveSheetRequest;
 import com.skillsheet.entity.SheetAnswer;
 import com.skillsheet.entity.SheetCategory;
 import com.skillsheet.entity.SkillSheet;
+import com.skillsheet.exception.SheetExpiredException;
 import com.skillsheet.repository.SkillSheetRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,12 +28,16 @@ public class SkillSheetService {
 
     private final SkillSheetRepository sheetRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${sheet.expiry.days:14}")
+    private long expiryDays;
+
     /** スキルシートを保存してIDを返す */
     public UUID save(SaveSheetRequest req) {
         // 1. SkillSheetエンティティを作る
         SkillSheet sheet = new SkillSheet();
         sheet.setUserName(req.userName());
         sheet.setShareToken(UUID.randomUUID().toString()); // 共有トークン生成
+        sheet.setExpiresAt(LocalDateTime.now().plusDays(expiryDays));
 
         // 2. カテゴリをエンティティに変換して追加
         for (CategoryDto catDto : req.categories()) {
@@ -63,6 +69,10 @@ public class SkillSheetService {
     public SaveSheetRequest findById(UUID id) {
         SkillSheet sheet = sheetRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("スキルシートが見つかりません"));
+
+        if (sheet.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new SheetExpiredException("この共有リンクの有効期限は切れています");
+        }
 
         // エンティティ → DTOに変換して返す（逆方向の変換）
         List<CategoryDto> categories = sheet.getCategories().stream()

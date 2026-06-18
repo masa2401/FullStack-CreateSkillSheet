@@ -24,22 +24,22 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-
 public class SkillSheet {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "user_name", nullable = false)
     private String userName;
 
-    @Column(unique = true)
+    @Column(name = "share_token", unique = true)
     private String shareToken;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
     // CascadeType.ALL → シートを削除すれば子も消える
