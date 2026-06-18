@@ -21,6 +21,15 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
+    // 410：共有リンクの期限切れ
+    @ExceptionHandler(SheetExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleExpired(SheetExpiredException e) {
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.GONE, e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.GONE)
+                .body(body);
+    }
+
     // 400：バリデーションエラー（より詳細なメッセージを返す）
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException e) {

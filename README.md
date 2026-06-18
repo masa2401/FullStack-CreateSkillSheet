@@ -34,13 +34,13 @@ graph TD
     subgraph ProductionEnv [本番と運用環境]
         User[ユーザー] -->|ブラウザからアクセス| Vercel[Vercel]
         Vercel -->|API通信| Railway[Railway]
-        Railway -->|データ保存・取得| MySQL[(MySQL)]
+        Railway -->|データ保存・取得| PostgreSQL[(PostgreSQL)]
     end
 
     %% スタイルの微調整
     style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
     style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
-    style MySQL fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+    style PostgreSQL fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
 
 ```
 
@@ -72,7 +72,7 @@ graph TD
 - Framework: Spring Boot 3.5.8
 - Language: Java 21
 - Build Tool: Maven
-- Database: MySQL
+- Database: PostgreSQL
 - ORM: Spring Data JPA (Hibernate)
 - CI/CD / Infrastructure: GitHub Actions, Docker, Vercel, Railway
 - Other Tools: Lombok
