@@ -2,19 +2,47 @@
 
 &nbsp;
 
-[サイトはこちら](https://full-stack-create-skill-sheet.vercel.app/#/)
+[【 サイトはこちら 】](https://full-stack-create-skill-sheet.vercel.app/#/)
 
 実装済：IDでのURL共有機能  
 実装予定：期限付きURL作成、PDFを出力API、集計機能、WebHook追加機能、マイグレーションツールの導入
 
 &nbsp;
 
-[フロントエンドの開発リポジトリ](https://github.com/masa2401/CreateYourSkillSheet)
+[【 フロントエンドの開発リポジトリ 】](https://github.com/masa2401/CreateYourSkillSheet)
 
 ## 概要
 
 本アプリは、就職活動における自己PRや、社内メンバーの技術レベルを効率的に把握・管理することを目的としたスキルシート作成ツールです。
 元々フロントエンド（Vue 3 + TypeScript）中心で制作したシステムに対し、実務運用を想定した機能拡張を行うため、バックエンド（Spring Boot）およびデータベースを接続してフルスタックな構成へと刷新しました。
+
+## システム構成図（アーキテクチャ）
+
+```mermaid
+graph TD
+    %% 開発とCI/CDの流れ
+    subgraph CICDflow [開発とCI/CDフロー]
+        Developer[開発者] -->|1. 機能開発/コミット| FeatureBranch[featureブランチ]
+        FeatureBranch -->|2. プルリクエスト作成| GitHub[GitHub]
+        GitHub -->|3. mainブランチへマージ| GHA[GitHub Actions起動]
+        GHA -->|4. テスト自動実行| GHA
+        GHA -->|5. Dockerイメージ作成| Docker[Docker]
+        Docker -->|6. コンテナをデプロイ| Railway[Railway]
+    end
+
+    %% 本番環境とユーザーの流れ
+    subgraph ProductionEnv [本番と運用環境]
+        User[ユーザー] -->|ブラウザからアクセス| Vercel[Vercel]
+        Vercel -->|API通信| Railway[Railway]
+        Railway -->|データ保存・取得| MySQL[(MySQL)]
+    end
+
+    %% スタイルの微調整
+    style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
+    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
+    style MySQL fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+
+```
 
 ## 本プロジェクトのこだわり（実務・運用を意識した取り組み）
 
@@ -84,6 +112,6 @@ root/
    初期の実装では、ボタンの連打等によってDBに対して同一データの多重送信が発生してしまう課題がありました。
    この対策として、フロントエンド側でAPI通信の制御（リクエスト中の状態管理や初回送信のみの制限）を行うようロジックを修正。不要な通信をカットし、DBへの重複保存のバグを完全に解消しました。
 
-### 今後の展望（ロードマップ）
+## 今後の展望（ロードマップ）
 
 追加機能の一部をAWS Lambda等へ切り出し、外部APIとしてサーバーレスアーキテクチャ化を計画中。サーバーレス運用を通じた、さらなるインフラコスト最適化とモダンなバックエンド設計の学習を目標としています。
