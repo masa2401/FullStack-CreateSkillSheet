@@ -1,11 +1,11 @@
-# スキルシート作成ページ（バックエンド拡張版）
+# スキルシート作成ページ（フルスタック版）
 
 &nbsp;
 
 [【 サイトはこちら 】](https://full-stack-create-skill-sheet.vercel.app/#/)
 
 実装済：IDでのURL共有機能  
-実装予定：期限付きURL作成、PDFを出力API、集計機能、WebHook追加機能
+実装予定：期限付きURL作成、PDFを出力API、集計機能、WebHook追加機能、マイグレーションツールの導入
 
 &nbsp;
 
