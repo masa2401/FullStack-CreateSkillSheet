@@ -1,16 +1,67 @@
 services:
-  backend:
-    build: ./spring-backend
+  # 1. データベース (PostgreSQL)
+  db:
+    image: postgres:18.4-alpine
+    container_name: app_db
+    environment:
+      POSTGRES_DB: myapp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
     ports:
-      - "8080:8080" # 通常の8080番に戻します
-    # volumesの同期も一旦外して、コンテナ内のファイルを純粋に動かします
+      - '5432:5432'
+    # Railway（本番）に合わせたリソース制限コマンド
+    command:
+      [
+        'postgres',
+        '-c',
+        'shared_buffers=64MB',
+        '-c',
+        'max_connections=20',
+        '-c',
+        'work_mem=2MB',
+        '-c',
+        'maintenance_work_mem=16MB',
+      ]
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  frontend:
-    build: ./vue-frontend
+  # 2. バックエンド (Spring Boot)
+  backend:
+    build:
+      context: ./spring-backend
+      dockerfile: Dockerfile.dev # 開発用のDockerfileを指定
+    container_name: app_backend
     ports:
-      - "5173:5173"
+      - '8080:8080'
+    volumes:
+      - ./spring-backend:/app
+      - /app/target/ # コンテナ内のビルド成果物をローカルに逆流させない
+      - ~/.m2:/root/.m2 # Mavenのライブラリキャッシュを保持
+    depends_on:
+      db:
+        condition: service_healthy # DBの起動（Healthcheck）が成功してから起動
+
+  # 3. フロントエンド (Vue)
+  frontend:
+    build:
+      context: ./vue-frontend
+      dockerfile: Dockerfile
+    container_name: app_frontend
+    ports:
+      - '5173:5173'
     volumes:
       - ./vue-frontend:/app
       - /app/node_modules
-    working_dir: /app
-#    command: npm run dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true # ホットリロードが検知されない場合の対策
+    depends_on:
+      - backend
+
+# データの永続化用ボリューム
+volumes:
+  pgdata:

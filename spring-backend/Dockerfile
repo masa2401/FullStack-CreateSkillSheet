@@ -7,9 +7,9 @@ COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 RUN ./mvnw dependency:go-offline -B
 
-# ソースコードをコピーしてビルド（テストはスキップ）
+# ソースコードをコピーしてビルド
 COPY src ./src
-RUN ./mvnw clean package -DskipTests -B
+RUN ./mvnw clean package 
 
 # 2. 実行ステージ
 FROM eclipse-temurin:21-jre-alpine

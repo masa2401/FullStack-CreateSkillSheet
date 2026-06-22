@@ -1,13 +1,17 @@
-FROM node:20-alpine
+FROM node:24.16.0-alpine
 
 WORKDIR /app
 
-# 依存関係の定義だけを先にコピーしてインストール
+# 依存関係のキャッシュを利用するため、先にパッケージファイルをコピー
 COPY package*.json ./
+
 RUN npm install
 
-# 開発サーバーのポートを開放
+# ソースコードのコピー
+COPY . .
+
+# Viteの開発サーバー（5173ポート）を開放
 EXPOSE 5173
 
-# 開発サーバーを起動（Viteの場合。Vue CLIなら npm run serve）
+# ホストからのアクセスを許可するため --host を付与
 CMD ["npm", "run", "dev", "--", "--host"]
