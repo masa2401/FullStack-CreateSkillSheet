@@ -2,8 +2,7 @@
 
 &nbsp;
 
-[サイトはこちら](https://masa2401.github.io/CreateYourSkillSheet/#/)  
-(GitHubPagesを利用）
+[【サイトはこちら】](https://masa2401.github.io/CreateYourSkillSheet/#/) (GitHub Pages）
 
 &nbsp;
 
@@ -17,10 +16,14 @@
 
 ### 使用技術
 
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Vitest](https://img.shields.io/badge/Vitest-7EA93D?style=for-the-badge&logo=vitest&logoColor=white)
+
 - FrameWork: Vue 3 (Composition API)
 - Language: TypeScript
 - BuildTool: Vite
-- Linter/Formatter: ESLint, Prettier
 - Deployment: GitHub Pages
 
 &nbsp;
