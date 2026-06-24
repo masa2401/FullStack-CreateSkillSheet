@@ -92,7 +92,7 @@ export const useSurveyStore = defineStore('survey', () => {
    * buildInitialSelections() でリセット後、受け取った状態を上書きする。
    * マスターデータに存在しないIDは無視するため、質問追加後の古いURLにも耐えられる。
    */
-  const loadFromSharedData = (state: SurveyState): void => {
+  const loadFromSharedState = (state: SurveyState) => {
     userName.value = state.userName;
     selections.value = buildInitialSelections();
 
@@ -162,7 +162,7 @@ export const useSurveyStore = defineStore('survey', () => {
     setUserName,
     setCategoryChecked,
     setAnswerSelection,
-    loadFromSharedData,
+    loadFromSharedState,
     getSavedIdOrSave,
     reset,
     $persist,

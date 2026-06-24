@@ -33,9 +33,8 @@ public class SheetAnswer {
     @Column(name = "question_id")
     private Integer questionId;
 
-    @Column(name = "question_text")
-    private String questionText;
+    @Column(name = "answer_id")
+    private Integer answerId;
 
-    private String label;
     private Integer value;
 }

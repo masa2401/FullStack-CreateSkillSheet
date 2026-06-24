@@ -38,8 +38,6 @@ public class SheetCategory {
     @Column(name = "category_id")
     private Integer categoryId;
 
-    private String genre;
-
     @OneToMany(mappedBy = "sheetCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SheetAnswer> answers = new ArrayList<>();
 }

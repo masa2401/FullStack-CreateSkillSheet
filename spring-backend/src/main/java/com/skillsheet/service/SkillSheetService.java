@@ -43,7 +43,6 @@ public class SkillSheetService {
         for (CategoryDto catDto : req.categories()) {
             SheetCategory category = new SheetCategory();
             category.setCategoryId(catDto.id());
-            category.setGenre(catDto.genre());
             category.setSkillSheet(sheet); // 親への参照をセット
 
             // 3. 回答をエンティティに変換して追加
@@ -51,8 +50,7 @@ public class SkillSheetService {
                 for (AnswerDto aDto : qDto.answers()) {
                     SheetAnswer answer = new SheetAnswer();
                     answer.setQuestionId(qDto.id());
-                    answer.setQuestionText(qDto.questionText());
-                    answer.setLabel(aDto.label());
+                    answer.setAnswerId(aDto.answerId());
                     answer.setValue(aDto.value());
                     answer.setSheetCategory(category);
                     category.getAnswers().add(answer);
@@ -78,7 +76,6 @@ public class SkillSheetService {
         List<CategoryDto> categories = sheet.getCategories().stream()
                 .map(cat -> new CategoryDto(
                         cat.getCategoryId(),
-                        cat.getGenre(),
                         buildQustions(cat.getAnswers())))
                 .toList();
 
@@ -91,11 +88,10 @@ public class SkillSheetService {
                 .collect(Collectors.groupingBy(a -> a.getQuestionId()))
                 .entrySet().stream()
                 .map(entry -> {
-                    SheetAnswer first = entry.getValue().get(0);
                     List<AnswerDto> answerDtos = entry.getValue().stream()
-                            .map(a -> new AnswerDto(a.getLabel(), a.getValue()))
+                            .map(a -> new AnswerDto(a.getAnswerId(), a.getValue()))
                             .toList();
-                    return new QuestionDto(entry.getKey(), first.getQuestionText(), answerDtos);
+                    return new QuestionDto(entry.getKey(), answerDtos);
                 })
                 .toList();
     }

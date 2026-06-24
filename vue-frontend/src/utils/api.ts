@@ -1,20 +1,26 @@
-import type { SurveyData } from '@/types';
-import { API_BASE, isBackendEnabled, toSurveyData, type SheetDto } from './sheetMapper';
+import type { SurveyState } from '@/types';
+import { API_BASE, isBackendEnabled, toSurveyState, type SheetDto } from './sheetMapper';
 
 export { isBackendEnabled, saveSheet } from './sheetMapper';
 
-export const fetchSheet = async (id: string): Promise<SurveyData | null> => {
+export type FetchSheetResult =
+  | { status: 'success'; data: SurveyState }
+  | { status: 'expired' }
+  | { status: 'notfound' };
+
+export const fetchSheet = async (id: string): Promise<FetchSheetResult | null> => {
   if (!isBackendEnabled()) return null;
   const res = await fetch(`${API_BASE}/api/sheets/${id}`);
-  if (!res.ok) return null;
+  if (res.status === 410) return { status: 'expired' };
+  if (!res.ok) return { status: 'notfound' };
   const dto = (await res.json()) as SheetDto;
-  return toSurveyData(dto);
+  return { status: 'success', data: toSurveyState(dto) };
 };
 
 export const checkSheetExists = async (id: string): Promise<boolean> => {
   try {
     const res = await fetch(`${API_BASE}/api/sheets/${id}`);
-    return res.ok; // 200ならtrue、404ならfalse
+    return res.ok;
   } catch {
     return false;
   }

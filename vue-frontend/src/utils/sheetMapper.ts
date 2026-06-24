@@ -1,18 +1,21 @@
-import type { CategoryState, StarLevel, SurveyData } from '@/types';
-import { CATEGORIES } from './constants';
+import type {
+  AnswerSelection,
+  CategorySelection,
+  QuestionSelection,
+  StarLevel,
+  SurveyState,
+} from '@/types';
 
 interface AnswerDto {
-  label: string;
+  answerId: number;
   value: number;
 }
 interface QuestionDto {
-  id: number;
-  questionText: string;
+  questionId: number;
   answers: AnswerDto[];
 }
 interface CategoryDto {
-  id: number;
-  genre: string;
+  categoryId: number;
   questions: QuestionDto[];
 }
 
@@ -21,74 +24,83 @@ export interface SheetDto {
   categories: CategoryDto[];
 }
 
+// ─── 定数 ──────────────────────────────────────────────────────────
+
 export const API_BASE = import.meta.env.VITE_API_BASE_URL;
 export const isBackendEnabled = (): boolean => !!API_BASE;
-
-// ─── カテゴリIDからアイコンを復元するためのマップ ───────────────
-const CATEGORY_ICON_BY_ID: Record<number, string> = Object.fromEntries(
-  Object.values(CATEGORIES).map((c) => [c.id, c.icon]),
-);
-// 想定外の id が来た場合のフォールバック（共通カテゴリのアイコンを流用）
-const FALLBACK_ICON = CATEGORIES.COMMON.icon;
-
-const getCategoryIcon = (id: number): string => CATEGORY_ICON_BY_ID[id] ?? FALLBACK_ICON;
 
 const STAR_LEVELS: readonly StarLevel[] = [1, 2, 3, 4, 5];
 const toStarLevel = (value: number): StarLevel | undefined =>
   (STAR_LEVELS as readonly number[]).includes(value) ? (value as StarLevel) : undefined;
 
-export const saveSheet = async (data: SurveyData): Promise<string | null> => {
+// ─── SurveyState → SheetDto（保存時） ──────────────────────────────
+
+/**
+ * SurveyState（状態のみ）をSheetDtoに変換する。
+ * label / questionText はマスターデータから引き当てて付与する。
+ * バックエンドのスキーマは変えないため、DTOの形は変わらない。
+ */
+const toSheetDto = (state: SurveyState): SheetDto => ({
+  userName: state.userName,
+  categories: state.selections
+    .filter((sel) => sel.isChecked)
+    .map((sel) => ({
+      categoryId: sel.categoryId,
+      questions: sel.questions
+        .map((q) => ({
+          questionId: q.questionId,
+          answers: q.answers
+            .filter((a) => a.isChecked && a.value !== undefined)
+            .map((a) => ({
+              answerId: a.answerId,
+              value: a.value as number,
+            })),
+        }))
+        .filter((q) => q.answers.length > 0),
+    })),
+});
+
+export const saveSheet = async (state: SurveyState): Promise<string | null> => {
   if (!isBackendEnabled()) return null;
-  const requestBody: SheetDto = {
-    userName: data.userName,
-    categories: data.categories
-      .filter((cat) => cat.isChecked)
-      .map((cat) => ({
-        id: cat.id,
-        genre: cat.genre,
-        questions: cat.questions
-          .map((q) => ({
-            id: q.id,
-            questionText: q.questionText,
-            answers: q.answers
-              .filter((a) => a.isChecked && a.value !== undefined)
-              .map((a) => ({
-                label: a.label,
-                value: a.value as number,
-              })),
-          }))
-          .filter((q) => q.answers.length > 0),
-      })),
-  };
 
   const res = await fetch(`${API_BASE}/api/sheets`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(toSheetDto(state)),
   });
   if (!res.ok) throw new Error('保存に失敗しました');
   const { id } = await res.json();
   return id;
 };
 
-// DTO → SurveyData への変換（fetchSheet専用）
-export const toSurveyData = (dto: SheetDto): SurveyData => ({
+// ─── SheetDto → SurveyState（取得時） ──────────────────────────────
+
+/**
+ * バックエンドから取得したSheetDtoをSurveyStateに変換する。
+ * DTOのlabel/questionTextでマスターデータのIDを逆引きして、
+ * AnswerSelection / QuestionSelection を組み立てる。
+ *
+ * マスターデータに存在しないlabel/questionTextは無視する。
+ * （バックエンドの質問を将来編集可能にした際の差分吸収）
+ */
+export const toSurveyState = (dto: SheetDto): SurveyState => ({
   userName: dto.userName,
-  categories: dto.categories.map(
-    (cat): CategoryState => ({
-      id: cat.id,
-      genre: cat.genre,
-      icon: getCategoryIcon(cat.id),
-      isChecked: true, // ← DTOに存在する＝保存時にチェック済みだったので true で復元
-      questions: cat.questions.map((q) => ({
-        id: q.id,
-        questionText: q.questionText,
-        answers: q.answers.map((a) => ({
-          label: a.label,
-          isChecked: true,
-          value: toStarLevel(a.value),
-        })),
-      })),
+  selections: dto.categories.map(
+    (cat): CategorySelection => ({
+      categoryId: cat.categoryId,
+      isChecked: true,
+      questions: cat.questions.map(
+        (q): QuestionSelection => ({
+          questionId: q.questionId,
+          answers: q.answers.map(
+            (a): AnswerSelection => ({
+              answerId: a.answerId,
+              isChecked: true,
+              value: toStarLevel(a.value),
+            }),
+          ),
+        }),
+      ),
     }),
   ),
 });

@@ -4,6 +4,5 @@ import java.util.List;
 
 public record CategoryDto(
         Integer id,
-        String genre,
         List<QuestionDto> questions) {
 }

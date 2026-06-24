@@ -30,7 +30,7 @@ export function useResolvedSurvey() {
             id: questionDef.id,
             questionText: questionDef.questionText,
             answers: qSel.answers.map((aSel) => {
-              const answerDef = questionDef.answers.find((a) => (a.id = aSel.answerId))!;
+              const answerDef = questionDef.answers.find((a) => a.id === aSel.answerId)!;
               return {
                 id: aSel.answerId,
                 label: answerDef.label,
