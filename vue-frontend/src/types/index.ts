@@ -1,10 +1,6 @@
-export * from './question';
-import type { QuestionState } from './question';
+import type { CategorySelection } from './question';
 
-export interface SurveyData {
-  userName: string;
-  categories: CategoryState[];
-}
+export * from './question';
 
 /** マスターデータ: カテゴリの定義情報のみ */
 export interface CategoryDef {
@@ -13,13 +9,14 @@ export interface CategoryDef {
   icon: string;
 }
 
-/** UI状態: 選択状態・質問状態を含む */
-export interface CategoryState {
-  id: number;
-  genre: string;
-  icon: string;
-  isChecked: boolean;
-  questions: QuestionState[];
+/**
+ * ユーザーの入力状態のみを保持するオブジェクト。
+ * マスターデータ（genre, icon, label 等）は含まない。
+ * 表示時は categoryId / questionId / answerIndex でマスターと結合する。
+ */
+export interface SurveyState {
+  userName: string;
+  selections: CategorySelection[];
 }
 
 export interface ValidationError {
