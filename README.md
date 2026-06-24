@@ -5,7 +5,7 @@
 [【 サイトはこちら 】](https://full-stack-create-skill-sheet.vercel.app/#/)
 
 実装済：IDでのURL共有機能、期限付共有URL化  
-実装予定：PDF出力API、集計機能、WebHook追加機能、マイグレーションツールの導入
+実装予定：PDF出力API、集計機能、WebHook追加機能
 
 &nbsp;
 
@@ -64,23 +64,29 @@ graph TD
 
 #### フロントエンド
 
-- Framework: Vue 3 (Composition API)
-- Language: TypeScript
-- Build Tool: Vite
-- State Management: Pinia
-- Test: Vitest
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Vitest](https://img.shields.io/badge/Vitest-7EA93D?style=for-the-badge&logo=vitest&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
+![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white)
 
-#### バックエンド / インフラ
+#### バックエンド
 
-- Framework: Spring Boot 3.5.8
-- Language: Java 21
-- Build Tool: Maven
-- Database: PostgreSQL
-- ORM: Spring Data JPA (Hibernate)
-- CI/CD / Infrastructure: GitHub Actions, Docker, Vercel, Railway
-- Other Tools: Lombok
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Maven](https://img.shields.io/badge/Apache_Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-CC292B?style=for-the-badge&logo=flyway&logoColor=white)
 
-&nbsp;
+#### インフラ / その他
+
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)
 
 ## ディレクトリ構造
 
