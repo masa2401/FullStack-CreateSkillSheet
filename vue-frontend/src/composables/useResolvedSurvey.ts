@@ -3,6 +3,11 @@ import { useSurveyStore } from '@/stores/useSurveyStore';
 import { CATEGORIES } from '@/utils/constants';
 import { computed } from 'vue';
 
+/**
+ * マスターデータと状態を結合した表示用ビュー。
+ * コンポーネントはこれを参照する。
+ */
+
 export function useResolvedSurvey() {
   const store = useSurveyStore();
   const resolvedCategories = computed(() =>
@@ -21,9 +26,22 @@ export function useResolvedSurvey() {
         isChecked: sel.isChecked,
         questions: sel.questions.map((qSel) => {
           const questionDef = questionMaster.find((q) => q.id === qSel.questionId)!;
-          return {};
+          return {
+            id: questionDef.id,
+            questionText: questionDef.questionText,
+            answers: qSel.answers.map((aSel) => {
+              const answerDef = questionDef.answers.find((a) => (a.id = aSel.answerId))!;
+              return {
+                id: aSel.answerId,
+                label: answerDef.label,
+                isChecked: aSel.isChecked,
+                value: aSel.value,
+              };
+            }),
+          };
         }),
       };
     }),
   );
+  return { resolvedCategories };
 }

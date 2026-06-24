@@ -74,7 +74,18 @@ export const useSurveyStore = defineStore('survey', () => {
     if (sel) sel.isChecked = checked;
   };
 
-  const setAnswerSelection = (categoryId: number,questionId: number,answerId:number,patch: Partial<>)
+  const setAnswerSelection = (
+    categoryId: number,
+    questionId: number,
+    answerId: number,
+    patch: Partial<Pick<AnswerSelection, 'isChecked' | 'value'>>,
+  ): void => {
+    const aSel = selections.value
+      .find((s) => s.categoryId === categoryId)
+      ?.questions.find((q) => q.questionId === questionId)
+      ?.answers.find((a) => a.answerId === answerId);
+    if (aSel) Object.assign(aSel, patch);
+  };
 
   /**
    * 共有データ（SurveyState）からストアを復元する。
@@ -83,19 +94,25 @@ export const useSurveyStore = defineStore('survey', () => {
    */
   const loadFromSharedData = (state: SurveyState): void => {
     userName.value = state.userName;
-    selections.value = selections.value.map((sel) => {
-      const shared = data.categories.find((c) => c.id === cat.id);
-      return shared ? { ...cat, isChecked: shared.isChecked, questions: shared.questions } : cat;
-    });
+    selections.value = buildInitialSelections();
 
-    try {
-      localStorage.setItem(
-        'survey',
-        JSON.stringify({ userName: userName.value, categoryData: categoryData.value }),
-      );
-    } catch (e) {
-      console.error('Failed to update localStorage manually:', e);
-    }
+    state.selections.forEach((incoming) => {
+      const sel = selections.value.find((s) => s.categoryId === incoming.categoryId);
+      if (!sel) return;
+      sel.isChecked = incoming.isChecked;
+
+      incoming.questions.forEach((incomingQ) => {
+        const qSel = sel.questions.find((q) => q.questionId === incomingQ.questionId);
+        if (!qSel) return;
+
+        incomingQ.answers.forEach((incomingA) => {
+          const aSel = qSel.answers.find((a) => a.answerId === incomingA.answerId);
+          if (!aSel) return;
+          aSel.isChecked = incomingA.isChecked;
+          aSel.value = incomingA.value;
+        });
+      });
+    });
   };
 
   const getSavedIdOrSave = async (): Promise<string> => {
@@ -144,6 +161,7 @@ export const useSurveyStore = defineStore('survey', () => {
     savedDataSnapshot,
     setUserName,
     setCategoryChecked,
+    setAnswerSelection,
     loadFromSharedData,
     getSavedIdOrSave,
     reset,
