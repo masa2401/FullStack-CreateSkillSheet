@@ -1,28 +1,29 @@
 ﻿<script setup lang="ts">
 import ValidationError from '@/components/ValidationError.vue';
+import { useNameValidation } from '@/composables/useNameValidation';
+import { CATEGORY_MASTERS } from '@/data/questions';
+import { useSurveyStore } from '@/stores/useSurveyStore';
+import { ROUTES } from '@/utils/constants';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useNameValidation } from '@/composables/useNameValidation';
-import { CATEGORIES, ROUTES } from '@/utils/constants';
-import { CATEGORY_META } from '@/data/questions';
-import { useSurveyStore } from '@/stores/useSurveyStore';
 
 const router = useRouter();
 const store = useSurveyStore();
 const isHovering = ref<boolean>(false);
-const { label: engineerLabel, description: engineerDescription } = CATEGORY_META.engineer;
-const { label: designerLabel, description: designerDescription } = CATEGORY_META.designer;
+
+const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!;
+const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!;
 
 // ─── フォームデータ ──────────────────────────────────────────────────────────
 
 const userName = ref<string>(store.userName);
 const engineerChecked = computed({
-  get: () => store.isEngineerSelected,
-  set: (val: boolean) => store.setCategoryChecked(CATEGORIES.ENGINEER.id, val)
+  get: () => store.selections.find((c) => c.categoryId === engineerMaster.id)?.isChecked ?? false,
+  set: (val: boolean) => store.setCategoryChecked(engineerMaster.id, val)
 })
 const designerChecked = computed({
-  get: () => store.isDesignerSelected,
-  set: (val: boolean) => store.setCategoryChecked(CATEGORIES.DESIGNER.id, val)
+  get: () => store.selections.find((c) => c.categoryId === designerMaster.id)?.isChecked ?? false,
+  set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val)
 })
 
 // ─── バリデーション ──────────────────────────────────────────────────────────
@@ -75,9 +76,9 @@ const validateAndProceed = (): void => {
                 <div class="card-icon-large">
                   <font-awesome-icon icon="fa-solid fa-computer" />
                 </div>
-                <h4 class="card-category-title">{{ engineerLabel }}</h4>
+                <h4 class="card-category-title">{{ engineerMaster.label }}</h4>
                 <p id="engineer-desc" class="card-category-desc">
-                  {{ engineerDescription }}
+                  {{ engineerMaster.description }}
                 </p>
                 <div class="check-indicator">
                   <span v-if="engineerChecked" class="check-mark">
@@ -93,8 +94,8 @@ const validateAndProceed = (): void => {
                 <div class="card-icon-large">
                   <font-awesome-icon icon="fa-solid fa-palette" />
                 </div>
-                <h4 class="card-category-title">{{ designerLabel }}</h4>
-                <p id="designer-desc" class="card-category-desc">{{ designerDescription }}</p>
+                <h4 class="card-category-title">{{ designerMaster.label }}</h4>
+                <p id="designer-desc" class="card-category-desc">{{ designerMaster.description }}</p>
                 <div class="check-indicator">
                   <span v-if="designerChecked" class="check-mark">
                     <font-awesome-icon icon="fa-solid fa-check" />

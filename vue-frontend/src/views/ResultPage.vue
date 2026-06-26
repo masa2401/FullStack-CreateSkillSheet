@@ -38,7 +38,7 @@ onMounted(async () => {
 
   const urlData = getDataFromUrl();
   if (urlData) {
-    store.loadFromSharedStore(urlData);
+    store.loadFromSharedState(urlData);
     isSharedView.value = true;
     isLoading.value = false;
     return;
@@ -127,7 +127,7 @@ const handlePrint = () => window.print();
           <AnimatedIconButton icon="fa-solid fa-print" label="印刷する" animationType="bounce"
             button-class="action-button print-button" @click="handlePrint" />
 
-          <ShareButton :surveyData="surveyData" />
+          <ShareButton />
 
           <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animationType="beat"
             button-class="action-button primary-button" @click="goToTop" />

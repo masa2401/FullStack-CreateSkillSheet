@@ -1,23 +1,11 @@
+import { CATEGORY_MASTER_BY_ID } from '@/data/questions';
+import type { CategorySelection } from '@/types';
 import { LEVEL_LABELS } from '@/utils/constants';
-import type { SurveyData } from '@/types';
 
-// ========================================
-// CSV変換・ダウンロード
-// ========================================
-
-/**
- * アンケートデータをCSV形式の文字列に変換する関数。
- * @param {SurveyData} surveyData - アンケートデータ
- * @returns {string} CSV形式の文字列
- * @throws {Error} 変換に失敗した場合
- */
-
-export const convertToCSV = (surveyData: SurveyData): string => {
+export const convertToCSV = (userName: string, selections: CategorySelection[]): string => {
   try {
-    // ヘッダー行
-    const header = [['ユーザー名', surveyData.userName], []];
+    const header = [['ユーザー名', userName], []];
 
-    // 習熟度説明行
     const labels = [
       ['習熟度の説明'],
       ...LEVEL_LABELS.map((level) => [level.stars, level.text]),
@@ -25,24 +13,40 @@ export const convertToCSV = (surveyData: SurveyData): string => {
     ];
 
     const tableHeader = ['カテゴリ', '質問', 'スキル', '習熟度'];
-    const body = surveyData.categories
-      .filter((category) => category.isChecked)
-      .flatMap((category) => {
-        let categoryShown = false; // カテゴリ行表示済フラグ
-        return category.questions.flatMap((question) => {
-          const checkedAnswers = question.answers.filter((answer) => answer.isChecked);
-          let questionShown = false; // 質問行表示済フラグ
-          return checkedAnswers.map((answer) => {
-            const level = answer.value ? LEVEL_LABELS[answer.value - 1] : undefined;
+
+    const body = selections
+      .filter((sel) => sel.isChecked)
+      .flatMap((sel) => {
+        // カテゴリマスターを引き当て
+        const categoryMaster = CATEGORY_MASTER_BY_ID.get(sel.categoryId);
+        if (!categoryMaster) return [];
+
+        let categoryShown = false;
+
+        return sel.questions.flatMap((qSel) => {
+          // 質問マスターを引き当て
+          const questionDef = categoryMaster.questions.find((q) => q.id === qSel.questionId);
+          if (!questionDef) return [];
+
+          const checkedAnswers = qSel.answers.filter((a) => a.isChecked);
+          let questionShown = false;
+
+          return checkedAnswers.flatMap((aSel) => {
+            // 回答マスターを引き当て
+            const answerDef = questionDef.answers.find((a) => a.id === aSel.answerId);
+            if (!answerDef) return [];
+
+            const level = aSel.value ? LEVEL_LABELS[aSel.value - 1] : undefined;
+
             const row = [
-              !categoryShown ? category.genre : '',
-              !questionShown ? question.questionText : '',
-              answer.label,
+              !categoryShown ? categoryMaster.genre : '',
+              !questionShown ? questionDef.questionText : '',
+              answerDef.label,
               level ? level.stars : '',
             ];
             categoryShown = true;
             questionShown = true;
-            return row;
+            return [row];
           });
         });
       });
@@ -59,54 +63,36 @@ export const convertToCSV = (surveyData: SurveyData): string => {
       )
       .join('\r\n');
 
-    return '\uFEFF' + csvContent; // BOM付きUTF-8（Excelでの文字化け防止）
+    return '\uFEFF' + csvContent;
   } catch (error) {
     console.error('CSV変換エラー:', error);
     throw new Error('CSVへの変換に失敗しました');
   }
 };
 
-/**
- * アンケートデータをCSVファイルとしてダウンロードする関数。
- * @param {SurveyData} surveyData - アンケートデータ
- * @returns {boolean} ダウンロード成功の有無
- */
-
-export const downloadCSV = (surveyData: SurveyData): boolean => {
+export const downloadCSV = (userName: string, selections: CategorySelection[]): boolean => {
   try {
-    // データ検証
-    if (!surveyData || !surveyData.userName || !surveyData.categories) {
-      console.error('無効なデータ:', surveyData);
+    if (!userName || !selections.length) {
+      console.error('無効なデータ');
       return false;
     }
 
-    // CSV変換
-    const csv = convertToCSV(surveyData);
-
-    // Blob作成
+    const csv = convertToCSV(userName, selections);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
 
-    // ファイル名生成（ユーザー名_スキルシート_日付.csv）
-    const date = new Date();
-    const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
-    const fileName = `${surveyData.userName}様_スキルシート_${dateString}.csv`;
+    const dateString = new Date().toISOString().split('T')[0];
+    const fileName = `${userName}様_スキルシート_${dateString}.csv`;
 
-    // ダウンロード実行
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
-
-    // クリーンアップ
     document.body.removeChild(link);
 
-    // メモリ解放（少し遅延させる）
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 100);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 
     console.info('CSVダウンロード成功:', fileName);
     return true;

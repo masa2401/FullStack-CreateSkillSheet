@@ -79,7 +79,7 @@ const onSubmit = async (): Promise<void> => {
         <div v-if="category.isChecked" class="category-section">
           <div class="category-header">
             <font-awesome-icon :icon="category.icon" class="category-icon" />
-            <h3 class="category-title">{{ category.genre }}</h3>
+            <h3 class="category-title">{{ category.label }}</h3>
           </div>
 
           <QuestionCard v-for="question in category.questions" :key="question.id" :question="question"

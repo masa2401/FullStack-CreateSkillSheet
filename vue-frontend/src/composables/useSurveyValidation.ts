@@ -1,24 +1,8 @@
 import AnswerItem from '@/components/AnswerItem.vue';
 import { useValidation } from '@/composables/useValidation';
-import type { ValidationError } from '@/types';
+import type { ResolvedCategory, ValidationError } from '@/types';
 import type { ComputedRef } from 'vue';
 import { computed, watch } from 'vue';
-
-type ResolvedCategory = {
-  id: number;
-  isChecked: boolean;
-  genre: string;
-  questions: {
-    id: number;
-    questionText: string;
-    answers: {
-      id: number;
-      label: string;
-      isChecked: boolean;
-      value?: number;
-    }[];
-  }[];
-};
 
 // ─── composable ────────────────────────────────────────────────────────────────
 
@@ -30,7 +14,7 @@ export function useSurveyValidation(resolvedCategories: ComputedRef<ResolvedCate
       cat.questions.forEach((q) => {
         q.answers.forEach((a) => {
           if (a.isChecked && !AnswerItem.value) {
-            errors.push({ category: cat.genre, text: q.questionText });
+            errors.push({ category: cat.label, text: q.questionText });
           }
         });
       });

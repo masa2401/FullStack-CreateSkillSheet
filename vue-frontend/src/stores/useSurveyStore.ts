@@ -1,7 +1,6 @@
-import { QUESTION_DATA } from '@/data/questions';
+import { CATEGORY_MASTERS } from '@/data/questions';
 import type { AnswerSelection, CategorySelection, QuestionSelection, SurveyState } from '@/types';
 import { checkSheetExists, saveSheet } from '@/utils/api';
-import { CATEGORIES } from '@/utils/constants';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -18,34 +17,24 @@ export const useSurveyStore = defineStore('survey', () => {
   // ─── 初期状態の構築 ────────────────────────────────────────────
 
   function buildInitialSelections(): CategorySelection[] {
-    return [
-      buildCategorySelection(CATEGORIES.COMMON, QUESTION_DATA.common, true),
-      buildCategorySelection(CATEGORIES.ENGINEER, QUESTION_DATA.engineer, false),
-      buildCategorySelection(CATEGORIES.DESIGNER, QUESTION_DATA.designer, false),
-    ];
-  }
-
-  function buildCategorySelection(
-    categoryDef: typeof CATEGORIES.COMMON,
-    questions: typeof QUESTION_DATA.common,
-    isChecked: boolean,
-  ): CategorySelection {
-    return {
-      categoryId: categoryDef.id,
-      isChecked,
-      questions: questions.map(
-        (q): QuestionSelection => ({
-          questionId: q.id,
-          answers: q.answers.map(
-            (a): AnswerSelection => ({
-              answerId: a.id,
-              isChecked: false,
-              value: undefined,
-            }),
-          ),
-        }),
-      ),
-    };
+    return CATEGORY_MASTERS.map(
+      (master): CategorySelection => ({
+        categoryId: master.id,
+        isChecked: master.isCheckedByDefault,
+        questions: master.questions.map(
+          (q): QuestionSelection => ({
+            questionId: q.id,
+            answers: q.answers.map(
+              (a): AnswerSelection => ({
+                answerId: a.id,
+                isChecked: false,
+                value: undefined,
+              }),
+            ),
+          }),
+        ),
+      }),
+    );
   }
 
   // ─── Getters ───────────────────────────────────────────────────
@@ -55,14 +44,6 @@ export const useSurveyStore = defineStore('survey', () => {
     userName: userName.value,
     selections: selections.value,
   }));
-
-  const isEngineerSelected = computed(
-    () => selections.value.find((c) => c.categoryId === CATEGORIES.ENGINEER.id)?.isChecked ?? false,
-  );
-
-  const isDesignerSelected = computed(
-    () => selections.value.find((c) => c.categoryId === CATEGORIES.DESIGNER.id)?.isChecked ?? false,
-  );
 
   // ─── Actions ───────────────────────────────────────────────────
   const setUserName = (name: string): void => {
@@ -155,8 +136,6 @@ export const useSurveyStore = defineStore('survey', () => {
     userName,
     selections,
     surveyState,
-    isEngineerSelected,
-    isDesignerSelected,
     savedSheetId,
     savedDataSnapshot,
     setUserName,
