@@ -1,11 +1,11 @@
+import { useSurveyStore } from '@/stores/useSurveyStore.ts';
+import { globalStubs } from '@/test/utils.ts';
+import { CATEGORIES, ROUTES } from '@/utils/constants.ts';
+import { createTestingPinia } from '@pinia/testing';
+import { flushPromises, mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import TopPage from './TopPage.vue';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { globalStubs } from '@/test/utils.ts';
-import { mount, flushPromises } from '@vue/test-utils';
-import { createTestingPinia } from '@pinia/testing';
-import { CATEGORIES, ROUTES } from '@/utils/constants.ts';
-import { useSurveyStore } from '@/stores/useSurveyStore.ts';
 
 const buildRouter = () =>
   createRouter({

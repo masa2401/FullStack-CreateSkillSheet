@@ -1,20 +1,38 @@
 import type { SurveyState } from '@/types';
-import { API_BASE, isBackendEnabled, toSurveyState, type SheetDto } from './sheetMapper';
+import { toSheetDto, toSurveyState, type SheetDto } from './sheetMapper';
 
-export { isBackendEnabled, saveSheet } from './sheetMapper';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+export const isBackendEnabled = (): boolean => !!API_BASE;
 
 export type FetchSheetResult =
   | { status: 'success'; data: SurveyState }
   | { status: 'expired' }
   | { status: 'notfound' };
 
+export const saveSheet = async (state: SurveyState): Promise<string | null> => {
+  if (!isBackendEnabled()) return null;
+
+  const res = await fetch(`${API_BASE}/api/sheets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(toSheetDto(state)),
+  });
+  if (!res.ok) throw new Error('保存に失敗しました');
+  const { id } = await res.json();
+  return id;
+};
+
 export const fetchSheet = async (id: string): Promise<FetchSheetResult | null> => {
   if (!isBackendEnabled()) return null;
-  const res = await fetch(`${API_BASE}/api/sheets/${id}`);
-  if (res.status === 410) return { status: 'expired' };
-  if (!res.ok) return { status: 'notfound' };
-  const dto = (await res.json()) as SheetDto;
-  return { status: 'success', data: toSurveyState(dto) };
+  try {
+    const res = await fetch(`${API_BASE}/api/sheets/${id}`);
+    if (res.status === 410) return { status: 'expired' };
+    if (!res.ok) return { status: 'notfound' };
+    const dto = (await res.json()) as SheetDto;
+    return { status: 'success', data: toSurveyState(dto) };
+  } catch {
+    return null;
+  }
 };
 
 export const checkSheetExists = async (id: string): Promise<boolean> => {

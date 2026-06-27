@@ -1,25 +1,33 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
-import { ROUTES } from '@/utils/constants'
+import { ROUTES } from '@/utils/constants';
+import { useRoute, useRouter } from 'vue-router';
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
 const goToTop = () => {
   if (route.path !== ROUTES.TOP) {
-    router.push(ROUTES.TOP)
+    router.push(ROUTES.TOP);
   }
-}
+};
 </script>
 
 <template>
   <header class="header">
-    <h1 class="title" @click="goToTop" @keydown.enter="goToTop" @keydown.space.prevent="goToTop" role="button"
-      tabindex="0" :aria-label="route.path !== ROUTES.TOP ? 'トップページへ戻る' : '現在のページ（トップページ）'">
-      <span class="icon">
-        <font-awesome-icon icon="fa-solid fa-pen-to-square" />
-      </span>
-      スキルシート制作ページ
+    <h1>
+      <button
+        class="title"
+        @click="goToTop"
+        @keydown.enter="goToTop"
+        @keydown.space.prevent="goToTop"
+        tabindex="0"
+        :aria-label="`スキルシート制作ページ（${route.path !== ROUTES.TOP ? 'トップページへ戻る' : 'TOPページ'}）`"
+      >
+        <span class="icon">
+          <font-awesome-icon icon="fa-solid fa-pen-to-square" />
+        </span>
+        スキルシート制作ページ
+      </button>
     </h1>
   </header>
 </template>
@@ -42,6 +50,8 @@ const goToTop = () => {
   cursor: pointer;
   transition: transform 0.2s;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  border: transparent;
 }
 
 .title:hover {

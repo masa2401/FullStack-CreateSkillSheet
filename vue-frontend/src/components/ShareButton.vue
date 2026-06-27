@@ -1,22 +1,31 @@
 <script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import { ref } from 'vue';
+import CsvButton from './CsvButton.vue';
+import ShareUrlButton from './ShareUrlButton.vue';
 
 const showMenu = ref<boolean>(false);
 
 const toggleMenu = () => {
   showMenu.value = !showMenu.value;
-}
+};
 
 const closeMenu = () => {
   showMenu.value = false;
-}
+};
 </script>
 
 <template>
   <div class="share-button-container">
-    <AnimatedIconButton icon="fa-solid fa-arrow-up-right-from-square" label="結果を共有" :aria-expanded="showMenu"
-      aria-haspopup="true" animationType="bounce" button-class="share-button" @click="toggleMenu" />
+    <AnimatedIconButton
+      icon="fa-solid fa-arrow-up-right-from-square"
+      label="結果を共有"
+      :aria-expanded="showMenu"
+      aria-haspopup="true"
+      animationType="bounce"
+      button-class="share-button"
+      @click="toggleMenu"
+    />
 
     <transition name="slide-fade">
       <div v-if="showMenu" class="share-menu">

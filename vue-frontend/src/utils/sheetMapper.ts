@@ -26,9 +26,6 @@ export interface SheetDto {
 
 // ─── 定数 ──────────────────────────────────────────────────────────
 
-export const API_BASE = import.meta.env.VITE_API_BASE_URL;
-export const isBackendEnabled = (): boolean => !!API_BASE;
-
 const STAR_LEVELS: readonly StarLevel[] = [1, 2, 3, 4, 5];
 const toStarLevel = (value: number): StarLevel | undefined =>
   (STAR_LEVELS as readonly number[]).includes(value) ? (value as StarLevel) : undefined;
@@ -40,7 +37,7 @@ const toStarLevel = (value: number): StarLevel | undefined =>
  * label / questionText はマスターデータから引き当てて付与する。
  * バックエンドのスキーマは変えないため、DTOの形は変わらない。
  */
-const toSheetDto = (state: SurveyState): SheetDto => ({
+export const toSheetDto = (state: SurveyState): SheetDto => ({
   userName: state.userName,
   categories: state.selections
     .filter((sel) => sel.isChecked)
@@ -59,19 +56,6 @@ const toSheetDto = (state: SurveyState): SheetDto => ({
         .filter((q) => q.answers.length > 0),
     })),
 });
-
-export const saveSheet = async (state: SurveyState): Promise<string | null> => {
-  if (!isBackendEnabled()) return null;
-
-  const res = await fetch(`${API_BASE}/api/sheets`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(toSheetDto(state)),
-  });
-  if (!res.ok) throw new Error('保存に失敗しました');
-  const { id } = await res.json();
-  return id;
-};
 
 // ─── SheetDto → SurveyState（取得時） ──────────────────────────────
 

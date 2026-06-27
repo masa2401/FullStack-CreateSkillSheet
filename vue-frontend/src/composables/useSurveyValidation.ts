@@ -1,4 +1,3 @@
-import AnswerItem from '@/components/AnswerItem.vue';
 import { useValidation } from '@/composables/useValidation';
 import type { ResolvedCategory, ValidationError } from '@/types';
 import type { ComputedRef } from 'vue';
@@ -13,7 +12,7 @@ export function useSurveyValidation(resolvedCategories: ComputedRef<ResolvedCate
       if (!cat.isChecked) return;
       cat.questions.forEach((q) => {
         q.answers.forEach((a) => {
-          if (a.isChecked && !AnswerItem.value) {
+          if (a.isChecked && !a.value) {
             errors.push({ category: cat.label, text: q.questionText });
           }
         });
@@ -29,7 +28,7 @@ export function useSurveyValidation(resolvedCategories: ComputedRef<ResolvedCate
   );
 
   watch(
-    resolvedCategories,
+    () => resolvedCategories,
     () => {
       if (hasAttemptedSubmit.value) {
         validationErrors.value = buildErrors();

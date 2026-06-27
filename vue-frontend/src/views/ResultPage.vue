@@ -3,19 +3,22 @@ import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import ShareButton from '@/components/ShareButton.vue';
 import { useResolvedSurvey } from '@/composables/useResolvedSurvey';
 import { useSurveyStore } from '@/stores/useSurveyStore';
-import { fetchSheet } from '@/utils/api';
+import { fetchSheet, isBackendEnabled } from '@/utils/api';
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
 import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils';
-import { isBackendEnabled } from '@/utils/sheetMapper';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const store = useSurveyStore();
 const { resolvedCategories } = useResolvedSurvey();
-const isSharedView = ref<boolean>(false);
-const isLoading = ref<boolean>(true);
-const errorType = ref<'expired' | 'notfound' | null>(null);
+
+type PageStatus =
+  | { type: 'loading' }
+  | { type: 'ready'; isSharedView: boolean }
+  | { type: 'error'; reason: 'expired' | 'notfound' };
+
+const pageStatus = ref<PageStatus>({ type: 'loading' });
 
 // ─── データ取得 ──────────────────────────────────────────────────────────────
 
@@ -26,27 +29,23 @@ onMounted(async () => {
     if (result === null) return;
     if (result.status === 'success') {
       store.loadFromSharedState(result.data);
-      isSharedView.value = true;
-      isLoading.value = false;
+      pageStatus.value = { type: 'ready', isSharedView: true };
       return;
     }
     // 期限切れ・見つからない場合はエラー状態をセットして終了
-    errorType.value = result.status;
-    isLoading.value = false;
+    pageStatus.value = { type: 'error', reason: result.status };
     return;
   }
 
   const urlData = getDataFromUrl();
   if (urlData) {
     store.loadFromSharedState(urlData);
-    isSharedView.value = true;
-    isLoading.value = false;
+    pageStatus.value = { type: 'ready', isSharedView: true };
     return;
   }
 
   // 通常の自分の結果表示
-  isSharedView.value = false;
-  isLoading.value = false;
+  pageStatus.value = { type: 'ready', isSharedView: false };
 });
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
@@ -73,7 +72,7 @@ const handlePrint = () => window.print();
 </script>
 
 <template>
-  <div class="page-container" v-if="!isLoading && !errorType">
+  <div class="page-container" v-if="pageStatus.type === 'ready'">
     <div class="content-wrapper">
       <div class="header-section">
         <div class="result-header">
@@ -96,11 +95,15 @@ const handlePrint = () => window.print();
     </div>
 
     <div class="content-wrapper">
-      <div v-for="category in displayCategories" :key="category.id" v-show="category.isChecked"
-        class="category-section">
+      <div
+        v-for="category in displayCategories"
+        :key="category.id"
+        v-show="category.isChecked"
+        class="category-section"
+      >
         <div class="category-header">
           <font-awesome-icon :icon="category.icon" class="category-icon" />
-          <h3 class="category-title">{{ category.genre }}</h3>
+          <h3 class="category-title">{{ category.label }}</h3>
         </div>
         <div v-for="question in category.questions" :key="question.id" class="question-block">
           <h4 class="question-title">{{ question.questionText }}</h4>
@@ -111,7 +114,7 @@ const handlePrint = () => window.print();
                 <div class="skill-level">
                   <span class="level-stars">{{
                     LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
-                    }}</span>
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -120,17 +123,32 @@ const handlePrint = () => window.print();
       </div>
 
       <div class="button-group no-print">
-        <template v-if="!isSharedView">
-          <AnimatedIconButton icon="fa-solid fa-arrow-left" label="修正する" animationType="beat"
-            button-class="action-button secondary-button" @click="goBack" />
+        <template v-if="!pageStatus.isSharedView">
+          <AnimatedIconButton
+            icon="fa-solid fa-arrow-left"
+            label="修正する"
+            animationType="beat"
+            button-class="action-button secondary-button"
+            @click="goBack"
+          />
 
-          <AnimatedIconButton icon="fa-solid fa-print" label="印刷する" animationType="bounce"
-            button-class="action-button print-button" @click="handlePrint" />
+          <AnimatedIconButton
+            icon="fa-solid fa-print"
+            label="印刷する"
+            animationType="bounce"
+            button-class="action-button print-button"
+            @click="handlePrint"
+          />
 
           <ShareButton />
 
-          <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animationType="beat"
-            button-class="action-button primary-button" @click="goToTop" />
+          <AnimatedIconButton
+            icon="fa-regular fa-house"
+            label="トップへ戻る"
+            animationType="beat"
+            button-class="action-button primary-button"
+            @click="goToTop"
+          />
         </template>
 
         <template v-else>
@@ -145,24 +163,36 @@ const handlePrint = () => window.print();
     </div>
   </div>
 
-  <div v-else-if="errorType" class="error-container">
+  <div v-else-if="pageStatus.type === 'error'" class="error-container">
     <div class="error-content">
       <span class="error-icon">
         <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
       </span>
       <h2 class="error-title">
-        {{ errorType === 'expired' ? 'リンクの有効期限が切れています' : 'リンクが見つかりません' }}
+        {{
+          pageStatus.reason === 'expired'
+            ? 'リンクの有効期限が切れています'
+            : 'リンクが見つかりません'
+        }}
       </h2>
       <p class="error-message">
-        {{ errorType === 'expired'
-          ? '共有リンクの有効期限（3日間）が切れています。'
-          : 'お探しのスキルシートは存在しないか、削除された可能性があります。' }}
+        {{
+          pageStatus.reason === 'expired'
+            ? '共有リンクの有効期限（3日間）が切れています。'
+            : 'お探しのスキルシートは存在しないか、削除された可能性があります。'
+        }}
       </p>
       <button @click="goToTop" class="action-button primary-button">トップへ戻る</button>
     </div>
   </div>
 
-  <div v-else class="loading-container" role="status" aria-label="データを読み込んでいます" aria-live="polite">
+  <div
+    v-else
+    class="loading-container"
+    role="status"
+    aria-label="データを読み込んでいます"
+    aria-live="polite"
+  >
     <div class="loading-spinner" aria-hidden="true"></div>
     <p class="loading-text">データを読み込んでいます...</p>
   </div>

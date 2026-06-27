@@ -82,8 +82,14 @@ const onSubmit = async (): Promise<void> => {
             <h3 class="category-title">{{ category.label }}</h3>
           </div>
 
-          <QuestionCard v-for="question in category.questions" :key="question.id" :question="question"
-            @update:question="handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)" />
+          <QuestionCard
+            v-for="question in category.questions"
+            :key="question.id"
+            :question="question"
+            @update:answer="
+              handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
+            "
+          />
         </div>
       </template>
 
@@ -99,8 +105,14 @@ const onSubmit = async (): Promise<void> => {
           <font-awesome-icon icon="fa-solid fa-triangle-exclamation" shake />
           すべてのチェック項目に習熟度を選択してください
         </p>
-        <button @mouseenter="isHovering = true" @mouseleave="isHovering = false" @click="onSubmit" class="submit-button"
-          :class="{ disabled: isSubmitDisabled }" :disabled="isSubmitDisabled">
+        <button
+          @mouseenter="isHovering = true"
+          @mouseleave="isHovering = false"
+          @click="onSubmit"
+          class="submit-button"
+          :class="{ disabled: isSubmitDisabled }"
+          :disabled="isSubmitDisabled"
+        >
           次へ進む &ensp;
           <font-awesome-icon icon="fa-solid fa-arrow-right" :bounce="isHovering" />
         </button>
@@ -242,7 +254,6 @@ const onSubmit = async (): Promise<void> => {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
