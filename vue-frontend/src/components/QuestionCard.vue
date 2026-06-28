@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StarLevel } from '@/types/question.ts';
+import type { StarLevel } from '@/types';
 import AnswerItem from './AnswerItem.vue';
 
 interface Answer {
@@ -8,7 +8,6 @@ interface Answer {
   isChecked: boolean;
   value?: StarLevel;
 }
-
 
 interface Question {
   id: number;
@@ -23,7 +22,9 @@ interface Props {
 defineProps<Props>();
 
 const emit = defineEmits<{
-  'update:answer': [payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } }];
+  'update:answer': [
+    payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
+  ];
 }>();
 </script>
 
@@ -31,8 +32,15 @@ const emit = defineEmits<{
   <div class="question-card">
     <h4 class="question-text">{{ question.questionText }}</h4>
     <div class="answers-grid">
-      <AnswerItem v-for="answer in question.answers" :key="answer.id" :answer-id="answer.id" :label="answer.label"
-        :is-checked="answer.isChecked" :value="answer.value" @update:answer="emit('update:answer', $event)" />
+      <AnswerItem
+        v-for="answer in question.answers"
+        :key="answer.id"
+        :answer-id="answer.id"
+        :label="answer.label"
+        :is-checked="answer.isChecked"
+        :value="answer.value"
+        @update:answer="emit('update:answer', $event)"
+      />
     </div>
   </div>
 </template>

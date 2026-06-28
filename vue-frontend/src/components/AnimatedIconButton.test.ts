@@ -1,7 +1,7 @@
+import { globalStubs } from '@/test/utils';
+import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import AnimatedIconButton from './AnimatedIconButton.vue';
-import { mount } from '@vue/test-utils';
-import { globalStubs } from '@/test/utils';
 
 describe('AnimatedIconButton', () => {
   it('ラベルが表示される', () => {

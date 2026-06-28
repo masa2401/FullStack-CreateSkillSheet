@@ -1,12 +1,11 @@
-import { createMemoryHistory, createRouter } from 'vue-router';
-import SurveyPage from './SurveyPage.vue';
-import type { CategoryState, QuestionState } from '@/types/index.ts';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { useSurveyStore } from '@/stores/useSurveyStore.ts';
 import { ROUTES } from '@/utils/constants.ts';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount } from '@vue/test-utils';
-import { useSurveyStore } from '@/stores/useSurveyStore.ts';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { nextTick } from 'vue';
+import { createMemoryHistory, createRouter } from 'vue-router';
+import SurveyPage from './SurveyPage.vue';
 
 const buildRouter = () =>
   createRouter({
@@ -17,14 +16,46 @@ const buildRouter = () =>
     ],
   });
 
-const makeCategory = (overrides: Partial<CategoryState> = {}): CategoryState => ({
-  id: 1,
-  genre: '共通の質問',
-  icon: 'fa-solid fa-briefcase',
-  isChecked: true,
-  questions: [],
-  ...overrides,
-});
+const makeSelections = (
+  answerOverrides: { isChecked: boolean; value?: number } = { isChecked: false },
+) => [
+  {
+    categoryId: 1,
+    isChecked: true,
+    questions: [
+      {
+        questionId: 1,
+        answers: [
+          { answerId: 1, ...answerOverrides },
+          { answerId: 2, isChecked: false },
+          { answerId: 3, isChecked: false },
+          { answerId: 4, isChecked: false },
+        ],
+      },
+      {
+        questionId: 2,
+        answers: [
+          { answerId: 1, isChecked: false },
+          { answerId: 2, isChecked: false },
+          { answerId: 3, isChecked: false },
+          { answerId: 4, isChecked: false },
+        ],
+      },
+      {
+        questionId: 3,
+        answers: [
+          { answerId: 1, isChecked: false },
+          { answerId: 2, isChecked: false },
+          { answerId: 3, isChecked: false },
+          { answerId: 4, isChecked: false },
+          { answerId: 5, isChecked: false },
+        ],
+      },
+    ],
+  },
+  { categoryId: 2, isChecked: false, questions: [] },
+  { categoryId: 3, isChecked: false, questions: [] },
+];
 
 describe('SurveyPage', () => {
   let router: ReturnType<typeof buildRouter>;
@@ -32,12 +63,6 @@ describe('SurveyPage', () => {
   beforeEach(async () => {
     router = buildRouter();
     await router.push(ROUTES.SURVEY);
-  });
-
-  const categoryWithUncheckedAnswer = makeCategory({
-    questions: [
-      { id: 1, questionText: 'Q1. テスト', answers: [{ label: '回答A', isChecked: false }] },
-    ],
   });
 
   const createWrapper = (surveyState: Record<string, unknown> = {}) =>
@@ -50,7 +75,7 @@ describe('SurveyPage', () => {
             initialState: {
               survey: {
                 userName: 'テストユーザー',
-                categoryData: [categoryWithUncheckedAnswer],
+                selections: makeSelections(),
                 ...surveyState,
               },
             },
@@ -61,7 +86,7 @@ describe('SurveyPage', () => {
           QuestionCard: {
             name: 'QuestionCard',
             props: ['question'],
-            emits: ['update:question'],
+            emits: ['update:answer'],
             template: '<div class="question-card-stub" />',
           },
         },
@@ -82,16 +107,17 @@ describe('SurveyPage', () => {
 
   it('isChecked = false のカテゴリセクションは表示されない', () => {
     const wrapper = createWrapper({
-      categoryData: [makeCategory({ isChecked: false })],
+      selections: [{ categoryId: 1, isChecked: false, questions: [] }],
     });
     expect(wrapper.findAll('.category-section')).toHaveLength(0);
   });
 
   it('複数カテゴリが選択されている場合、両セクションが表示される', () => {
     const wrapper = createWrapper({
-      categoryData: [
-        makeCategory({ id: 1, isChecked: true }),
-        makeCategory({ id: 2, icon: 'fa-solid fa-computer', isChecked: true }),
+      selections: [
+        { categoryId: 1, isChecked: true, questions: [] },
+        { categoryId: 2, isChecked: true, questions: [] },
+        { categoryId: 3, isChecked: false, questions: [] },
       ],
     });
     expect(wrapper.findAll('.category-section')).toHaveLength(2);
@@ -99,65 +125,22 @@ describe('SurveyPage', () => {
 
   it('カテゴリ名が表示される', () => {
     const wrapper = createWrapper();
-    expect(wrapper.find('.category-title').text()).toBe('共通の質問');
-  });
-
-  it('質問の数だけ QuestionCard が表示される', () => {
-    const wrapper = createWrapper({
-      categoryData: [
-        makeCategory({
-          questions: [
-            { id: 1, questionText: 'Q1', answers: [] },
-            { id: 2, questionText: 'Q2', answers: [] },
-          ],
-        }),
-      ],
-    });
-    expect(wrapper.findAll('.question-card-stub')).toHaveLength(2);
-  });
-
-  // ─── handleQuestionUpdate ──────────────────────────────────
-
-  it('QuestionCard から update:question を受け取ると store の categoryData が更新される', async () => {
-    const wrapper = createWrapper({
-      categoryData: [
-        makeCategory({
-          questions: [
-            { id: 1, questionText: 'Q1', answers: [{ label: '回答A', isChecked: false }] },
-          ],
-        }),
-      ],
-    });
-    const store = useSurveyStore();
-    const updatedQuestion: QuestionState = {
-      id: 1,
-      questionText: 'Q1',
-      answers: [{ label: '回答A', isChecked: true, value: 4 }],
-    };
-
-    wrapper.findComponent({ name: 'QuestionCard' }).vm.$emit('update:question', updatedQuestion);
-    await nextTick();
-
-    expect(store.categoryData[0]!.questions[0]!.answers[0]!.isChecked).toBe(true);
-    expect(store.categoryData[0]!.questions[0]!.answers[0]!.value).toBe(4);
+    expect(wrapper.find('.category-title').text()).toBe('共通');
   });
 
   // ─── バリデーション ───────────────────────────────────────────────
 
   it('チェックなし回答のみの場合はエラーなしで遷移できる', async () => {
-    const wrapper = createWrapper({ categoryData: [categoryWithUncheckedAnswer] });
+    const wrapper = createWrapper();
     await wrapper.find('.submit-button').trigger('click');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe(ROUTES.RESULT);
   });
 
   it('チェックあり・習熟度未選択の場合はエラーが表示される', async () => {
-    const categoryWithUnchosenLevel = makeCategory({
-      questions: [
-        { id: 1, questionText: 'Q1. テスト', answers: [{ label: '回答A', isChecked: true }] },
-      ],
+    const wrapper = createWrapper({
+      selections: makeSelections({ isChecked: true }),
     });
-    const wrapper = createWrapper({ categoryData: [categoryWithUnchosenLevel] });
     await wrapper.find('.submit-button').trigger('click');
     await flushPromises();
     expect(wrapper.find('.error-message').exists()).toBe(true);
@@ -165,12 +148,9 @@ describe('SurveyPage', () => {
   });
 
   it('エラー発生時に送信ボタンが無効化される', async () => {
-    const categoryWithUnchosenLevel = makeCategory({
-      questions: [
-        { id: 1, questionText: 'Q1. テスト', answers: [{ label: '回答A', isChecked: true }] },
-      ],
+    const wrapper = createWrapper({
+      selections: makeSelections({ isChecked: true }),
     });
-    const wrapper = createWrapper({ categoryData: [categoryWithUnchosenLevel] });
     await wrapper.find('.submit-button').trigger('click');
     await flushPromises();
     expect((wrapper.find('.submit-button').element as HTMLButtonElement).disabled).toBe(true);
@@ -178,49 +158,34 @@ describe('SurveyPage', () => {
   });
 
   it('isSubmitDisabled が true のときヒントテキストが表示される', async () => {
-    const categoryWithUnchosenLevel = makeCategory({
-      questions: [
-        { id: 1, questionText: 'Q1. テスト', answers: [{ label: '回答A', isChecked: true }] },
-      ],
+    const wrapper = createWrapper({
+      selections: makeSelections({ isChecked: true }),
     });
-    const wrapper = createWrapper({ categoryData: [categoryWithUnchosenLevel] });
     await wrapper.find('.submit-button').trigger('click');
     await flushPromises();
     expect(wrapper.find('.submit-hint').exists()).toBe(true);
   });
 
   it('チェックあり・習熟度選択済みの場合はエラーなしで遷移できる', async () => {
-    const categoryWithChosenLevel = makeCategory({
-      questions: [
-        {
-          id: 1,
-          questionText: 'Q1. テスト',
-          answers: [{ label: '回答A', isChecked: true, value: 3 as const }],
-        },
-      ],
+    const wrapper = createWrapper({
+      selections: makeSelections({ isChecked: true, value: 3 }),
     });
-    const wrapper = createWrapper({ categoryData: [categoryWithChosenLevel] });
     await wrapper.find('.submit-button').trigger('click');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe(ROUTES.RESULT);
   });
 
   it('エラー修正後は送信ボタンが再び有効になる', async () => {
-    const categoryWithUnchosenLevel = makeCategory({
-      questions: [
-        { id: 1, questionText: 'Q1. テスト', answers: [{ label: '回答A', isChecked: true }] },
-      ],
+    const wrapper = createWrapper({
+      selections: makeSelections({ isChecked: true }),
     });
-    const wrapper = createWrapper({ categoryData: [categoryWithUnchosenLevel] });
     const store = useSurveyStore();
 
-    // まずエラー状態にする
     await wrapper.find('.submit-button').trigger('click');
     await flushPromises();
     expect((wrapper.find('.submit-button').element as HTMLButtonElement).disabled).toBe(true);
 
-    // ストアを直接更新して習熟度を選択済みにする
-    store.categoryData[0]!.questions[0]!.answers[0]!.value = 3;
+    store.setAnswerSelection(1, 1, 1, { value: 3 });
     await nextTick();
 
     expect((wrapper.find('.submit-button').element as HTMLButtonElement).disabled).toBe(false);

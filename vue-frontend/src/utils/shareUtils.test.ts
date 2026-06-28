@@ -1,20 +1,17 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { encodeData, decodeData, createShareUrl, copyToClipboard } from './shareUtils';
-import type { SurveyData } from '@/types';
+import type { SurveyState } from '@/types';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { copyToClipboard, createShareUrl, decodeData, encodeData } from './shareUtils';
 
-const mockSurveyData: SurveyData = {
+const mockSurveyState: SurveyState = {
   userName: 'テストユーザー',
-  categories: [
+  selections: [
     {
-      id: 1,
-      genre: '共通の質問',
-      icon: 'fa-solid fa-briefcase',
+      categoryId: 1,
       isChecked: true,
       questions: [
         {
-          id: 1,
-          questionText: 'Q1 テスト質問',
-          answers: [{ label: 'テスト回答', isChecked: true, value: 3 as const }],
+          questionId: 1,
+          answers: [{ answerId: 1, isChecked: true, value: 3 }],
         },
       ],
     },
@@ -23,12 +20,12 @@ const mockSurveyData: SurveyData = {
 
 describe('encodeData', () => {
   it('エンコード結果が文字列で返る', () => {
-    const result = encodeData(mockSurveyData);
+    const result = encodeData(mockSurveyState);
     expect(typeof result).toBe('string');
   });
 
   it('空のuserNameはエンコードできる', () => {
-    const data = { ...mockSurveyData, userName: '' };
+    const data = { ...mockSurveyState, userName: '' };
     const result = encodeData(data);
     expect(result).not.toBeNull();
   });
@@ -36,9 +33,9 @@ describe('encodeData', () => {
 
 describe('decodeData', () => {
   it('エンコード→デコードで元のデータに戻る', () => {
-    const encoded = encodeData(mockSurveyData)!;
+    const encoded = encodeData(mockSurveyState)!;
     const decoded = decodeData(encoded);
-    expect(decoded).toEqual(mockSurveyData);
+    expect(decoded).toEqual(mockSurveyState);
   });
 
   it('不正な文字列はnullを返す', () => {
@@ -48,7 +45,7 @@ describe('decodeData', () => {
 });
 
 describe('createShareUrl', () => {
-  const url = createShareUrl(mockSurveyData);
+  const url = createShareUrl(mockSurveyState);
 
   it('data パラメータを含む URL が生成される', () => {
     expect(url).toContain('data=');

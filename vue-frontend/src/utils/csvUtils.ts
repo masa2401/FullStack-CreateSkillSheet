@@ -71,16 +71,12 @@ export const downloadCSV = (userName: string, selections: CategorySelection[]): 
       console.error('無効なデータ');
       return false;
     }
-    const rawUserName = JSON.parse(JSON.stringify(userName)) as string;
-    const rawSelections = JSON.parse(JSON.stringify(selections)) as CategorySelection[];
-    const csv = convertToCSV(rawUserName, rawSelections);
-    const encoder = new TextEncoder();
-    const uint8Array = encoder.encode(csv);
-    const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
-    const blob = new Blob([bom, uint8Array], { type: 'text/csv;charset=utf-8;' });
+    const csv = convertToCSV(userName, selections);
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const dateString = new Date().toISOString().split('T')[0];
-    const fileName = `${rawUserName}様_スキルシート_${dateString}.csv`;
+    const fileName = `${userName}様_スキルシート_${dateString}.csv`;
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;

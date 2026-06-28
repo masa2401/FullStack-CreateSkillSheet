@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { mount } from '@vue/test-utils';
 import { globalStubs } from '@/test/utils';
 import type { ValidationError as VError } from '@/types';
+import { mount } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
 import ValidationError from './ValidationError.vue';
 
 describe('ValidationError', () => {

@@ -1,8 +1,8 @@
+import { ROUTES } from '@/utils/constants';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import TheHeader from './TheHeader.vue';
-import { ROUTES } from '@/utils/constants';
 
 const buildRouter = async (initialPath = '/') => {
   const router = createRouter({
