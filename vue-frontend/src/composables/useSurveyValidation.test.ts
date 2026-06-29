@@ -1,9 +1,9 @@
-import type { ResolvedCategory } from '@/types';
+import type { MergedCategory } from '@/types';
 import { describe, expect, it } from 'vitest';
 import { computed, ref } from 'vue';
 import { useSurveyValidation } from './useSurveyValidation';
 
-const makeCategory = (overrides?: Partial<ResolvedCategory>): ResolvedCategory => ({
+const makeCategory = (overrides?: Partial<MergedCategory>): MergedCategory => ({
   id: 1,
   label: '共通',
   icon: 'fa-solid fa-briefcase',

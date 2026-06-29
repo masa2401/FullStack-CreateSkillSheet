@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ref } from 'vue';
 import { useNameValidation } from './useNameValidation';
 
 describe('useNameValidation', () => {
   it('名前が入力されているとき validate は true を返す', () => {
-    const userName = ref('山田太郎');
+    const userName = ref('テストユーザー');
     const { validate, validationErrors } = useNameValidation(userName);
     const result = validate();
     expect(result).toBe(true);
@@ -17,7 +17,7 @@ describe('useNameValidation', () => {
 
     validate();
     expect(validationErrors.value).toHaveLength(1);
-    userName.value = '山田太郎';
+    userName.value = 'テストユーザー';
 
     onInput();
     expect(validationErrors.value).toHaveLength(0);

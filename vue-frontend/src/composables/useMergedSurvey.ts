@@ -1,12 +1,12 @@
 import { CATEGORY_MASTER_BY_ID } from '@/data/questions';
 import { useSurveyStore } from '@/stores/useSurveyStore';
-import type { ResolvedCategory } from '@/types';
+import type { MergedCategory } from '@/types';
 import { computed } from 'vue';
 
-export function useResolvedSurvey() {
+export function useMergedSurvey() {
   const store = useSurveyStore();
 
-  const resolvedCategories = computed<ResolvedCategory[]>(() =>
+  const mergedCategories = computed<MergedCategory[]>(() =>
     store.selections.map((sel) => {
       const master = CATEGORY_MASTER_BY_ID.get(sel.categoryId)!;
       return {
@@ -33,5 +33,5 @@ export function useResolvedSurvey() {
       };
     }),
   );
-  return { resolvedCategories };
+  return { mergedCategories };
 }

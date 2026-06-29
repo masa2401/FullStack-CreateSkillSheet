@@ -1,14 +1,14 @@
 import { useValidation } from '@/composables/useValidation';
-import type { ResolvedCategory, ValidationError } from '@/types';
+import type { MergedCategory, ValidationError } from '@/types';
 import type { ComputedRef } from 'vue';
 import { computed, watch } from 'vue';
 
 // ─── composable ────────────────────────────────────────────────────────────────
 
-export function useSurveyValidation(resolvedCategories: ComputedRef<ResolvedCategory[]>) {
+export function useSurveyValidation(mergedCategories: ComputedRef<MergedCategory[]>) {
   const buildErrors = (): ValidationError[] => {
     const errors: ValidationError[] = [];
-    resolvedCategories.value.forEach((cat) => {
+    mergedCategories.value.forEach((cat) => {
       if (!cat.isChecked) return;
       cat.questions.forEach((q) => {
         q.answers.forEach((a) => {
@@ -28,7 +28,7 @@ export function useSurveyValidation(resolvedCategories: ComputedRef<ResolvedCate
   );
 
   watch(
-    () => resolvedCategories,
+    () => mergedCategories,
     () => {
       if (hasAttemptedSubmit.value) {
         validationErrors.value = buildErrors();

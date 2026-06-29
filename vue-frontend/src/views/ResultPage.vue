@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import ShareButton from '@/components/ShareButton.vue';
-import { useResolvedSurvey } from '@/composables/useResolvedSurvey';
+import { useMergedSurvey } from '@/composables/useMergedSurvey';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import { fetchSheet, isBackendEnabled } from '@/utils/api';
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
@@ -11,7 +11,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const store = useSurveyStore();
-const { resolvedCategories } = useResolvedSurvey();
+const { mergedCategories } = useMergedSurvey();
 
 type PageStatus =
   | { type: 'loading' }
@@ -51,7 +51,7 @@ onMounted(async () => {
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
 const displayCategories = computed(() =>
-  resolvedCategories.value
+  mergedCategories.value
     .filter((cat) => cat.isChecked)
     .map((cat) => ({
       ...cat,
@@ -95,12 +95,8 @@ const handlePrint = () => window.print();
     </div>
 
     <div class="content-wrapper">
-      <div
-        v-for="category in displayCategories"
-        :key="category.id"
-        v-show="category.isChecked"
-        class="category-section"
-      >
+      <div v-for="category in displayCategories" :key="category.id" v-show="category.isChecked"
+        class="category-section">
         <div class="category-header">
           <font-awesome-icon :icon="category.icon" class="category-icon" />
           <h3 class="category-title">{{ category.label }}</h3>
@@ -124,31 +120,16 @@ const handlePrint = () => window.print();
 
       <div class="button-group no-print">
         <template v-if="!pageStatus.isSharedView">
-          <AnimatedIconButton
-            icon="fa-solid fa-arrow-left"
-            label="修正する"
-            animationType="beat"
-            button-class="action-button secondary-button"
-            @click="goBack"
-          />
+          <AnimatedIconButton icon="fa-solid fa-arrow-left" label="修正する" animationType="beat"
+            button-class="action-button secondary-button" @click="goBack" />
 
-          <AnimatedIconButton
-            icon="fa-solid fa-print"
-            label="印刷する"
-            animationType="bounce"
-            button-class="action-button print-button"
-            @click="handlePrint"
-          />
+          <AnimatedIconButton icon="fa-solid fa-print" label="印刷する" animationType="bounce"
+            button-class="action-button print-button" @click="handlePrint" />
 
           <ShareButton />
 
-          <AnimatedIconButton
-            icon="fa-regular fa-house"
-            label="トップへ戻る"
-            animationType="beat"
-            button-class="action-button primary-button"
-            @click="goToTop"
-          />
+          <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animationType="beat"
+            button-class="action-button primary-button" @click="goToTop" />
         </template>
 
         <template v-else>
@@ -186,13 +167,7 @@ const handlePrint = () => window.print();
     </div>
   </div>
 
-  <div
-    v-else
-    class="loading-container"
-    role="status"
-    aria-label="データを読み込んでいます"
-    aria-live="polite"
-  >
+  <div v-else class="loading-container" role="status" aria-label="データを読み込んでいます" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>
     <p class="loading-text">データを読み込んでいます...</p>
   </div>

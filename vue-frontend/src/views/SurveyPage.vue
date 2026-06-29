@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard.vue';
 import ValidationError from '@/components/ValidationError.vue';
-import { useResolvedSurvey } from '@/composables/useResolvedSurvey';
+import { useMergedSurvey } from '@/composables/useMergedSurvey';
 import { useSurveyValidation } from '@/composables/useSurveyValidation';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import type { StarLevel } from '@/types';
@@ -15,11 +15,11 @@ const isHovering = ref<boolean>(false);
 
 // ─── ストアからデータを取得 ──────────────────────────────────────────────────
 
-const { resolvedCategories } = useResolvedSurvey();
+const { mergedCategories } = useMergedSurvey();
 
 // ─── バリデーション ──────────────────────────────────────────────────────────
 
-const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(resolvedCategories);
+const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories);
 
 // ─── イベントハンドラ ────────────────────────────────────────────────────────
 
@@ -75,21 +75,16 @@ const onSubmit = async (): Promise<void> => {
     </div>
 
     <div class="wrap">
-      <template v-for="category in resolvedCategories" :key="category.id">
+      <template v-for="category in mergedCategories" :key="category.id">
         <div v-if="category.isChecked" class="category-section">
           <div class="category-header">
             <font-awesome-icon :icon="category.icon" class="category-icon" />
             <h3 class="category-title">{{ category.label }}</h3>
           </div>
 
-          <QuestionCard
-            v-for="question in category.questions"
-            :key="question.id"
-            :question="question"
-            @update:answer="
-              handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
-            "
-          />
+          <QuestionCard v-for="question in category.questions" :key="question.id" :question="question" @update:answer="
+            handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
+            " />
         </div>
       </template>
 
@@ -105,14 +100,8 @@ const onSubmit = async (): Promise<void> => {
           <font-awesome-icon icon="fa-solid fa-triangle-exclamation" shake />
           すべてのチェック項目に習熟度を選択してください
         </p>
-        <button
-          @mouseenter="isHovering = true"
-          @mouseleave="isHovering = false"
-          @click="onSubmit"
-          class="submit-button"
-          :class="{ disabled: isSubmitDisabled }"
-          :disabled="isSubmitDisabled"
-        >
+        <button @mouseenter="isHovering = true" @mouseleave="isHovering = false" @click="onSubmit" class="submit-button"
+          :class="{ disabled: isSubmitDisabled }" :disabled="isSubmitDisabled">
           次へ進む &ensp;
           <font-awesome-icon icon="fa-solid fa-arrow-right" :bounce="isHovering" />
         </button>
@@ -254,6 +243,7 @@ const onSubmit = async (): Promise<void> => {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;

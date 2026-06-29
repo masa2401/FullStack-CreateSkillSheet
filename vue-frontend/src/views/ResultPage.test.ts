@@ -58,7 +58,7 @@ describe('ResultPage', () => {
             stubActions: false,
             initialState: {
               survey: {
-                userName: '山田太郎',
+                userName: 'テストユーザー',
                 selections: mockSelections,
                 ...surveyState,
               },
@@ -86,7 +86,7 @@ describe('ResultPage', () => {
   it('store のデータからユーザー名が表示される', async () => {
     const wrapper = createWrapper();
     await flushPromises();
-    expect(wrapper.find('.page-title').text()).toContain('山田太郎');
+    expect(wrapper.find('.page-title').text()).toContain('テストユーザー');
   });
 
   it('URL データがある場合は URL データが優先して表示される', async () => {

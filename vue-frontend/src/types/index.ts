@@ -1,3 +1,3 @@
 export * from './master';
-export * from './resolved';
+export * from './merged';
 export * from './state';

@@ -1,22 +1,22 @@
 import type { StarLevel } from './state';
 
-export type ResolvedAnswer = {
+export type MergedAnswer = {
   id: number;
   label: string;
   isChecked: boolean;
   value?: StarLevel;
 };
 
-export type ResolvedQuestion = {
+export type MergedQuestion = {
   id: number;
   questionText: string;
-  answers: ResolvedAnswer[];
+  answers: MergedAnswer[];
 };
 
-export type ResolvedCategory = {
+export type MergedCategory = {
   id: number;
   label: string;
   icon: string;
   isChecked: boolean;
-  questions: ResolvedQuestion[];
+  questions: MergedQuestion[];
 };
