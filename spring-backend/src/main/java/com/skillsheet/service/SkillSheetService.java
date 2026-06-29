@@ -42,14 +42,14 @@ public class SkillSheetService {
         // 2. カテゴリをエンティティに変換して追加
         for (CategoryDto catDto : req.categories()) {
             SheetCategory category = new SheetCategory();
-            category.setCategoryId(catDto.id());
+            category.setCategoryId(catDto.categoryId());
             category.setSkillSheet(sheet); // 親への参照をセット
 
             // 3. 回答をエンティティに変換して追加
             for (QuestionDto qDto : catDto.questions()) {
                 for (AnswerDto aDto : qDto.answers()) {
                     SheetAnswer answer = new SheetAnswer();
-                    answer.setQuestionId(qDto.id());
+                    answer.setQuestionId(qDto.questionId());
                     answer.setAnswerId(aDto.answerId());
                     answer.setValue(aDto.value());
                     answer.setSheetCategory(category);

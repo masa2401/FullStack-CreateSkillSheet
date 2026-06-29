@@ -36,6 +36,7 @@ export const fetchSheet = async (id: string): Promise<FetchSheetResult | null> =
 };
 
 export const checkSheetExists = async (id: string): Promise<boolean> => {
+  if (!isBackendEnabled()) return false;
   try {
     const res = await fetch(`${getApiBase()}/api/sheets/${id}`);
     return res.ok;
