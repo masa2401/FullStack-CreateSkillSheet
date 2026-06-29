@@ -2,6 +2,8 @@ import type { SurveyState } from '@/types';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { checkSheetExists, fetchSheet, isBackendEnabled, saveSheet } from './api';
 
+vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080');
+
 const mockSurveyState: SurveyState = {
   userName: 'テストユーザー',
   selections: [
@@ -17,14 +19,6 @@ const mockSurveyState: SurveyState = {
     },
   ],
 };
-
-vi.mock('./api', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./api')>();
-  return {
-    ...actual,
-    isBackendEnabled: () => true,
-  };
-});
 
 describe('isBackendEnabled', () => {
   it('VITE_API_BASE_URL が設定されている場合は true を返す', () => {
