@@ -3,6 +3,6 @@ package com.skillsheet.dto;
 import java.util.List;
 
 public record CategoryDto(
-        Integer id,
+        Integer categoryId,
         List<QuestionDto> questions) {
 }
