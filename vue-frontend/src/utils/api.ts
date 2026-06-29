@@ -1,8 +1,8 @@
 import type { SurveyState } from '@/types';
 import { toSheetDto, toSurveyState, type SheetDto } from './sheetMapper';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-export const isBackendEnabled = (): boolean => !!API_BASE;
+const getApiBase = (): string => import.meta.env.VITE_API_BASE_URL;
+export const isBackendEnabled = (): boolean => !!getApiBase();
 
 export type FetchSheetResult =
   | { status: 'success'; data: SurveyState }
@@ -12,7 +12,7 @@ export type FetchSheetResult =
 export const saveSheet = async (state: SurveyState): Promise<string | null> => {
   if (!isBackendEnabled()) return null;
 
-  const res = await fetch(`${API_BASE}/api/sheets`, {
+  const res = await fetch(`${getApiBase()}/api/sheets`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(toSheetDto(state)),
@@ -25,7 +25,7 @@ export const saveSheet = async (state: SurveyState): Promise<string | null> => {
 export const fetchSheet = async (id: string): Promise<FetchSheetResult | null> => {
   if (!isBackendEnabled()) return null;
   try {
-    const res = await fetch(`${API_BASE}/api/sheets/${id}`);
+    const res = await fetch(`${getApiBase()}/api/sheets/${id}`);
     if (res.status === 410) return { status: 'expired' };
     if (!res.ok) return { status: 'notfound' };
     const dto = (await res.json()) as SheetDto;
@@ -37,7 +37,7 @@ export const fetchSheet = async (id: string): Promise<FetchSheetResult | null> =
 
 export const checkSheetExists = async (id: string): Promise<boolean> => {
   try {
-    const res = await fetch(`${API_BASE}/api/sheets/${id}`);
+    const res = await fetch(`${getApiBase()}/api/sheets/${id}`);
     return res.ok;
   } catch {
     return false;
