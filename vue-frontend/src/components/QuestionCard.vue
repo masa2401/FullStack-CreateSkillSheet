@@ -1,27 +1,31 @@
 <script setup lang="ts">
+import type { StarLevel } from '@/types';
 import AnswerItem from './AnswerItem.vue';
-import type { QuestionState, AnswerState } from '@/types';
+
+interface Answer {
+  id: number;
+  label: string;
+  isChecked: boolean;
+  value?: StarLevel;
+}
+
+interface Question {
+  id: number;
+  questionText: string;
+  answers: Answer[];
+}
 
 interface Props {
-  question: QuestionState;
+  question: Question;
 }
-const props = defineProps<Props>();
+
+defineProps<Props>();
 
 const emit = defineEmits<{
-  'update:question': [updatedQuestion: QuestionState];
+  'update:answer': [
+    payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
+  ];
 }>();
-
-// 回答の更新を親コンポーネントに伝達
-
-const handleAnswerUpdate = (answerIndex: number, updatedAnswer: AnswerState) => {
-  const updatedQuestion: QuestionState = {
-    ...props.question,
-    answers: props.question.answers.map((answer, index) =>
-      index === answerIndex ? updatedAnswer : answer,
-    ),
-  };
-  emit('update:question', updatedQuestion);
-};
 </script>
 
 <template>
@@ -29,11 +33,13 @@ const handleAnswerUpdate = (answerIndex: number, updatedAnswer: AnswerState) => 
     <h4 class="question-text">{{ question.questionText }}</h4>
     <div class="answers-grid">
       <AnswerItem
-        v-for="(answer, index) in question.answers"
-        :key="index"
-        :answer="answer"
-        :answer-index="index"
-        @update:answer="handleAnswerUpdate(index, $event)"
+        v-for="answer in question.answers"
+        :key="answer.id"
+        :answer-id="answer.id"
+        :label="answer.label"
+        :is-checked="answer.isChecked"
+        :value="answer.value"
+        @update:answer="emit('update:answer', $event)"
       />
     </div>
   </div>

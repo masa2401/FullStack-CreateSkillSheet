@@ -1,65 +1,64 @@
 ﻿<script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import ShareButton from '@/components/ShareButton.vue';
+import { useMergedSurvey } from '@/composables/useMergedSurvey';
 import { useSurveyStore } from '@/stores/useSurveyStore';
-import type { AnswerState, SurveyData } from '@/types';
-import { fetchSheet } from '@/utils/api';
+import { fetchSheet, isBackendEnabled } from '@/utils/api';
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
 import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils';
-import { isBackendEnabled } from '@/utils/sheetMapper';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const store = useSurveyStore();
-const isSharedView = ref<boolean>(false);
-const surveyData = ref<SurveyData | null>(null);
+const { mergedCategories } = useMergedSurvey();
+
+type PageStatus =
+  | { type: 'loading' }
+  | { type: 'ready'; isSharedView: boolean }
+  | { type: 'error'; reason: 'expired' | 'notfound' };
+
+const pageStatus = ref<PageStatus>({ type: 'loading' });
 
 // ─── データ取得 ──────────────────────────────────────────────────────────────
 
 onMounted(async () => {
   const sharedId = getIdFromUrl();
   if (sharedId && isBackendEnabled()) {
-    const fetched = await fetchSheet(sharedId);
-    if (fetched) {
-      store.loadFromSharedData(fetched)
-      surveyData.value = store.surveyData;
-      isSharedView.value = true;
+    const result = await fetchSheet(sharedId);
+    if (result === null) return;
+    if (result.status === 'success') {
+      store.loadFromSharedState(result.data);
+      pageStatus.value = { type: 'ready', isSharedView: true };
       return;
     }
-  }
-  const urlData = getDataFromUrl();
-  if (urlData) {
-    // 1. ストアにURLのデータをロードする（これでストアとlocalStorageが同期されます）
-    store.loadFromSharedData(urlData);
-    // 2. 画面表示用のデータとして、ストアの最新データを参照する
-    surveyData.value = store.surveyData;
-    isSharedView.value = true;
+    // 期限切れ・見つからない場合はエラー状態をセットして終了
+    pageStatus.value = { type: 'error', reason: result.status };
     return;
   }
-  // URLにデータがない（通常の自分の結果表示）場合
-  surveyData.value = store.surveyData;
-  isSharedView.value = false;
-});
 
-/**
- * チェックされた回答のみ返す。
- */
-const getCheckedAnswers = (answers: AnswerState[]): AnswerState[] => {
-  return answers.filter((answer) => answer.isChecked);
-};
+  const urlData = getDataFromUrl();
+  if (urlData) {
+    store.loadFromSharedState(urlData);
+    pageStatus.value = { type: 'ready', isSharedView: true };
+    return;
+  }
+
+  // 通常の自分の結果表示
+  pageStatus.value = { type: 'ready', isSharedView: false };
+});
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
 const displayCategories = computed(() =>
-  (surveyData.value?.categories ?? [])
+  mergedCategories.value
     .filter((cat) => cat.isChecked)
     .map((cat) => ({
       ...cat,
       questions: cat.questions
         .map((q) => ({
           ...q,
-          answers: getCheckedAnswers(q.answers),
+          answers: q.answers.filter((a) => a.isChecked),
         }))
         .filter((q) => q.answers.length > 0),
     })),
@@ -67,28 +66,20 @@ const displayCategories = computed(() =>
 
 // ─── イベントハンドラ ────────────────────────────────────────────────────────
 
-const goToTop = (): void => {
-  router.push(ROUTES.TOP);
-};
-
-const goBack = (): void => {
-  router.push(ROUTES.SURVEY);
-};
-
-const handlePrint = (): void => {
-  window.print();
-};
+const goToTop = () => router.push(ROUTES.TOP);
+const goBack = () => router.push(ROUTES.SURVEY);
+const handlePrint = () => window.print();
 </script>
 
 <template>
-  <div class="page-container" v-if="surveyData">
+  <div class="page-container" v-if="pageStatus.type === 'ready'">
     <div class="content-wrapper">
       <div class="header-section">
         <div class="result-header">
           <div class="header-icon">
             <font-awesome-icon icon="fa-regular fa-clipboard" />
           </div>
-          <h2 class="page-title">{{ surveyData.userName }} 様のスキルシート</h2>
+          <h2 class="page-title">{{ store.userName }} 様のスキルシート</h2>
         </div>
         <div class="description-group">
           <div class="image">
@@ -108,7 +99,7 @@ const handlePrint = (): void => {
         class="category-section">
         <div class="category-header">
           <font-awesome-icon :icon="category.icon" class="category-icon" />
-          <h3 class="category-title">{{ category.genre }}</h3>
+          <h3 class="category-title">{{ category.label }}</h3>
         </div>
         <div v-for="question in category.questions" :key="question.id" class="question-block">
           <h4 class="question-title">{{ question.questionText }}</h4>
@@ -128,14 +119,14 @@ const handlePrint = (): void => {
       </div>
 
       <div class="button-group no-print">
-        <template v-if="!isSharedView">
+        <template v-if="!pageStatus.isSharedView">
           <AnimatedIconButton icon="fa-solid fa-arrow-left" label="修正する" animationType="beat"
             button-class="action-button secondary-button" @click="goBack" />
 
           <AnimatedIconButton icon="fa-solid fa-print" label="印刷する" animationType="bounce"
             button-class="action-button print-button" @click="handlePrint" />
 
-          <ShareButton :surveyData="surveyData" />
+          <ShareButton />
 
           <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animationType="beat"
             button-class="action-button primary-button" @click="goToTop" />
@@ -150,6 +141,29 @@ const handlePrint = (): void => {
           </button>
         </template>
       </div>
+    </div>
+  </div>
+
+  <div v-else-if="pageStatus.type === 'error'" class="error-container">
+    <div class="error-content">
+      <span class="error-icon">
+        <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
+      </span>
+      <h2 class="error-title">
+        {{
+          pageStatus.reason === 'expired'
+            ? 'リンクの有効期限が切れています'
+            : 'リンクが見つかりません'
+        }}
+      </h2>
+      <p class="error-message">
+        {{
+          pageStatus.reason === 'expired'
+            ? '共有リンクの有効期限（3日間）が切れています。'
+            : 'お探しのスキルシートは存在しないか、削除された可能性があります。'
+        }}
+      </p>
+      <button @click="goToTop" class="action-button primary-button">トップへ戻る</button>
     </div>
   </div>
 

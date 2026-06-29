@@ -12,6 +12,7 @@
     "noFallthroughCasesInSwitch": true, // switch文のフォールスルー防止
     /* --- プロジェクト設定 --- */
     "jsx": "preserve",
+    "jsxImportSource": "vue",
     "allowJs": false,
     "noEmit": true, // Viteがビルドを行うため、TSによるファイル出力は不要
     "isolatedModules": true, // Vite（esbuild）の仕様に合わせる

@@ -1,25 +1,24 @@
-import type { CategoryState, SurveyData } from '@/types';
+import type { CategorySelection, SurveyState } from '@/types';
 import LZString from 'lz-string';
 
 // ========================================
 // 型ガード
 // ========================================
 
-const isCategoryState = (value: unknown): value is CategoryState =>
+const isCategoryState = (value: unknown): value is CategorySelection =>
   typeof value === 'object' &&
   value !== null &&
-  typeof (value as CategoryState).id === 'number' &&
-  typeof (value as CategoryState).genre === 'string' &&
-  typeof (value as CategoryState).isChecked === 'boolean' &&
-  Array.isArray((value as CategoryState).questions);
+  typeof (value as CategorySelection).categoryId === 'number' &&
+  typeof (value as CategorySelection).isChecked === 'boolean' &&
+  Array.isArray((value as CategorySelection).questions);
 
-const isSurveyData = (value: unknown): value is SurveyData =>
+const isSurveyState = (value: unknown): value is SurveyState =>
   typeof value === 'object' &&
   value !== null &&
-  typeof (value as SurveyData).userName === 'string' &&
-  !!(value as SurveyData).userName &&
-  Array.isArray((value as SurveyData).categories) &&
-  (value as SurveyData).categories.every(isCategoryState);
+  typeof (value as SurveyState).userName === 'string' &&
+  !!(value as SurveyState).userName &&
+  Array.isArray((value as SurveyState).selections) &&
+  (value as SurveyState).selections.every(isCategoryState);
 
 // ========================================
 // データの圧縮・展開
@@ -30,7 +29,7 @@ const isSurveyData = (value: unknown): value is SurveyData =>
  * @param data - 圧縮・エンコード対象のオブジェクト
  * @returns 圧縮・エンコードされた文字列、またはエラーが発生した場合はnull
  */
-export const encodeData = (data: SurveyData): string | null => {
+export const encodeData = (data: SurveyState): string | null => {
   try {
     const jsonString = JSON.stringify(data);
     return LZString.compressToEncodedURIComponent(jsonString);
@@ -45,13 +44,13 @@ export const encodeData = (data: SurveyData): string | null => {
  * @param compressedString - デコード対象の圧縮・エンコードされた文字列
  * @returns デコードされたオブジェクト、またはエラーが発生した場合はnull
  */
-export const decodeData = (compressedString: string): SurveyData | null => {
+export const decodeData = (compressedString: string): SurveyState | null => {
   try {
     const jsonString = LZString.decompressFromEncodedURIComponent(compressedString);
     if (!jsonString) {
       throw new Error('解凍に失敗しました');
     }
-    return JSON.parse(jsonString) as SurveyData;
+    return JSON.parse(jsonString) as SurveyState;
   } catch (error) {
     console.error('デコードエラー:', error);
     return null;
@@ -63,9 +62,9 @@ export const decodeData = (compressedString: string): SurveyData | null => {
 // ========================================
 
 /**
- * SurveyDataオブジェクトをエンコードしてURLのクエリパラメータに埋め込み、結果ページへの完全なURLを生成
+ * SurveyStateオブジェクトをエンコードしてURLのクエリパラメータに埋め込み、結果ページへの完全なURLを生成
  */
-export const createShareUrl = (surveyData: SurveyData): string => {
+export const createShareUrl = (surveyData: SurveyState): string => {
   const encoded = encodeData(surveyData);
   if (!encoded) {
     throw new Error('データのエンコードに失敗しました');
@@ -79,9 +78,9 @@ export const createShareUrl = (surveyData: SurveyData): string => {
 };
 
 /**
- * URLからエンコードされたデータを抽出してデコードし、SurveyDataオブジェクトを返す
+ * URLからエンコードされたデータを抽出してデコードし、SurveyStateオブジェクトを返す
  */
-export const getDataFromUrl = (): SurveyData | null => {
+export const getDataFromUrl = (): SurveyState | null => {
   try {
     const url = new URL(window.location.href);
     // ハッシュ（#）が含まれていない、またはハッシュ内に『?』が含まれていない場合は処理しない
@@ -100,7 +99,7 @@ export const getDataFromUrl = (): SurveyData | null => {
       return null;
     }
 
-    if (!isSurveyData(decoded)) {
+    if (!isSurveyState(decoded)) {
       console.error('デコードされたデータの構造が無効です');
       return null;
     }

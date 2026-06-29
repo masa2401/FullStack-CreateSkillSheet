@@ -1,40 +1,20 @@
-import { watch, computed } from 'vue';
-import type { Ref } from 'vue';
-import type { CategoryState, AnswerState, ValidationError, QuestionState } from '@/types';
 import { useValidation } from '@/composables/useValidation';
+import type { MergedCategory, ValidationError } from '@/types';
+import type { ComputedRef } from 'vue';
+import { computed, watch } from 'vue';
 
 // ─── composable ────────────────────────────────────────────────────────────────
 
-export function useSurveyValidation(categoryData: Ref<CategoryState[]>) {
-  /**
-   * 各回答に対するバリデーションルールを評価し、エラーがあれば ValidationError オブジェクトを返す。
-   * ルール：チェックされている回答で、かつ値が空の場合はエラー。
-   */
-  const checkAnswerError = (
-    category: CategoryState,
-    question: QuestionState,
-    answer: AnswerState,
-  ): ValidationError | null => {
-    if (answer.isChecked && !answer.value) {
-      return {
-        category: category.genre,
-        text: question.questionText,
-      };
-    }
-    return null;
-  };
-
-  /**
-   * 全カテゴリの全質問の全回答に対して checkAnswerError を適用し、エラーがあれば配列で返す。
-   */
+export function useSurveyValidation(mergedCategories: ComputedRef<MergedCategory[]>) {
   const buildErrors = (): ValidationError[] => {
     const errors: ValidationError[] = [];
-    categoryData.value.forEach((category) => {
-      if (!category.isChecked) return;
-      category.questions.forEach((question) => {
-        question.answers.forEach((answer) => {
-          const error = checkAnswerError(category, question, answer);
-          if (error) errors.push(error);
+    mergedCategories.value.forEach((cat) => {
+      if (!cat.isChecked) return;
+      cat.questions.forEach((q) => {
+        q.answers.forEach((a) => {
+          if (a.isChecked && !a.value) {
+            errors.push({ category: cat.label, text: q.questionText });
+          }
         });
       });
     });
@@ -48,7 +28,7 @@ export function useSurveyValidation(categoryData: Ref<CategoryState[]>) {
   );
 
   watch(
-    categoryData,
+    () => mergedCategories,
     () => {
       if (hasAttemptedSubmit.value) {
         validationErrors.value = buildErrors();
@@ -57,10 +37,5 @@ export function useSurveyValidation(categoryData: Ref<CategoryState[]>) {
     { deep: true },
   );
 
-  return {
-    validationErrors,
-    hasAttemptedSubmit,
-    validate,
-    isSubmitDisabled,
-  };
+  return { validationErrors, hasAttemptedSubmit, validate, isSubmitDisabled };
 }

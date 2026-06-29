@@ -1,29 +1,30 @@
 ﻿<script setup lang="ts">
 import ValidationError from '@/components/ValidationError.vue';
+import { useNameValidation } from '@/composables/useNameValidation';
+import { CATEGORY_MASTERS } from '@/data/questions';
+import { useSurveyStore } from '@/stores/useSurveyStore';
+import { ROUTES } from '@/utils/constants';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useNameValidation } from '@/composables/useNameValidation';
-import { CATEGORIES, ROUTES } from '@/utils/constants';
-import { CATEGORY_META } from '@/data/questions';
-import { useSurveyStore } from '@/stores/useSurveyStore';
 
 const router = useRouter();
 const store = useSurveyStore();
 const isHovering = ref<boolean>(false);
-const { label: engineerLabel, description: engineerDescription } = CATEGORY_META.engineer;
-const { label: designerLabel, description: designerDescription } = CATEGORY_META.designer;
+
+const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!;
+const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!;
 
 // ─── フォームデータ ──────────────────────────────────────────────────────────
 
 const userName = ref<string>(store.userName);
 const engineerChecked = computed({
-  get: () => store.isEngineerSelected,
-  set: (val: boolean) => store.setCategoryChecked(CATEGORIES.ENGINEER.id, val)
-})
+  get: () => store.selections.find((c) => c.categoryId === engineerMaster.id)?.isChecked ?? false,
+  set: (val: boolean) => store.setCategoryChecked(engineerMaster.id, val),
+});
 const designerChecked = computed({
-  get: () => store.isDesignerSelected,
-  set: (val: boolean) => store.setCategoryChecked(CATEGORIES.DESIGNER.id, val)
-})
+  get: () => store.selections.find((c) => c.categoryId === designerMaster.id)?.isChecked ?? false,
+  set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val),
+});
 
 // ─── バリデーション ──────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ const { validationErrors, validate, onInput } = useNameValidation(userName);
 /** アンケート開始処理 */
 const validateAndProceed = (): void => {
   if (!validate()) return;
-  store.setUserName(userName.value.trim()) // setStorageValue → ストアのアクション
+  store.setUserName(userName.value.trim()); // setStorageValue → ストアのアクション
   router.push(ROUTES.SURVEY);
 };
 </script>
@@ -56,8 +57,15 @@ const validateAndProceed = (): void => {
             </span>
             お名前を入力してください
           </label>
-          <input type="text" id="name-input" class="name-input" :class="{ 'input-error': validationErrors.length > 0 }"
-            v-model="userName" placeholder="お名前を入力" @input="onInput" />
+          <input
+            type="text"
+            id="name-input"
+            class="name-input"
+            :class="{ 'input-error': validationErrors.length > 0 }"
+            v-model="userName"
+            placeholder="お名前を入力"
+            @input="onInput"
+          />
         </div>
 
         <div class="category-section">
@@ -69,15 +77,19 @@ const validateAndProceed = (): void => {
           </h3>
           <div class="category-cards">
             <label class="category-card" :class="{ active: engineerChecked }">
-              <input type="checkbox" class="category-checkbox" v-model="engineerChecked"
-                aria-describedby="engineer-desc" />
+              <input
+                type="checkbox"
+                class="category-checkbox"
+                v-model="engineerChecked"
+                aria-describedby="engineer-desc"
+              />
               <div class="card-content">
                 <div class="card-icon-large">
-                  <font-awesome-icon icon="fa-solid fa-computer" />
+                  <font-awesome-icon :icon="engineerMaster.icon" />
                 </div>
-                <h4 class="card-category-title">{{ engineerLabel }}</h4>
+                <h4 class="card-category-title">{{ engineerMaster.label }}</h4>
                 <p id="engineer-desc" class="card-category-desc">
-                  {{ engineerDescription }}
+                  {{ engineerMaster.description }}
                 </p>
                 <div class="check-indicator">
                   <span v-if="engineerChecked" class="check-mark">
@@ -87,14 +99,20 @@ const validateAndProceed = (): void => {
               </div>
             </label>
             <label class="category-card" :class="{ active: designerChecked }">
-              <input type="checkbox" class="category-checkbox" v-model="designerChecked"
-                aria-describedby="designer-desc" />
+              <input
+                type="checkbox"
+                class="category-checkbox"
+                v-model="designerChecked"
+                aria-describedby="designer-desc"
+              />
               <div class="card-content">
                 <div class="card-icon-large">
-                  <font-awesome-icon icon="fa-solid fa-palette" />
+                  <font-awesome-icon :icon="designerMaster.icon" />
                 </div>
-                <h4 class="card-category-title">{{ designerLabel }}</h4>
-                <p id="designer-desc" class="card-category-desc">{{ designerDescription }}</p>
+                <h4 class="card-category-title">{{ designerMaster.label }}</h4>
+                <p id="designer-desc" class="card-category-desc">
+                  {{ designerMaster.description }}
+                </p>
                 <div class="check-indicator">
                   <span v-if="designerChecked" class="check-mark">
                     <font-awesome-icon icon="fa-solid fa-check" />
@@ -118,8 +136,12 @@ const validateAndProceed = (): void => {
       </ValidationError>
 
       <div class="button-section">
-        <button @click="validateAndProceed" class="start-button" @mouseenter="isHovering = true"
-          @mouseleave="isHovering = false">
+        <button
+          @click="validateAndProceed"
+          class="start-button"
+          @mouseenter="isHovering = true"
+          @mouseleave="isHovering = false"
+        >
           アンケートを開始 &ensp;
           <font-awesome-icon icon="fa-solid fa-arrow-right" :bounce="isHovering" />
         </button>
@@ -204,7 +226,6 @@ const validateAndProceed = (): void => {
 }
 
 @keyframes shake {
-
   0%,
   100% {
     transform: translateX(0);

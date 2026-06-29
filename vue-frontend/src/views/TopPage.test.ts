@@ -1,11 +1,11 @@
+import { useSurveyStore } from '@/stores/useSurveyStore.ts';
+import { globalStubs } from '@/test/utils.ts';
+import { ROUTES } from '@/utils/constants.ts';
+import { createTestingPinia } from '@pinia/testing';
+import { flushPromises, mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import TopPage from './TopPage.vue';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { globalStubs } from '@/test/utils.ts';
-import { mount, flushPromises } from '@vue/test-utils';
-import { createTestingPinia } from '@pinia/testing';
-import { CATEGORIES, ROUTES } from '@/utils/constants.ts';
-import { useSurveyStore } from '@/stores/useSurveyStore.ts';
 
 const buildRouter = () =>
   createRouter({
@@ -16,29 +16,10 @@ const buildRouter = () =>
     ],
   });
 
-// ストアの初期カテゴリ状態
-const initialCategoryData = [
-  {
-    id: CATEGORIES.COMMON.id,
-    genre: '共通の質問',
-    icon: 'fa-solid fa-briefcase',
-    isChecked: true,
-    questions: [],
-  },
-  {
-    id: CATEGORIES.ENGINEER.id,
-    genre: 'エンジニア',
-    icon: 'fa-solid fa-computer',
-    isChecked: false,
-    questions: [],
-  },
-  {
-    id: CATEGORIES.DESIGNER.id,
-    genre: 'デザイナー',
-    icon: 'fa-solid fa-palette',
-    isChecked: false,
-    questions: [],
-  },
+const initialSelections = [
+  { categoryId: 1, isChecked: true, questions: [] },
+  { categoryId: 2, isChecked: false, questions: [] },
+  { categoryId: 3, isChecked: false, questions: [] },
 ];
 
 describe('TopPage', () => {
@@ -59,7 +40,7 @@ describe('TopPage', () => {
             initialState: {
               survey: {
                 userName: '',
-                categoryDate: initialCategoryData,
+                categoryDate: initialSelections,
                 ...surveyState,
               },
             },
@@ -121,11 +102,11 @@ describe('TopPage', () => {
     expect(wrapper.findAll('.category-card')[1]!.classes()).toContain('active');
   });
 
-  it('エンジニアカードをチェックすると store.isEngineerSelected が true になる', async () => {
+  it('エンジニアカードをチェックすると store の selections が更新される', async () => {
     const wrapper = createWrapper();
     const store = useSurveyStore();
     await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true);
-    expect(store.isEngineerSelected).toBe(true);
+    expect(store.selections.find((s) => s.categoryId === 2)?.isChecked).toBe(true);
   });
 
   it('両カードを同時に選択できる', async () => {
@@ -138,10 +119,10 @@ describe('TopPage', () => {
   });
 
   it('チェック済みカードのチェックを外すと active クラスが消える', async () => {
-    const enginnerCheckedData = initialCategoryData.map((c) =>
-      c.id === CATEGORIES.ENGINEER.id ? { ...c, isChecked: true } : c,
+    const engineerCheckedSelections = initialSelections.map((s) =>
+      s.categoryId === 2 ? { ...s, isChecked: true } : s,
     );
-    const wrapper = createWrapper({ categoryData: enginnerCheckedData });
+    const wrapper = createWrapper({ selections: engineerCheckedSelections });
     await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(false);
     expect(wrapper.findAll('.category-card')[0]!.classes()).not.toContain('active');
   });

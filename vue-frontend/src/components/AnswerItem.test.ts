@@ -1,16 +1,28 @@
-import { describe, expect, it } from 'vitest';
-import { mount } from '@vue/test-utils';
-import type { AnswerState } from '@/types';
 import AnswerItem from '@/components/AnswerItem.vue';
+import type { StarLevel } from '@/types';
+import { mount } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
+
+const createWrapper = (
+  propsOverrides: {
+    answerId?: number;
+    label?: string;
+    isChecked?: boolean;
+    value?: StarLevel;
+  } = {},
+) =>
+  mount(AnswerItem, {
+    props: {
+      answerId: 1,
+      label: 'テスト回答',
+      isChecked: false,
+      value: undefined,
+      ...propsOverrides,
+    },
+    global: { stubs: { 'font-awesome-icon': true } },
+  });
 
 describe('AnswerItem.vue', () => {
-  const createWrapper = (propsAnswer: Partial<AnswerState> = {}) =>
-    mount(AnswerItem, {
-      props: {
-        answer: { label: 'テスト回答', isChecked: false, value: undefined, ...propsAnswer },
-        answerIndex: 0,
-      },
-    });
   it('isChecked が true のとき習熟度選択が表示される', () => {
     const wrapper = createWrapper({ isChecked: true });
     expect(wrapper.find('.level-selector').exists()).toBe(true);
@@ -34,8 +46,8 @@ describe('AnswerItem.vue', () => {
     await radios[2]!.trigger('change');
     const emittedEvents = wrapper.emitted('update:answer');
     expect(emittedEvents).toBeTruthy();
-    const [payload] = emittedEvents![0] as [{ value: number }];
-    expect(payload.value).toBe(3);
+    const [payload] = emittedEvents![0] as [{ answerId: number; patch: { value: number } }];
+    expect(payload.patch.value).toBe(3);
   });
 
   it('習熟度未選択時は警告テキストが表示される', () => {

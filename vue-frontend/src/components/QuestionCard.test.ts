@@ -1,17 +1,16 @@
-import type { QuestionState } from '@/types';
-import { describe, expect, it } from 'vitest';
 import { globalStubs } from '@/test/utils';
 import { mount } from '@vue/test-utils';
+import { describe, expect, it } from 'vitest';
 import { nextTick } from 'vue';
-import QuestionCard from './QuestionCard.vue';
 import AnswerItem from './AnswerItem.vue';
+import QuestionCard from './QuestionCard.vue';
 
-const mockQuestion: QuestionState = {
+const mockQuestion = {
   id: 1,
   questionText: 'Q1. テスト質問',
   answers: [
-    { label: '回答A', isChecked: false },
-    { label: '回答B', isChecked: true, value: 3 as const },
+    { id: 1, label: '回答A', isChecked: false },
+    { id: 2, label: '回答B', isChecked: true, value: 3 as const },
   ],
 };
 
@@ -32,33 +31,16 @@ describe('QuestionCard', () => {
     expect(wrapper.findAllComponents(AnswerItem)).toHaveLength(2);
   });
 
-  it('AnswerItem から update:answer を受け取ると update:question を emit する', async () => {
-    const wrapper = createWrapper();
-    const updatedAnswer = { label: '回答A', isChecked: true };
-    const answerItem = wrapper.findComponent(AnswerItem);
-
-    answerItem.vm.$emit('update:answer', updatedAnswer);
-    await nextTick();
-    expect(wrapper.emitted('update:question')).toBeTruthy();
-
-    const emittedEvent = wrapper.emitted<[QuestionState]>('update:question');
-    expect(emittedEvent).toBeDefined();
-
-    const [[emittedQuestion]] = emittedEvent as [[QuestionState]];
-    expect(emittedQuestion.answers[0]).toEqual(updatedAnswer);
-  });
-
-  it('更新は該当インデックスの回答のみに反映される', async () => {
+  it('AnswerItem から update:answer を受け取ると update:answer を emit する', async () => {
     const wrapper = createWrapper();
     const answerItem = wrapper.findComponent(AnswerItem);
-    const updatedAnswer = { label: '回答A', isChecked: true };
-    answerItem.vm.$emit('update:answer', updatedAnswer);
+    const payload = { answerId: 1, patch: { isChecked: true } };
+
+    answerItem.vm.$emit('update:answer', payload);
     await nextTick();
+    expect(wrapper.emitted('update:answer')).toBeTruthy();
 
-    const emittedEvent = wrapper.emitted<[QuestionState]>('update:question');
-    expect(emittedEvent).toBeDefined();
-
-    const [[emittedQuestion]] = emittedEvent as [[QuestionState]];
-    expect(emittedQuestion.answers[1]).toEqual(mockQuestion.answers[1]);
+    const emitted = wrapper.emitted('update:answer')!;
+    expect(emitted[0]![0]).toEqual(payload);
   });
 });

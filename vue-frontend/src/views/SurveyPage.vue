@@ -1,13 +1,13 @@
 ﻿<script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard.vue';
 import ValidationError from '@/components/ValidationError.vue';
-import { ref, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { useSurveyStore } from '@/stores/useSurveyStore';
+import { useMergedSurvey } from '@/composables/useMergedSurvey';
 import { useSurveyValidation } from '@/composables/useSurveyValidation';
-import { ROUTES, LEVEL_LABELS } from '@/utils/constants';
-import type { QuestionState } from '@/types';
+import { useSurveyStore } from '@/stores/useSurveyStore';
+import type { StarLevel } from '@/types';
+import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
+import { nextTick, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const store = useSurveyStore();
@@ -15,11 +15,11 @@ const isHovering = ref<boolean>(false);
 
 // ─── ストアからデータを取得 ──────────────────────────────────────────────────
 
-const { userName, categoryData } = storeToRefs(store);
+const { mergedCategories } = useMergedSurvey();
 
 // ─── バリデーション ──────────────────────────────────────────────────────────
 
-const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(categoryData);
+const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories);
 
 // ─── イベントハンドラ ────────────────────────────────────────────────────────
 
@@ -27,17 +27,15 @@ const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(cat
  * 質問の更新ハンドラ。
  * QuestionCard から @update:question イベントで呼ばれる。
  */
-const handleQuestionUpdate = (
-  categoryIndex: number,
-  questionIndex: number,
-  updatedQuestion: QuestionState,
+const handleAnswerUpdate = (
+  categoryId: number,
+  questionId: number,
+  answerId: number,
+  patch: { isChecked?: boolean; value?: StarLevel },
 ): void => {
-  if (categoryData.value[categoryIndex]) {
-    categoryData.value[categoryIndex].questions[questionIndex] = updatedQuestion;
-  }
+  store.setAnswerSelection(categoryId, questionId, answerId, patch);
 };
 
-/** 次へ進む処理 */
 const onSubmit = async (): Promise<void> => {
   if (!validate()) {
     await nextTick();
@@ -55,7 +53,7 @@ const onSubmit = async (): Promise<void> => {
     <div class="header-section">
       <div class="inner">
         <div class="name-card">
-          <h2 class="user-greeting">{{ userName }} 様</h2>
+          <h2 class="user-greeting">{{ store.userName }} 様</h2>
         </div>
         <div class="instruction-card">
           <p class="instruction-text">
@@ -77,15 +75,16 @@ const onSubmit = async (): Promise<void> => {
     </div>
 
     <div class="wrap">
-      <template v-for="(category, categoryIndex) in categoryData" :key="category.id">
+      <template v-for="category in mergedCategories" :key="category.id">
         <div v-if="category.isChecked" class="category-section">
           <div class="category-header">
             <font-awesome-icon :icon="category.icon" class="category-icon" />
-            <h3 class="category-title">{{ category.genre }}</h3>
+            <h3 class="category-title">{{ category.label }}</h3>
           </div>
 
-          <QuestionCard v-for="(question, questionIndex) in category.questions" :key="question.id" :question="question"
-            @update:question="handleQuestionUpdate(categoryIndex, questionIndex, $event)" />
+          <QuestionCard v-for="question in category.questions" :key="question.id" :question="question" @update:answer="
+            handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
+            " />
         </div>
       </template>
 

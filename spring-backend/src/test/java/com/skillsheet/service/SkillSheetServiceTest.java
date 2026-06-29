@@ -40,9 +40,9 @@ class SkillSheetServiceTest {
   @DisplayName("save: リクエストが正常にエンティティに変換され、保存されてIDが返ること")
   void save_Success() {
     // GIVEN: 階層構造を持ったテストデータを作成
-    AnswerDto answerDto = new AnswerDto("回答A", 3);
-    QuestionDto questionDto = new QuestionDto(1, "Q1 テスト質問", List.of(answerDto));
-    CategoryDto categoryDto = new CategoryDto(2, "テスト", List.of(questionDto));
+    AnswerDto answerDto = new AnswerDto(1, 3);
+    QuestionDto questionDto = new QuestionDto(1, List.of(answerDto));
+    CategoryDto categoryDto = new CategoryDto(2, List.of(questionDto));
     SaveSheetRequest request = new SaveSheetRequest("山田太郎", List.of(categoryDto));
 
     // 保存後にリポジトリが返すダミーのエンティティ（ID付き）を用意
