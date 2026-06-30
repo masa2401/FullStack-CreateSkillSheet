@@ -13,13 +13,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.skillsheet.dto.request.SaveSheetRequest;
 import com.skillsheet.service.SkillSheetService;
+
+import tools.jackson.databind.json.JsonMapper;
 
 @WebMvcTest(SkillSheetController.class)
 class SkillSheetControllerTest {
@@ -28,11 +30,11 @@ class SkillSheetControllerTest {
   private MockMvc mockMvc;
 
   @Autowired
-  private com.fasterxml.jackson.databind.ObjectMapper objectMapper; // JavaオブジェクトをJSON文字列に変換する用
+  private JsonMapper objectMapper; // JavaオブジェクトをJSON文字列に変換する用
 
   @MockitoBean
   private SkillSheetService service;
-    
+
   @Test
   @DisplayName("POST /api/sheets - スキルシートが正常に保存され、211 CreatedとIDが返ること")
   void save_Success() throws Exception {
@@ -45,11 +47,11 @@ class SkillSheetControllerTest {
 
     // WHEN & THEN: リクエストを送信し、結果をアサーション
     mockMvc.perform(post("/api/sheets")
-    .contentType(MediaType.APPLICATION_JSON)
-    .content(objectMapper.writeValueAsString(request)))
-    .andExpect(status().isCreated())
-    .andExpect(jsonPath("$.id").value(expectedId.toString()));
-    // jsonPathを使うと、レスポンスJSONの特定のフィールドを検証できます    
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(expectedId.toString()));
+    // jsonPathを使うと、レスポンスJSONの特定のフィールドを検証できます
   }
 
   @Test
@@ -63,8 +65,8 @@ class SkillSheetControllerTest {
 
     // WHEN & THEN
     mockMvc.perform(get("/api/sheets/{id}", targetId)
-    .accept(MediaType.APPLICATION_JSON))
-    .andExpect(status().isOk())
-    .andExpect(jsonPath("$.userName").value("山田太郎"));
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userName").value("山田太郎"));
   }
 }
