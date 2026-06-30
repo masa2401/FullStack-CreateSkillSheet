@@ -85,4 +85,18 @@ class SkillSheetServiceTest {
     assertThatThrownBy(() -> service.findById(targetId))
         .isInstanceOf(SheetExpiredException.class);
   }
+
+  @Test
+  @DisplayName("deleteExpiredSheets: 期限切れのシートが削除されること")
+  void deleteExpiredSheets_DeletesExpiredOnly() {
+    SkillSheet expired = new SkillSheet();
+    expired.setExpiresAt(LocalDateTime.now().minusDays(1));
+
+    when(sheetRepository.findByExpiresAtBefore(ArgumentMatchers.any()))
+        .thenReturn(List.of(expired));
+
+    service.deleteExpiredSheets();
+
+    verify(sheetRepository).deleteAll(List.of(expired));
+  }
 }
