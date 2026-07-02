@@ -6,6 +6,8 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +22,9 @@ import com.skillsheet.exception.SheetExpiredException;
 import com.skillsheet.repository.SkillSheetRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,7 +32,7 @@ public class SkillSheetService {
 
     private final SkillSheetRepository sheetRepository;
 
-    @org.springframework.beans.factory.annotation.Value("${sheet.expiry.days:14}")
+    @Value("${sheet.expiry.days:5}")
     private long expiryDays;
 
     /** スキルシートを保存してIDを返す */
@@ -62,6 +66,16 @@ public class SkillSheetService {
         return sheetRepository.save(sheet).getId();
     }
 
+    @Scheduled(cron = "${sheet.cleanup.cron:0 0 3 * * *}")
+    public void deleteExpiredSheets() {
+        List<SkillSheet> expiredSheets = sheetRepository.findByExpiresAtBefore(LocalDateTime.now());
+        if (!expiredSheets.isEmpty()) {
+            log.info("期限切れスキルシートを{}件削除します", expiredSheets.size());
+            sheetRepository.deleteAll(expiredSheets);
+        }
+
+    }
+
     /** IDでスキルシートを取得する */
     @Transactional(readOnly = true)
     public SaveSheetRequest findById(UUID id) {
@@ -74,23 +88,17 @@ public class SkillSheetService {
 
         // エンティティ → DTOに変換して返す（逆方向の変換）
         List<CategoryDto> categories = sheet.getCategories().stream()
-                .map(cat -> new CategoryDto(
-                        cat.getCategoryId(),
-                        buildQustions(cat.getAnswers())))
-                .toList();
+                .map(cat -> new CategoryDto(cat.getCategoryId(), buildQustions(cat.getAnswers()))).toList();
 
         return new SaveSheetRequest(sheet.getUserName(), categories);
     }
 
     // 回答リストから質問DTO一覧を組み立てるヘルパー
     private List<QuestionDto> buildQustions(List<SheetAnswer> answers) {
-        return answers.stream()
-                .collect(Collectors.groupingBy(a -> a.getQuestionId()))
-                .entrySet().stream()
+        return answers.stream().collect(Collectors.groupingBy(a -> a.getQuestionId())).entrySet().stream()
                 .map(entry -> {
                     List<AnswerDto> answerDtos = entry.getValue().stream()
-                            .map(a -> new AnswerDto(a.getAnswerId(), a.getValue()))
-                            .toList();
+                            .map(a -> new AnswerDto(a.getAnswerId(), a.getValue())).toList();
                     return new QuestionDto(entry.getKey(), answerDtos);
                 })
                 .toList();
