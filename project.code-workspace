@@ -8,6 +8,10 @@
       "name": "Backend",
       "path": "spring-backend",
     },
+    {
+      "name": "AWS-Lambda",
+      "path": "aws-lambda",
+    },
   ],
   "settings": {
     "eslint.workingDirectories": [{ "mode": "auto" }],
