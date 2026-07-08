@@ -69,7 +69,7 @@ function assertAllowedUrl(rawUrl: string): string {
 
   const allowed = new URL(ALLOWED_ORIGIN);
   if (target.origin !== allowed.origin) {
-    throw new Error('許可されていないオリジンです: ${target.origin}');
+    throw new Error(`許可されていないオリジンです: ${target.origin}`);
   }
   return target.toString();
 }

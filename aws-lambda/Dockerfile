@@ -17,7 +17,7 @@ RUN npm ci --omit=dev
 # ─── 実行ステージ：Lambda用ベースイメージ ───
 FROM public.ecr.aws/lambda/nodejs:24
 
-# @sparticuz/chromium が実行時に必要とする共有ライブラリをインストール
+# @sparticuz/chromium が実行時に必要とする共有ライブラリ + 日本語フォント
 RUN dnf install -y \
     atk \
     cups-libs \
@@ -31,6 +31,10 @@ RUN dnf install -y \
     libXext \
     libXi \
     libXtst \
+    fontconfig \
+    google-noto-sans-cjk-fonts \
+    google-noto-emoji-fonts \
+    && fc-cache -fv \
     && dnf clean all
 
 WORKDIR ${LAMBDA_TASK_ROOT}

@@ -448,7 +448,6 @@ const handlePrint = () => window.print();
   }
 
   .page-container {
-    background: #ffffff !important;
     padding: 0;
     min-height: auto;
   }
