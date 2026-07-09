@@ -1,5 +1,4 @@
-import chromium from '@sparticuz/chromium';
-import puppeteer, { type Browser } from 'puppeteer-core';
+import puppeteer, { type Browser } from 'puppeteer';
 
 import {
   GetObjectCommand,
@@ -38,15 +37,15 @@ let browserPromise: Promise<Browser> | undefined;
 
 function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
-    browserPromise = (async (): Promise<Browser> => {
-      const executablePath = await chromium.executablePath();
-      return puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath,
-        headless: chromium.headless,
-      });
-    })();
+    browserPromise = puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--single-process',
+      ],
+    });
   }
   return browserPromise;
 }
