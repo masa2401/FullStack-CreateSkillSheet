@@ -33,6 +33,9 @@ class SkillSheetServiceTest {
   @Mock
   private SkillSheetRepository sheetRepository;
 
+  @Mock
+  private LambdaPdfService lambdaPdfService;
+
   @InjectMocks
   private SkillSheetService service;
 

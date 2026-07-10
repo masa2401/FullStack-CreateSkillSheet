@@ -1,17 +1,16 @@
-import puppeteer, { type Browser } from 'puppeteer';
-
 import {
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { randomUUID } from 'crypto';
+import puppeteer, { type Browser } from 'puppeteer';
 
 // ─── 型定義 ──────────────────────────────────────────────────────
 
 /** バックエンドから受け取るリクエストの形 */
 interface PdfGenerationRequest {
+  id: string;
   url: string;
   fileName?: string;
 }
@@ -58,14 +57,12 @@ function assertAllowedUrl(rawUrl: string): string {
   if (!ALLOWED_ORIGIN) {
     throw new Error('環境変数 ALLOWED_ORIGIN が設定されていません');
   }
-
   let target: URL;
   try {
     target = new URL(rawUrl);
   } catch {
     throw new Error('url が不正な形式です');
   }
-
   const allowed = new URL(ALLOWED_ORIGIN);
   if (target.origin !== allowed.origin) {
     throw new Error(`許可されていないオリジンです: ${target.origin}`);
@@ -81,17 +78,26 @@ function sanitizeFileName(name: string | undefined): string {
   return name.replace(/[^\w\-ぁ-んァ-ヶ一-龠々ー]/g, '_').slice(0, 50);
 }
 
+// シンプルなUUID形式チェック（S3キーとして安全に使うための最低限のバリデーション）
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const handler = async (
   event: PdfGenerationRequest,
 ): Promise<PdfGenerationResponse> => {
-  const { url, fileName } = event ?? {};
+  const { id, url, fileName } = event ?? {};
 
+  if (!id || !UUID_PATTERN.test(id)) {
+    throw new Error('リクエストに有効な ID が含まれていません');
+  }
   if (!url || typeof url !== 'string') {
-    throw new Error('リクエストに url（文字列）が含まれていません');
+    throw new Error('リクエストに URL が含まれていません');
+  }
+  if (!BUCKET_NAME) {
+    throw new Error('環境変数 PDF_BUCKET_NAME が設定されていません');
   }
 
   const targetUrl = assertAllowedUrl(url);
-
   const browser = await getBrowser();
   const page = await browser.newPage();
 
@@ -111,7 +117,7 @@ export const handler = async (
       margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' },
     });
 
-    const objectKey = `skill-sheets/${randomUUID()}.pdf`;
+    const objectKey = `skill-sheets/${id}.pdf`;
     const safeFileName = sanitizeFileName(fileName);
 
     await s3.send(

@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SkillSheetService {
 
     private final SkillSheetRepository sheetRepository;
+    private final LambdaPdfService lambdaPdfService;
 
     @Value("${sheet.expiry.days:5}")
     private long expiryDays;
@@ -60,10 +61,13 @@ public class SkillSheetService {
                     category.getAnswers().add(answer);
                 }
             }
-            sheet.getCategories().add(category);
         }
-        // 4. 保存（CascadeType.ALL により子も自動で保存される）
-        return sheetRepository.save(sheet).getId();
+        UUID savedId = sheetRepository.save(sheet).getId();
+
+        // 保存成功後にPDF生成を非同期リクエスト（失敗してもsave()自体は成功扱い）
+        lambdaPdfService.requestGenerationAsync(savedId, req.userName());
+
+        return savedId;
     }
 
     @Scheduled(cron = "${sheet.cleanup.cron:0 0 3 * * *}")
@@ -73,7 +77,6 @@ public class SkillSheetService {
             log.info("期限切れスキルシートを{}件削除します", expiredSheets.size());
             sheetRepository.deleteAll(expiredSheets);
         }
-
     }
 
     /** IDでスキルシートを取得する */
@@ -100,7 +103,6 @@ public class SkillSheetService {
                     List<AnswerDto> answerDtos = entry.getValue().stream()
                             .map(a -> new AnswerDto(a.getAnswerId(), a.getValue())).toList();
                     return new QuestionDto(entry.getKey(), answerDtos);
-                })
-                .toList();
+                }).toList();
     }
 }
