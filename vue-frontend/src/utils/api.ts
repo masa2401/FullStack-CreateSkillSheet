@@ -9,6 +9,8 @@ export type FetchSheetResult =
   | { status: 'expired' }
   | { status: 'notfound' };
 
+export type PdfStatus = { status: 'generating' } | { status: 'ready'; downloadUrl: string };
+
 export const saveSheet = async (state: SurveyState): Promise<string | null> => {
   if (!isBackendEnabled()) return null;
 
@@ -39,6 +41,27 @@ export const checkSheetExists = async (id: string): Promise<boolean> => {
   if (!isBackendEnabled()) return false;
   try {
     const res = await fetch(`${getApiBase()}/api/sheets/${id}`);
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+
+export const fetchPdfStatus = async (id: string): Promise<PdfStatus | null> => {
+  if (!isBackendEnabled()) return null;
+  try {
+    const res = await fetch(`${getApiBase()}/api/pdf/${id}/status`);
+    if (!res.ok) return null;
+    return (await res.json()) as PdfStatus;
+  } catch {
+    return null;
+  }
+};
+
+export const regeneratePdf = async (id: string): Promise<boolean> => {
+  if (!isBackendEnabled()) return false;
+  try {
+    const res = await fetch(`${getApiBase()}/api/pdf/${id}/regenerate`, { method: 'POST' });
     return res.ok;
   } catch {
     return false;
