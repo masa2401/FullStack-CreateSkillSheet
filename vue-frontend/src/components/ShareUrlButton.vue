@@ -2,7 +2,7 @@
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import { isBackendEnabled } from '@/utils/api';
 import { copyToClipboard, createShareUrl } from '@/utils/shareUtils';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const store = useSurveyStore();
 const copySuccess = ref<boolean>(false);
@@ -38,56 +38,21 @@ const handleCopy = async () => {
     isSaving.value = false;
   }
 };
+
+const icon = computed(() => {
+  if (copySuccess.value) return 'fa-solid fa-check';
+  if (isSaving.value) return 'fa-solid fa-spinner';
+  return 'fa-regular fa-copy';
+});
+const text = computed(() => {
+  if (copySuccess.value) return 'コピー完了';
+  if (isSaving.value) return '保存中...';
+  return 'URLをコピー';
+});
+const variant = computed(() => (copySuccess.value ? 'success' : 'default'));
 </script>
+
 <template>
-  <button
-    @click="handleCopy"
-    class="menu-item"
-    :class="{ success: copySuccess }"
-    :disabled="isSaving"
-  >
-    <span class="menu-icon">
-      <font-awesome-icon v-if="copySuccess" icon="fa-solid fa-check" />
-      <font-awesome-icon v-else-if="isSaving" icon="fa-solid fa-spinner" spin />
-      <font-awesome-icon v-else icon="fa-regular fa-copy" />
-    </span>
-    <span class="menu-text">{{
-      copySuccess ? 'コピー完了' : isSaving ? '保存中...' : 'URLをコピー'
-    }}</span>
-  </button>
+  <MenuItemButton :icon="icon" :text="text" :variant="variant" :spin="isSaving" :disabled="isSaving"
+    @click="handleCopy" />
 </template>
-<style scoped>
-.menu-item {
-  width: 100%;
-  padding: var(--p-8, 1rem);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  border-radius: 10px;
-  transition: all 0.2s;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #483c32;
-}
-
-.menu-item:hover {
-  background: #f5f5f5;
-}
-
-.menu-item.success {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.menu-icon {
-  font-size: 1rem;
-}
-
-.menu-text {
-  text-align: left;
-}
-</style>

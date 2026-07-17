@@ -31,7 +31,6 @@ const PRESIGNED_URL_EXPIRES_SECONDS = Number(
 
 const s3 = new S3Client({});
 
-// ウォームスタート時にブラウザを使い回すため、モジュールスコープでキャッシュする
 let browserPromise: Promise<Browser> | undefined;
 
 function getBrowser(): Promise<Browser> {

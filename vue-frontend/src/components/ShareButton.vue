@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
+import { useSurveyStore } from '@/stores/useSurveyStore.ts';
+import { isBackendEnabled } from '@/utils/api.ts';
 import { ref } from 'vue';
 import CsvButton from './CsvButton.vue';
 import ShareUrlButton from './ShareUrlButton.vue';
 
+const store = useSurveyStore();
 const showMenu = ref<boolean>(false);
 
-const toggleMenu = () => {
+const toggleMenu = async () => {
   showMenu.value = !showMenu.value;
+
+  if (showMenu.value && isBackendEnabled() && !store.savedSheetId) {
+    try {
+      await store.getSavedIdOrSave();
+    } catch (error) {
+      console.error('シート保存エラー', error)
+    }
+  }
 };
 
 const closeMenu = () => {
@@ -17,20 +28,14 @@ const closeMenu = () => {
 
 <template>
   <div class="share-button-container">
-    <AnimatedIconButton
-      icon="fa-solid fa-arrow-up-right-from-square"
-      label="結果を共有"
-      :aria-expanded="showMenu"
-      aria-haspopup="true"
-      animationType="bounce"
-      button-class="share-button"
-      @click="toggleMenu"
-    />
+    <AnimatedIconButton icon="fa-solid fa-arrow-up-right-from-square" label="結果を共有" :aria-expanded="showMenu"
+      aria-haspopup="true" animationType="bounce" button-class="share-button" @click="toggleMenu" />
 
     <transition name="slide-fade">
       <div v-if="showMenu" class="share-menu">
         <ShareUrlButton @done="closeMenu" />
         <CsvButton @done="closeMenu" />
+        <PdfButton v-if="isBackendEnabled()" @done="closeMenu" />
       </div>
     </transition>
   </div>

@@ -62,6 +62,9 @@ class SkillSheetServiceTest {
 
     // リポジトリのsaveメソッドが本当に呼ばれたかどうかの検証
     verify(sheetRepository).save(ArgumentMatchers.<SkillSheet>any());
+
+    // PDF生成の非同期リクエストが保存直後に呼ばれることを検証
+    verify(lambdaPdfService).requestGenerationAsync(expectedId, "山田太郎");
   }
 
   @Test
