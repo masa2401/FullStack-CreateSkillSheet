@@ -4,6 +4,7 @@ import { useSurveyStore } from '@/stores/useSurveyStore.ts';
 import { isBackendEnabled } from '@/utils/api.ts';
 import { ref } from 'vue';
 import CsvButton from './CsvButton.vue';
+import PdfButton from './PdfButton.vue';
 import ShareUrlButton from './ShareUrlButton.vue';
 
 const store = useSurveyStore();
