@@ -4,6 +4,7 @@
 .DS_Store
 Thumbs.db
 *.local
+.env
 
 ### VS Code ###
 .vscode/

@@ -75,6 +75,8 @@ public class LambdaPdfService {
             if (response.statusCode() != 202) {
                 log.warn("Lambda Invokeが想定外のステータスを返しました: sheetId={}, status={}",
                         sheetId, response.statusCode());
+            } else {
+                log.info("Lambda PDF生成をInvokeしました: sheetId={}, status={}", sheetId, response.statusCode());
             }
         } catch (LambdaException e) {
             log.error("Lambda PDF生成のInvokeに失敗しました: sheetId={}", sheetId, e);

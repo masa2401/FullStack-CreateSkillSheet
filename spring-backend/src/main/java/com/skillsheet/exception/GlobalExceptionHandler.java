@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     // 404：リソースが見つからない
@@ -42,5 +44,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(body);
+    }
+
+    @ExceptionHandler(S3Exception.class)
+    public ResponseEntity<ProblemDetail> handleS3Error(S3Exception e) {
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+                "PDFステータスの確認中にエラーが発生しました");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }

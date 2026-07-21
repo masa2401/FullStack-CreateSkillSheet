@@ -16,16 +16,19 @@ import com.skillsheet.service.LambdaPdfService;
 import com.skillsheet.service.SkillSheetService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 @RestController
 @RequestMapping("/api/pdf")
 @RequiredArgsConstructor
+@Slf4j
 public class PdfController {
 
     private final S3Client s3Client;
@@ -39,7 +42,7 @@ public class PdfController {
     private static final Duration PRESIGN_DURATION = Duration.ofMinutes(10);
 
     /** ポーリング用：S3にPDFがあればpresigned URLを返し、無ければ生成中として返す。 */
-    @GetMapping("/${id}/status")
+    @GetMapping("/{id}/status")
     public ResponseEntity<PdfStatusResponse> status(@PathVariable UUID id) {
         String key = buildKey(id);
 
@@ -50,7 +53,7 @@ public class PdfController {
     }
 
     /** 手動リトライ用：既存シートに対して再度Lambdaを非同期Invokeする。 */
-    @PostMapping("/${id}/regenerate")
+    @PostMapping("/{id}/regenerate")
     public ResponseEntity<PdfStatusResponse> regenerate(@PathVariable UUID id) {
         // findById()はNotFound/Expiredの例外をGlobalExceptionHandlerが処理済みの規約に乗せる
         String userName = skillSheetService.findById(id).userName();
@@ -68,6 +71,9 @@ public class PdfController {
             return true;
         } catch (NoSuchKeyException e) {
             return false;
+        } catch (S3Exception e) {
+            log.error("S3のHeadObjectでエラーが発生しました: key={}, statusCode={}", key, e.statusCode(), e);
+            throw e;
         }
     }
 
