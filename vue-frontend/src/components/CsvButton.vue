@@ -2,6 +2,7 @@
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import { downloadCSV } from '@/utils/csvUtils';
 import { computed, ref } from 'vue';
+import MenuItemButton from './MenuItemButton.vue';
 
 const store = useSurveyStore();
 const downloadSuccess = ref<boolean>(false);
