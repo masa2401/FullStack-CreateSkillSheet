@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -104,5 +105,26 @@ class SkillSheetServiceTest {
     service.deleteExpiredSheets();
 
     verify(sheetRepository).deleteAll(List.of(expired));
+  }
+
+  @Test
+  @DisplayName("save: カテゴリがskillSheetのコレクションに正しく追加されること")
+  void save_CategoriesAreAttachedToSheet() {
+    AnswerDto answerDto = new AnswerDto(1, 3);
+    QuestionDto questionDto = new QuestionDto(1, List.of(answerDto));
+    CategoryDto categoryDto = new CategoryDto(2, List.of(questionDto));
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎", List.of(categoryDto));
+
+    UUID expectedId = UUID.randomUUID();
+    SkillSheet savedSheet = new SkillSheet();
+    savedSheet.setId(expectedId);
+    when(sheetRepository.save(ArgumentMatchers.<SkillSheet>any())).thenReturn(savedSheet);
+
+    service.save(request);
+
+    ArgumentCaptor<SkillSheet> captor = ArgumentCaptor.forClass(SkillSheet.class);
+    verify(sheetRepository).save(captor.capture());
+    assertThat(captor.getValue().getCategories()).hasSize(1);
+    assertThat(captor.getValue().getCategories().get(0).getAnswers()).hasSize(1);
   }
 }

@@ -61,7 +61,10 @@ public class SkillSheetService {
                     category.getAnswers().add(answer);
                 }
             }
+
+            sheet.getCategories().add(category);
         }
+
         UUID savedId = sheetRepository.save(sheet).getId();
 
         // 保存成功後にPDF生成を非同期リクエスト（失敗してもsave()自体は成功扱い）
