@@ -4,6 +4,7 @@
 .DS_Store
 Thumbs.db
 *.local
+.env
 
 ### VS Code ###
 .vscode/
@@ -82,3 +83,14 @@ vue-frontend/playwright/.auth/
 vue-frontend/.env
 vue-frontend/.env.local
 vue-frontend/.env.*.local
+
+# ==========================================
+# AWS-Lambda (aws-lambda)
+# ==========================================
+# Logs
+aws-lambda/logs
+aws-lambda/*.log
+
+# Dependencies & Build Artifacts
+aws-lambda/node_modules/
+aws-lambda/dist/

@@ -1,0 +1,21 @@
+{
+  "name": "skillsheet-pdf-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "スキルシート結果ページをPDF化してS3にアップロードするLambda関数",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "puppeteer": "^25.1.0",
+    "@aws-sdk/client-s3": "^3.1080.0",
+    "@aws-sdk/s3-request-presigner": "^3.1080.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
+    "@types/node": "^24.13.0",
+    "typescript": "^7.0.2"
+  }
+}

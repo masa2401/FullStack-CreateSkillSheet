@@ -3,6 +3,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CsvButton from './CsvButton.vue';
+import MenuItemButton from './MenuItemButton.vue';
 
 const createWrapper = () =>
   mount(CsvButton, {
@@ -14,6 +15,7 @@ const createWrapper = () =>
           },
         }),
       ],
+      components: { MenuItemButton },
       stubs: { 'font-awesome-icon': true },
     },
   });

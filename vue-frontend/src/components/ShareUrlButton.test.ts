@@ -3,6 +3,7 @@ import * as shareUtils from '@/utils/shareUtils';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import MenuItemButton from './MenuItemButton.vue';
 import ShareUrlButton from './ShareUrlButton.vue';
 
 const mockGetSavedIdOrSave = vi.fn();
@@ -18,6 +19,7 @@ const createWrapper = () =>
   mount(ShareUrlButton, {
     global: {
       plugins: [createTestingPinia()],
+      components: { MenuItemButton },
       stubs: { 'font-awesome-icon': true },
     },
   });

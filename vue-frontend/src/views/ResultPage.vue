@@ -110,7 +110,8 @@ const handlePrint = () => window.print();
                 <div class="skill-level">
                   <span class="level-stars">{{
                     LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
-                  }}</span>
+                    }}</span>
+                  <span class="level-number">&nbsp;({{ answer.value }}/5)</span>
                 </div>
               </div>
             </div>
@@ -304,6 +305,11 @@ const handlePrint = () => window.print();
   font-size: 1.2rem;
 }
 
+.level-number {
+  font-size: 0.8em;
+  color: #666;
+}
+
 .button-group {
   display: flex;
   justify-content: center;
@@ -455,6 +461,8 @@ const handlePrint = () => window.print();
 
   .header-section {
     padding: 0 0 var(--p-8, 1rem) 0;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius, 12px);
   }
 
   .header-icon {
@@ -476,8 +484,11 @@ const handlePrint = () => window.print();
   .category-section {
     margin-bottom: var(--p-12, 1.5rem);
     box-shadow: none;
-    border: 1px solid #e5e7eb;
-    border-radius: var(--radius, 12px);
+    border: 1.5px solid #d1d5db;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    border-radius: 0;
+    padding: var(--p-8, 1rem) 0;
   }
 
   .category-header {
@@ -494,13 +505,14 @@ const handlePrint = () => window.print();
   }
 
   .question-block {
-    padding: 0 var(--p-12, 1.5rem) var(--p-8, 1rem);
+    padding: 0 var(--p-12, 1.5rem) var(--p-16, 2rem);
   }
 
   .question-title {
     font-size: 1rem;
     margin: 0 0 var(--p-4, 0.5rem);
     break-after: avoid;
+    break-inside: avoid
   }
 
   .skills-grid {
@@ -513,6 +525,8 @@ const handlePrint = () => window.print();
     box-shadow: none;
     border: 1px solid #e5e7eb;
     break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .skill-info {
@@ -525,11 +539,14 @@ const handlePrint = () => window.print();
 
   .level-stars {
     font-size: 0.9rem;
-  }
-
-  .skill-card {
+    color: #1a1a1a !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    font-weight: 600;
+  }
+
+  .level-number {
+    color: #444 !important;
   }
 
   h2,
