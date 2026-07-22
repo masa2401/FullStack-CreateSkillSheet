@@ -35,6 +35,22 @@ jobs:
 
   backend-test:
     runs-on: ubuntu-latest
+
+    # 1. サービスコンテナとしてPostgreSQLを起動
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,6 +63,9 @@ jobs:
           cache: 'maven'
 
       - name: Run Backend tests (Maven)
-        # ./spring-backend フォルダに移動して、テストを実行（mvn test）します
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          SPRING_DATASOURCE_USERNAME: testuser
+          SPRING_DATASOURCE_PASSWORD: testpassword
         run: mvn test
         working-directory: ./spring-backend
