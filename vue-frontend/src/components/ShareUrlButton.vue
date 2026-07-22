@@ -3,6 +3,7 @@ import { useSurveyStore } from '@/stores/useSurveyStore';
 import { isBackendEnabled } from '@/utils/api';
 import { copyToClipboard, createShareUrl } from '@/utils/shareUtils';
 import { computed, ref } from 'vue';
+import MenuItemButton from './MenuItemButton.vue';
 
 const store = useSurveyStore();
 const copySuccess = ref<boolean>(false);
