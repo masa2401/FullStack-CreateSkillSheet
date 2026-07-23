@@ -16,32 +16,71 @@
 
 [【 旧開発リポジトリ（フロントエンド） 】](https://github.com/masa2401/CreateYourSkillSheet)
 
-## システム構成図（アーキテクチャ）
+## デプロイ・開発フロー図
 
 ```mermaid
 graph TD
-        %% 本番環境とユーザーの流れ
-    subgraph ProductionEnv [本番と運用環境]
-        User[ユーザー] -->|ブラウザからアクセス| Vercel[Vercel]
-        Vercel -->|API通信| Railway[Railway]
-        Railway -->|データ保存/取得| PostgreSQL[(PostgreSQL)]
+    Developer[開発者]
+
+    subgraph LambdaDeploy [AWS Lambdaのデプロイ]
+        LocalDocker[ローカル Docker]
+        ECR[Amazon ECR]
+        Lambda[AWS Lambda]
     end
 
-    %% 開発とCI/CDの流れ
-    subgraph CICDflow [開発とCI/CDフロー]
-        Developer[開発者] -->|機能開発/コミット| FeatureBranch[featureブランチ]
-        FeatureBranch -->|Pull Request 作成| GitHub[GitHub]
-        GitHub -->|Mainブランチへマージ| GHA[GitHub Actions起動]
-        GHA -->|Test自動実行| GHA
-        GHA -->|Image作成| Docker[Docker]
-        Docker -->|コンテナをデプロイ| Railway[Railway]
+    subgraph AppDeploy [フロント/バックエンドのCIとCD]
+        GitHub[GitHub]
+        GHATest[GitHub Actions<br>自動テスト]
+        GHADeploy[GitHub Actions<br>ビルド/デプロイ]
+        GHCR[GitHub Container Registry]
+        Railway[Railway]
     end
 
-    %% スタイルの微調整
+    %% アプリ本体のデプロイフロー
+    Developer -->|PR作成とMainマージ| GitHub
+    GitHub -->|フロント・バックエンドテスト| GHATest
+    GHATest -->|テスト成功でデプロイ処理起動| GHADeploy
+    GHADeploy -->|DockerイメージPush| GHCR
+    GHADeploy -->|Railway CLIでデプロイ実行| Railway
+    GHCR -.->|イメージ参照| Railway
+
+    %% AWS Lambdaのデプロイフロー
+    Developer -->|AWS用コンテナビルド| LocalDocker
+    LocalDocker -->|AWS CLIでPush| ECR
+    ECR -->|イメージ適用| Lambda
+
+    %% スタイルの設定
     style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
-    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
-    style PostgreSQL fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style ECR fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style GHCR fill:#24292e,stroke:#333,stroke-width:2px,color:#fff
+```
 
+## PDF化機能システム構成図（アーキテクチャ）
+
+```mermaid
+graph TD
+    User[ユーザー]
+    Vercel[Vercel フロント]
+    Railway[Railway バックエンド]
+    DB[(PostgreSQL)]
+    Lambda[AWS Lambda Puppeteer]
+    S3[(Amazon S3)]
+
+    User -->|1. PDF生成リクエスト| Vercel
+    Vercel -->|2. 生成要求とポーリング開始| Railway
+    Railway -.->|3. 既存のUUIDデータを参照| DB
+    Railway -->|4. 共有URLを渡し非同期実行| Lambda
+    Lambda -->|5. 共有ページを読込しPDF化| S3
+    Railway -->|6. ポーリングでS3の生成完了を確認| S3
+    Railway -->|7. 完了通知とDL用URLを返却| Vercel
+    Vercel -->|8. DLボタンを活性化| User
+
+    %% スタイルの設定
+    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
+    style DB fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style S3 fill:#569A31,stroke:#333,stroke-width:2px,color:#fff
 ```
 
 ## 本アプリのこだわり（実務・運用を意識した取り組み）
@@ -143,3 +182,67 @@ root/
 ## 今後の展望（ロードマップ）
 
 追加機能の一部をAWS Lambda等へ切り出し、外部APIとしてサーバーレスアーキテクチャ化を計画中。サーバーレス運用を通じた、モダンなバックエンド設計の学習を目標としています。
+
+```mermaid
+
+graph TD
+    User[ユーザー]
+    Vercel[Vercel フロント]
+    Railway[Railway <br>バックエンド]
+    DB[(PostgreSQL)]
+    Lambda[AWS Lambda Puppeteer]
+    S3[(Amazon S3)]
+
+    User -->|1. PDF生成リクエスト| Vercel
+    Vercel -->|2. 生成要求とポーリング開始| Railway
+    Railway -.->|3. 既存のUUIDデータを参照| DB
+    Railway -->|4. 共有URLを渡し非同期実行| Lambda
+    Lambda -->|5. 共有ページを読込しPDF化| S3
+    Railway -->|6. ポーリングでS3の生成完了を確認| S3
+    Railway -->|7. 完了通知とDL用URLを返却| Vercel
+    Vercel -->|8. DLボタンを活性化| User
+
+    %% スタイルの設定
+    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
+    style DB fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style S3 fill:#569A31,stroke:#333,stroke-width:2px,color:#fff
+```
+
+```mermaid
+graph TD
+    Developer[開発者 ローカル]
+
+    subgraph AppDeploy [WebとバックエンドのCIとCD]
+        GitHub[GitHub]
+        GHATest[GHA 自動テスト]
+        GHADeploy[GHA ビルドとデプロイ]
+        GHCR[GitHub Container Registry]
+        Railway[Railway]
+    end
+
+    subgraph LambdaDeploy [AWS Lambdaのデプロイ]
+        LocalDocker[ローカル Docker]
+        ECR[Amazon ECR]
+        Lambda[AWS Lambda]
+    end
+
+    %% アプリ本体のデプロイフロー
+    Developer -->|PR作成とMainマージ| GitHub
+    GitHub -->|フロント・バックエンドテスト| GHATest
+    GHATest -->|テスト成功でデプロイ処理起動| GHADeploy
+    GHADeploy -->|DockerイメージPush| GHCR
+    GHADeploy -->|Railway CLIでデプロイ実行| Railway
+    GHCR -.->|イメージ参照| Railway
+
+    %% AWS Lambdaのデプロイフロー
+    Developer -->|Puppeteerコンテナビルド| LocalDocker
+    LocalDocker -->|AWS CLIでPush| ECR
+    ECR -->|イメージ適用| Lambda
+
+    %% スタイルの設定
+    style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
+    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style ECR fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style GHCR fill:#24292e,stroke:#333,stroke-width:2px,color:#fff
+```
