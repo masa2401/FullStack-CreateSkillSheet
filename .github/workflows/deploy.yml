@@ -2,7 +2,7 @@ name: Build and Deploy Backend to Railway
 
 on:
   workflow_run:
-    workflows: ['Fullstack Automated Tests']
+    workflows: ["Fullstack Automated Tests"]
     types: [completed]
     branches: [main]
 

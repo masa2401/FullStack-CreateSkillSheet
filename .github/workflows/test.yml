@@ -2,9 +2,9 @@ name: Fullstack Automated Tests
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
   pull_request:
-    branches: ['main']
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -21,9 +21,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'npm'
+          cache: "npm"
           # フロントエンド用のpackage-lock.jsonの場所を指定
-          cache-dependency-path: './vue-frontend/package-lock.json'
+          cache-dependency-path: "./vue-frontend/package-lock.json"
 
       - name: Install dependencies
         run: npm ci
@@ -58,9 +58,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
 
       - name: Run Backend tests (Maven)
         env:
@@ -69,34 +69,35 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: testpassword
         run: mvn test
         working-directory: ./spring-backend
-detect-lambda-changes:
-  runs-on: ubuntu-latest
-  if: github.event_name == 'push'
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # before/after間のdiffを取るため全履歴を取得
 
-    - name: Check for aws-lambda changes
-      id: filter
-      run: |
-        BEFORE_SHA="${{ github.event.before }}"
-        AFTER_SHA="${{ github.event.after }}"
+  detect-lambda-changes:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # before/after間のdiffを取るため全履歴を取得
 
-        if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-        elif git diff --quiet "$BEFORE_SHA" "$AFTER_SHA" -- aws-lambda/; then
-          echo "changed=false" >> "$GITHUB_OUTPUT"
-        else
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-        fi
+      - name: Check for aws-lambda changes
+        id: filter
+        run: |
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.event.after }}"
 
-    - name: Save flag to file
-      run: echo "${{ steps.filter.outputs.changed }}" > lambda-changed.txt
+          if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$BEFORE_SHA" "$AFTER_SHA" -- aws-lambda/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
-    - name: Upload flag as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: lambda-changed-flag
-        path: lambda-changed.txt
+      - name: Save flag to file
+        run: echo "${{ steps.filter.outputs.changed }}" > lambda-changed.txt
+
+      - name: Upload flag as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-changed-flag
+          path: lambda-changed.txt
