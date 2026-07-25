@@ -69,3 +69,34 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: testpassword
         run: mvn test
         working-directory: ./spring-backend
+detect-lambda-changes:
+  runs-on: ubuntu-latest
+  if: github.event_name == 'push'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # before/after間のdiffを取るため全履歴を取得
+
+    - name: Check for aws-lambda changes
+      id: filter
+      run: |
+        BEFORE_SHA="${{ github.event.before }}"
+        AFTER_SHA="${{ github.event.after }}"
+
+        if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        elif git diff --quiet "$BEFORE_SHA" "$AFTER_SHA" -- aws-lambda/; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Save flag to file
+      run: echo "${{ steps.filter.outputs.changed }}" > lambda-changed.txt
+
+    - name: Upload flag as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lambda-changed-flag
+        path: lambda-changed.txt
