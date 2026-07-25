@@ -21,6 +21,7 @@
 ### 開発・デプロイフロー
 
 ```mermaid
+%%{init: {"themeVariables": {"clusterBkg": "transparent", "clusterBorder": "#777"}}}%%
 graph TD
     Developer[開発者]
 
@@ -205,68 +206,3 @@ root/
 
 重い処理であるPDF出力機能をAWS Lambdaへ切り出し、バックエンド連携によるセキュアなサーバーレスアーキテクチャを構築しました。
 今後は、現在ローカルで行っているECRへのイメージPushやLambdaデプロイ作業をGitHub Actionsに組み込んでCI/CD自動化を目指すとともに、集計機能やWebHook等の追加機能の実装を進めていきます。
-
-```mermaid
-%%{init: {"themeVariables": {"edgeLabelBackground": "transparent"}}}%%
-graph TD
-    User[ユーザー]
-    Vercel[Vercel フロント]
-    Railway[Railway バックエンド]
-    DB[(PostgreSQL)]
-    Lambda[AWS Lambda Puppeteer]
-    S3[(Amazon S3)]
-
-    User -->|1. PDF生成リクエスト| Vercel
-    Vercel -->|2. 生成要求とポーリング開始| Railway
-    Railway -.->|3. 既存のUUIDデータを参照| DB
-    Railway -->|4. 共有URLを渡し非同期実行| Lambda
-    Lambda -->|5. 共有ページを読込しPDF化| S3
-    Railway -->|6. ポーリングでS3の生成完了を確認| S3
-    Railway -->|7. 完了通知とDL用URLを返却| Vercel
-    Vercel -->|8. DLボタンを活性化| User
-
-    %% スタイルの設定
-    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
-    style DB fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
-    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
-    style S3 fill:#569A31,stroke:#333,stroke-width:2px,color:#fff
-```
-
-```mermaid
-%%{init: {"themeVariables": {"edgeLabelBackground": "transparent", "clusterBkg": "transparent", "clusterBorder": "#777"}}}%%
-graph TD
-    Developer[開発者 ローカル]
-
-    subgraph AppDeploy [WebとバックエンドのCIとCD]
-        GitHub[GitHub]
-        GHATest[GHA 自動テスト]
-        GHADeploy[GHA ビルドとデプロイ]
-        GHCR[GitHub Container Registry]
-        Railway[Railway]
-    end
-
-    subgraph LambdaDeploy [AWS Lambdaのデプロイ]
-        LocalDocker[ローカル Docker]
-        ECR[Amazon ECR]
-        Lambda[AWS Lambda]
-    end
-
-    %% アプリ本体のデプロイフロー
-    Developer -->|PR作成とMainマージ| GitHub
-    GitHub -->|フロント・バックエンドテスト| GHATest
-    GHATest -->|テスト成功でデプロイ処理起動| GHADeploy
-    GHADeploy -->|DockerイメージPush| GHCR
-    GHADeploy -->|Railway CLIでデプロイ実行| Railway
-    GHCR -.->|イメージ参照| Railway
-
-    %% AWS Lambdaのデプロイフロー
-    Developer -->|Puppeteerコンテナビルド| LocalDocker
-    LocalDocker -->|AWS CLIでPush| ECR
-    ECR -->|イメージ適用| Lambda
-
-    %% スタイルの設定
-    style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
-    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
-    style ECR fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
-    style GHCR fill:#24292e,stroke:#333,stroke-width:2px,color:#fff
-```
