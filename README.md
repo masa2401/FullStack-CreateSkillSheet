@@ -25,6 +25,36 @@
 - **最新技術へのキャッチアップ**：サーバーレス（AWS Lambda）やコンテナ技術（Docker）を用いた設計にも挑戦
 - **チーム開発を意識したプロジェクト設計**：GitHub Projectsでタスクを可視化し、実務に近い開発フローを構築
 
+## 使用技術
+
+### フロントエンド
+
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Vitest](https://img.shields.io/badge/Vitest-7EA93D?style=for-the-badge&logo=vitest&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
+![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white)
+
+### バックエンド
+
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Maven](https://img.shields.io/badge/Apache_Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-CC292B?style=for-the-badge&logo=flyway&logoColor=white)
+
+### インフラ / その他
+
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Puppeteer](https://img.shields.io/badge/Puppeteer-40B5A4?style=for-the-badge&logo=puppeteer&logoColor=white)
+
 ## システム構成（アーキテクチャ）図
 
 ### 開発・デプロイフロー
@@ -95,36 +125,6 @@ graph TD
     style S3 fill:#569A31,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-### 使用技術
-
-#### フロントエンド
-
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)
-![Vitest](https://img.shields.io/badge/Vitest-7EA93D?style=for-the-badge&logo=vitest&logoColor=white)
-![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
-![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white)
-
-#### バックエンド
-
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![Maven](https://img.shields.io/badge/Apache_Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
-![Flyway](https://img.shields.io/badge/Flyway-CC292B?style=for-the-badge&logo=flyway&logoColor=white)
-
-#### インフラ / その他
-
-![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
-![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
-![Puppeteer](https://img.shields.io/badge/Puppeteer-40B5A4?style=for-the-badge&logo=puppeteer&logoColor=white)
-
 ## ディレクトリ構造
 
 ```text
@@ -146,52 +146,72 @@ root/
 └── README.md                                    # 本ファイル
 ```
 
-## 機能詳細、苦労した部分
+## 技術的な工夫と設計判断
 
 ### IDによるURL共有機能
 
-- #### フロント・バックエンド間のデータ構造の変換
-  - **【課題】** フロントエンドの状態管理（Pinia等）に依存するオブジェクト構造と、バックエンドが要求するAPIのデータ構造（DTO）の不一致。
-  - **【解決策】** フロントエンド側で適切に型定義を行い、API通信専用のインターフェースへ変換する層を構築。**スムーズなAPI連携**を実現。
+- #### 二重送信の防止
 
-- #### 二重送信（多重送信）の防止と不整合データの排除
+  課題：ボタン連打により同一データがDBへ多重送信される  
+  対策：Pinia側で送信状態を保持し、初回送信以降のAPIコールをブロック  
+  結果：重複保存のバグを解消、不要な通信もカット
 
-  初期の実装では、ボタンの連打等によってDBに対して同一データの多重送信が発生してしまう問題がありました。
-  対策として、フロントエンド側でAPI通信の制御（状態管理や初回送信のみの制限）を行うようロジックを修正。不要な通信をカットしつつ、DBへの重複保存のバグを解消しました。
+- #### UUID採用によるデータ保護
 
-- #### UUID採用による他者データの閲覧・推測防止
-
-  初期の個人利用を想定したフェーズから、社内利用レベルへのスケールを見据え、共有URLのセキュリティ向上を意識しました。
-  連番のIDではなく、不規則かつ膨大な組み合わせを持つ『UUID』を採用。IDを書き換えるだけで他人のデータにアクセスできてしまうリスクを排除し、安全なデータ共有を実現しました。。
+  課題：連番IDだと、IDの書き換えだけで他人のデータにアクセスできてしまう  
+  検討：ハッシュ化やアクセストークンによる認可も選択肢にあったが、共有機能の性質上「URLを知っている人だけが見られればよい」という要件のため、認証機構までは過剰と判断  
+  採用：予測不可能なUUIDをIDとして採用し、共有URLの推測を困難に  
+  結果：実装コストを抑えつつ、他者データへの不正アクセスリスクを排除
 
 ### 期限付き共有URL化とライフサイクル管理
 
 - #### ステータスコード（410/404）によるエラーハンドリング
 
-  共有URLに対して、期限切れ直後とDB削除後でフロントエンドの表示を切り替える工夫をしました。
-  バックエンド側で LocalDateTime.now() を用いて比較し、期限切れ直後は 410(Gone) を返却してUI側に「期限切れ」を通知し、DB自動削除後は 404(Not Found) になるよう制御することで、データの状態に応じたUIを実現しました。
+  課題：期限切れ直後とDB削除後で、フロント側の表示が区別できない  
+  解決：バックエンドでLocalDateTime.now()と比較し、期限切れ直後は410、DB削除後は404を返却  
+  結果：データの状態に応じた適切なエラーメッセージをUI側で出し分け可能に
 
-- #### @Scheduledを活用した不要データの自動クリーンアップ
+- #### @Scheduledによる自動クリーンアップ
 
-  実務運用において、不要なデータがDBに残り続けることは、ストレージの圧迫やインフラコストの増大に繋がるため、@Scheduledを利用した定期的な自動削除機能を実装しました。指定した時間（Cron）にRailway側で自動クリーンアップ処理を実行することで、実務を意識したリソース管理とデータのライフサイクル設計を構築しました。
+  課題：不要なデータがDBに残り続けると、ストレージ圧迫・インフラコスト増大につながる  
+  対策：@Scheduled（Cron）で期限切れデータを定期的に自動削除  
+  結果：手動運用不要のデータライフサイクル管理を実現
 
 ### AWS Lambda + Puppeteer による非同期PDF生成機能
 
-- #### 既存の共有URL機能を活かした設計と、ポーリングを用いたUXの向上
+- #### 既存機能を活用したPDF生成設計
 
-  PDF描画用のロジックを別途作成するのではなく、すでに実装済みの「URL共有機能」の画面を活用する設計を採用しました。
-  バックエンドからLambdaに対して対象の共有URLを渡し、Puppeteer が画面を読み込んでPDF化を行っています。
-  処理中はフロントエンドからバックエンドに対してポーリングを行い、Amazon S3へのPDF格納が完了したタイミングで画面上のボタンを活性化（クリック可能状態へ遷移）させることで、ユーザーにわかりやすいUIを実装しています。
+  課題：PDF描画用のロジックをゼロから作ると開発コストが大きい  
+  対策：既存の「URL共有機能」の画面をLambda側のPuppeteerで読み込み、そのままPDF化  
+  結果：実装コストを抑えつつ、表示内容と出力PDFの一貫性を担保
 
-- #### Puppeteerのコンテナ化とAmazon ECRを用いたデプロイ
-  Lambda環境でPuppeteerを安定動作させるため、実行環境や依存ライブラリを含めたDockerコンテナ化を実施しました。
-  将来的なCI/CDによるデプロイ自動化を見据えつつ、今回はサーバーレス運用の仕組みを基礎から深く理解するため、あえて手動でのデプロイ手順を踏んでいます。具体的には、ローカル環境でビルドしたコンテナイメージをAWS CLI経由で Amazon ECR へPushし、Lambdaへ適用させる一連のインフラ構築の流れを自ら実践しました。
+- #### 非同期PDF生成の完了検知設計
+
+  課題：Lambda上で非同期処理で実行しているため、呼び出し元は生成の成否を直接受け取れない  
+  検討：Webhookによる完了通知も考慮したが、Lambda側のインフラ追加（SNS/SQS等）が必要になりコストと複雑性が増す  
+  採用：S3への出力を完了とみなし、ポーリングで検知する設計を採用  
+  結果：追加のインフラなしで非同期処理の完了通知を実現
+
+- #### Puppeteerのコンテナ化とデプロイ
+
+  課題：Lambda環境でPuppeteerを安定動作させるには、依存ライブラリを含めた環境構築が必要。特に日本語フォント表示は軽量ランタイム（@sparticuz/chromium）ではシステムのfontconfigが反映されず崩れることが判明  
+  検討：軽量ランタイムでのフォント埋め込み対応も試みたが、安定した日本語表示を優先し、フル版Puppeteer（Chrome for Testing）を採用する方針に転換  
+  対策：Dockerでコンテナ化し、ローカルビルド→Amazon ECR→Lambdaへ手動デプロイ  
+  結果：サーバーレス運用の仕組みを一連の流れで理解・実践（将来のCI/CD自動化を見据えた設計）
 
 ### CI/CDパイプラインの構築とデプロイの最適化
 
-- #### 2段階のworkflowとGHCRを用いたデプロイ自動化
-  GitHub Actionsを用いて、テスト用とデプロイ用の2つのworkflowを連携させています。
-  まず、サービスコンテナ（PostgreSQL）を利用したバックエンドの単体テストやフロントエンドのテストを並列で自動実行し、コード品質を保証しています。テストがすべて成功した場合のみデプロイ用のworkflowが起動し、バックエンドのDockerイメージをビルドして GitHub Container Registry (GHCR) へPushした後、Railway CLIを通じて安全に本番環境へデプロイされる仕組みを構築しました。
+- #### 2段階workflowによるデプロイ自動化
+
+  課題：テストとデプロイを一括で行うと、不具合のある状態が本番に反映されるリスクがある  
+  対策：テスト・デプロイでGitHub Actions workflowを分離し、テスト成功時のみデプロイを起動  
+  結果：コード品質を担保しながら、GHCR経由でRailwayへ安全にデプロイ
+
+- #### ビルド方式の見直しによるコスト削減
+
+  課題：バックエンド（Railway）側でビルドを行っており、メモリ消費が大きく課題だった  
+  対策：GitHub Actions側でコンテナをビルド・Pushし、デプロイ先では展開のみを行う構成に変更  
+  結果：メモリ消費を抑制し、インフラ運用コスト削減
 
 ## 今後の展望（ロードマップ）
 
