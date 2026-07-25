@@ -4,66 +4,30 @@
 
 [【 サイトはこちら 】](https://full-stack-create-skill-sheet.vercel.app/#/)
 
-実装済：IDでのURL共有機能、期限付共有URL化  
-実装予定：PDF出力API、集計機能、WebHook追加機能
+実装済：IDでのURL共有機能、期限付共有URL化、AWS LambdaによるPDF出力機能  
+実装予定：集計機能、WebHook追加機能、AWSデプロイのCI/CD自動化
 
 &nbsp;
 
 ## 概要
 
-本アプリは、就職活動における自己PRや、社内メンバーの技術レベルを効率的に把握・管理することを目的としたスキルシート作成ツールです。
+本アプリは、就職活動における自己PRや、社内メンバーの技術レベルを効率的に把握・管理することを目的としたスキルシート作成ツールです。  
 元々フロントエンド（Vue3 + TypeScript）で制作したシステムに対し、実務運用を想定した機能拡張を行うため、バックエンド（Spring Boot）およびデータベースを接続してフルスタックな構成へと刷新しました。
 
 [【 旧開発リポジトリ（フロントエンド） 】](https://github.com/masa2401/CreateYourSkillSheet)
 
-## システム構成図（アーキテクチャ）
-
-```mermaid
-graph TD
-        %% 本番環境とユーザーの流れ
-    subgraph ProductionEnv [本番と運用環境]
-        User[ユーザー] -->|ブラウザからアクセス| Vercel[Vercel]
-        Vercel -->|API通信| Railway[Railway]
-        Railway -->|データ保存/取得| PostgreSQL[(PostgreSQL)]
-    end
-
-    %% 開発とCI/CDの流れ
-    subgraph CICDflow [開発とCI/CDフロー]
-        Developer[開発者] -->|機能開発/コミット| FeatureBranch[featureブランチ]
-        FeatureBranch -->|Pull Request 作成| GitHub[GitHub]
-        GitHub -->|Mainブランチへマージ| GHA[GitHub Actions起動]
-        GHA -->|Test自動実行| GHA
-        GHA -->|Image作成| Docker[Docker]
-        Docker -->|コンテナをデプロイ| Railway[Railway]
-    end
-
-    %% スタイルの微調整
-    style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
-    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
-    style PostgreSQL fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
-
-```
-
 ## 本アプリのこだわり（実務・運用を意識した取り組み）
 
-- **フロントエンドの疎結合設計と保守性の向上**  
-  将来的な仕様変更や機能拡張にも対応できるよう、関数の切り出しやコンポーネントの疎結合化を行い、コードの可読性を高めたり、修正作業の影響範囲を最小限に抑える設計を意識しました。
+- **バグを未然に防ぐ設計**：TypeScript / Javaの型定義により、データのやり取りで起きるミスを事前に防止
+- **品質を担保するテスト体制**：Vitest / JUnitによる自動テストと、GitHub Actionsでの自動実行を整備
+- **コストと運用効率への意識**：インフラ構成を見直し、無駄なリソース消費を削減
+- **セキュリティ意識**：他人のデータへ推測アクセスできない設計を採用
+- **最新技術へのキャッチアップ**：サーバーレス（AWS Lambda）やコンテナ技術（Docker）を用いた設計にも挑戦
+- **チーム開発を意識したプロジェクト設計**：GitHub Projectsでタスクを可視化し、実務に近い開発フローを構築
 
-- **TypeScript導入による、スムーズなAPI連携**  
-  フロントエンドに型定義を導入し、バックエンドとのデータ構造の不整合を未然に防ぐことができ、API連携の時に修正作業を最小限にすることが出来ました。
+## 使用技術
 
-- **CI/CDの構築と自動テスト**  
-  コード品質を保つため、フロント・バックエンド両方に自動テスト（Vitest / JUnit等）を導入しました。モックを活用したコンポーネントの動作確認や、関数の正常・異常系チェックといった単体テストをGitHub Actionsで自動実行する環境を構築しました。
-
-- **デプロイ最適化とコスト削減**  
-  インフラにはVercel（フロント）とRailway（バックエンド）を採用。初期はRailway側で毎回Buildを行っていたため、メモリ消費量が大きかったのですが、GitHub Actions側でDockerコンテナをBuild/Pushし、デプロイ先ではコンテナの展開のみを行う構成へと変更。メモリ消費を抑えた効率的なインフラ運用（コスト削減）を実現しました。
-
-- **GitHub Projectsを活用したプロジェクト管理**  
-  実務におけるチーム開発やタスク管理の流れを意識し、GitHub Projectsを用いてIssueを管理することで、アジャイル開発の流れを開発に取り入れています。
-
-### 使用技術
-
-#### フロントエンド
+### フロントエンド
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)
@@ -72,7 +36,7 @@ graph TD
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
 ![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white)
 
-#### バックエンド
+### バックエンド
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
@@ -80,7 +44,7 @@ graph TD
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Flyway](https://img.shields.io/badge/Flyway-CC292B?style=for-the-badge&logo=flyway&logoColor=white)
 
-#### インフラ / その他
+### インフラ / その他
 
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
@@ -88,6 +52,78 @@ graph TD
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Puppeteer](https://img.shields.io/badge/Puppeteer-40B5A4?style=for-the-badge&logo=puppeteer&logoColor=white)
+
+## システム構成（アーキテクチャ）図
+
+### 開発・デプロイフロー
+
+```mermaid
+%%{init: {"themeVariables": {"clusterBkg": "transparent", "clusterBorder": "#777"}}}%%
+graph TD
+    Developer[開発者]
+
+    subgraph LambdaDeploy [AWS Lambdaのデプロイ]
+        LocalDocker[ローカル Docker]
+        ECR[Amazon ECR]
+        Lambda[AWS Lambda]
+    end
+
+    subgraph AppDeploy [フロント/バックエンドのCIとCD]
+        GitHub[GitHub]
+        GHATest[GitHub Actions<br>自動テスト]
+        GHADeploy[GitHub Actions<br>ビルド/デプロイ]
+        GHCR[GitHub Container Registry]
+        Railway[Railway]
+    end
+
+    %% アプリ本体のデプロイフロー
+    Developer -->|PR作成とMainマージ| GitHub
+    GitHub -->|フロント/バックエンドテスト| GHATest
+    GHATest -->|テスト成功でデプロイ処理起動| GHADeploy
+    GHADeploy -->|DockerイメージPush| GHCR
+    GHADeploy -->|Railway CLIでデプロイ実行| Railway
+    GHCR -.->|イメージ参照| Railway
+
+    %% AWS Lambdaのデプロイフロー
+    Developer -->|AWS用コンテナビルド| LocalDocker
+    LocalDocker -->|AWS CLIでPush| ECR
+    ECR -->|イメージ適用| Lambda
+
+    %% スタイルの設定
+    style Developer fill:#4A154B,stroke:#333,stroke-width:2px,color:#fff
+    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style ECR fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style GHCR fill:#24292e,stroke:#333,stroke-width:2px,color:#fff
+```
+
+### 本番環境・処理フロー
+
+```mermaid
+graph TD
+    User[ユーザー]
+    Vercel[Vercel フロント]
+    Railway[Railway バックエンド]
+    DB[(PostgreSQL)]
+    Lambda[AWS Lambda]
+    S3[(Amazon S3)]
+
+    User -->|1. PDF生成リクエスト| Vercel
+    Vercel -->|2. 生成要求とポーリング開始| Railway
+    Railway -.->|3. 既存のUUIDデータを参照| DB
+    Railway -->|4. 共有URLを渡し非同期実行| Lambda
+    Lambda -->|5. 共有ページを読込しPDF化| S3
+    Railway -->|6. ポーリングでS3の生成完了を確認| S3
+    Railway -->|7. 完了通知とDL用URLを返却| Vercel
+    Vercel -->|8. DLボタンを活性化| User
+
+    %% スタイルの設定
+    style User fill:#005A9C,stroke:#333,stroke-width:2px,color:#fff
+    style DB fill:#E49313,stroke:#333,stroke-width:2px,color:#fff
+    style Lambda fill:#FF9900,stroke:#333,stroke-width:2px,color:#fff
+    style S3 fill:#569A31,stroke:#333,stroke-width:2px,color:#fff
+```
 
 ## ディレクトリ構造
 
@@ -110,36 +146,74 @@ root/
 └── README.md                                    # 本ファイル
 ```
 
-## 機能詳細、苦労した部分
+## 技術的な工夫と設計判断
 
 ### IDによるURL共有機能
 
-- #### フロント・バックエンド間のデータ構造の変換
+- #### 二重送信の防止
 
-  フロントエンドの状態管理（Pinia等）に依存するオブジェクト構造と、バックエンドが要求するAPIのデータ構造（DTO）を分離・変換する処理の構築に工夫が必要でした。
-  フロント側できちんと型を定義し、API通信専用のインターフェースへ変換する層を設けたことで、スムーズなAPI連携を実現することができました。
+  課題：ボタン連打により同一データがDBへ多重送信される  
+  対策：Pinia側で送信状態を保持し、初回送信以降のAPIコールをブロック  
+  結果：重複保存のバグを解消、不要な通信もカット
 
-- #### 二重送信（多重送信）の防止と不整合データの排除
+- #### UUID採用によるデータ保護
 
-  初期の実装では、ボタンの連打等によってDBに対して同一データの多重送信が発生してしまう問題がありました。
-  対策として、フロントエンド側でAPI通信の制御（状態管理や初回送信のみの制限）を行うようロジックを修正。不要な通信をカットしつつ、DBへの重複保存のバグを解消することが出来ました。
-
-- #### UUID採用による他者データの閲覧・推測防止
-
-  初期の個人利用を想定したフェーズから、社内利用レベルへのスケールを見据え、共有URLのセキュリティ向上を意識しました。
-  連番のID（1, 2, 3...）ではなく、不規則かつ膨大な組み合わせを持つ『UUID』を採用。IDを書き換えるだけで他人のデータにアクセスできてしまうリスクを排除し、安全に共有出来るようになりました。
+  課題：連番IDだと、IDの書き換えだけで他人のデータにアクセスできてしまう  
+  検討：ハッシュ化やアクセストークンによる認可も選択肢にあったが、共有機能の性質上「URLを知っている人だけが見られればよい」という要件のため、認証機構までは過剰と判断  
+  採用：予測不可能なUUIDをIDとして採用し、共有URLの推測を困難に  
+  結果：実装コストを抑えつつ、他者データへの不正アクセスリスクを排除
 
 ### 期限付き共有URL化とライフサイクル管理
 
 - #### ステータスコード（410/404）によるエラーハンドリング
 
-  共有URLに対して、期限切れ直後とDB削除後でフロントエンドの表示を切り替える工夫をしました。
-  バックエンド側で LocalDateTime.now() を用いて比較し、期限切れ直後は 410(Gone) を返却してUI側に「期限切れ」を通知し、DB自動削除後は 404(Not Found) になるよう制御することで、データの状態に応じたUIを実現しました。
+  課題：期限切れ直後とDB削除後で、フロント側の表示が区別できない  
+  解決：バックエンドでLocalDateTime.now()と比較し、期限切れ直後は410、DB削除後は404を返却  
+  結果：データの状態に応じた適切なエラーメッセージをUI側で出し分け可能に
 
-- #### @Scheduledを活用した不要データの自動クリーンアップ
+- #### @Scheduledによる自動クリーンアップ
 
-  実務運用において、不要なデータがDBに残り続けることは、ストレージの圧迫やインフラコストの増大に繋がるため、@Scheduledを利用した定期的な自動削除機能を実装しました。指定した時間（Cron）でバックエンドが非同期にクリーンアップ処理を実行することで、実務を意識したリソース管理とデータのライフサイクル設計を取り入れることができました。
+  課題：不要なデータがDBに残り続けると、ストレージ圧迫・インフラコスト増大につながる  
+  対策：@Scheduled（Cron）で期限切れデータを定期的に自動削除  
+  結果：手動運用不要のデータライフサイクル管理を実現
+
+### AWS Lambda + Puppeteer による非同期PDF生成機能
+
+- #### 既存機能を活用したPDF生成設計
+
+  課題：PDF描画用のロジックをゼロから作ると開発コストが大きい  
+  対策：既存の「URL共有機能」の画面をLambda側のPuppeteerで読み込み、そのままPDF化  
+  結果：実装コストを抑えつつ、表示内容と出力PDFの一貫性を担保
+
+- #### 非同期PDF生成の完了検知設計
+
+  課題：Lambda上で非同期処理で実行しているため、呼び出し元は生成の成否を直接受け取れない  
+  検討：Webhookによる完了通知も考慮したが、Lambda側のインフラ追加（SNS/SQS等）が必要になりコストと複雑性が増す  
+  採用：S3への出力を完了とみなし、ポーリングで検知する設計を採用  
+  結果：追加のインフラなしで非同期処理の完了通知を実現
+
+- #### Puppeteerのコンテナ化とデプロイ
+
+  課題：Lambda環境でPuppeteerを安定動作させるには、依存ライブラリを含めた環境構築が必要。特に日本語フォント表示は軽量ランタイム（@sparticuz/chromium）ではシステムのfontconfigが反映されず崩れることが判明  
+  検討：軽量ランタイムでのフォント埋め込み対応も試みたが、安定した日本語表示を優先し、フル版Puppeteer（Chrome for Testing）を採用する方針に転換  
+  対策：Dockerでコンテナ化し、ローカルビルド→Amazon ECR→Lambdaへ手動デプロイ  
+  結果：サーバーレス運用の仕組みを一連の流れで理解・実践（将来のCI/CD自動化を見据えた設計）
+
+### CI/CDパイプラインの構築とデプロイの最適化
+
+- #### 2段階workflowによるデプロイ自動化
+
+  課題：テストとデプロイを一括で行うと、不具合のある状態が本番に反映されるリスクがある  
+  対策：テスト・デプロイでGitHub Actions workflowを分離し、テスト成功時のみデプロイを起動  
+  結果：コード品質を担保しながら、GHCR経由でRailwayへ安全にデプロイ
+
+- #### ビルド方式の見直しによるコスト削減
+
+  課題：バックエンド（Railway）側でビルドを行っており、メモリ消費が大きく課題だった  
+  対策：GitHub Actions側でコンテナをビルド・Pushし、デプロイ先では展開のみを行う構成に変更  
+  結果：メモリ消費を抑制し、インフラ運用コスト削減
 
 ## 今後の展望（ロードマップ）
 
-追加機能の一部をAWS Lambda等へ切り出し、外部APIとしてサーバーレスアーキテクチャ化を計画中。サーバーレス運用を通じた、モダンなバックエンド設計の学習を目標としています。
+- 現在ローカルで行っているECRへのイメージPush・Lambdaデプロイ作業をGitHub Actionsに組み込み、CI/CDを完全自動化
+- 集計機能・WebHook等の追加機能を実装予定

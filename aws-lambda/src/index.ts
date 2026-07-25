@@ -4,7 +4,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import puppeteer, { type Browser } from 'puppeteer';
+import puppeteer from 'puppeteer';
 
 // ─── 型定義 ──────────────────────────────────────────────────────
 
@@ -30,23 +30,6 @@ const PRESIGNED_URL_EXPIRES_SECONDS = Number(
 );
 
 const s3 = new S3Client({});
-
-let browserPromise: Promise<Browser> | undefined;
-
-function getBrowser(): Promise<Browser> {
-  if (!browserPromise) {
-    browserPromise = puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--single-process',
-      ],
-    });
-  }
-  return browserPromise;
-}
 
 /**
  * 渡されたURLが許可オリジン配下かを検証する（SSRF対策の多重防御）。
@@ -97,10 +80,18 @@ export const handler = async (
   }
 
   const targetUrl = assertAllowedUrl(url);
-  const browser = await getBrowser();
-  const page = await browser.newPage();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+    ],
+  });
 
   try {
+    const page = await browser.newPage();
+
     // 結果ページへ遷移し、データ取得（バックエンドAPI呼び出し）を含めて描画が終わるまで待つ
     await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 20000 });
 
@@ -140,6 +131,6 @@ export const handler = async (
       expiresInSeconds: PRESIGNED_URL_EXPIRES_SECONDS,
     };
   } finally {
-    await page.close();
+    await browser.close();
   }
 };
