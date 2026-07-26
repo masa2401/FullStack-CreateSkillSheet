@@ -40,7 +40,7 @@ jobs:
           context: ./spring-backend
           file: ./spring-backend/Dockerfile
           push: true
-          tags: IMAGE_NAME:latest
+          tags: ${{ env.IMAGE_NAME }}:latest
 
       # 3. Railway CLIのセットアップ
       - name: Install Railway CLI
