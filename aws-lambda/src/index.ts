@@ -2,9 +2,9 @@ import {
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import puppeteer from 'puppeteer';
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import puppeteer from "puppeteer";
 
 // ─── 型定義 ──────────────────────────────────────────────────────
 
@@ -37,13 +37,13 @@ const s3 = new S3Client({});
  */
 function assertAllowedUrl(rawUrl: string): string {
   if (!ALLOWED_ORIGIN) {
-    throw new Error('環境変数 ALLOWED_ORIGIN が設定されていません');
+    throw new Error("環境変数 ALLOWED_ORIGIN が設定されていません");
   }
   let target: URL;
   try {
     target = new URL(rawUrl);
   } catch {
-    throw new Error('url が不正な形式です');
+    throw new Error("url が不正な形式です");
   }
   const allowed = new URL(ALLOWED_ORIGIN);
   if (target.origin !== allowed.origin) {
@@ -56,8 +56,8 @@ function assertAllowedUrl(rawUrl: string): string {
  * ファイル名として安全な文字列に変換する（S3のContent-Disposition用）。
  */
 function sanitizeFileName(name: string | undefined): string {
-  if (!name) return 'skillsheet';
-  return name.replace(/[^\w\-ぁ-んァ-ヶ一-龠々ー]/g, '_').slice(0, 50);
+  if (!name) return "skillsheet";
+  return name.replace(/[^\w\-ぁ-んァ-ヶ一-龠々ー]/g, "_").slice(0, 50);
 }
 
 // シンプルなUUID形式チェック（S3キーとして安全に使うための最低限のバリデーション）
@@ -70,22 +70,23 @@ export const handler = async (
   const { id, url, fileName } = event ?? {};
 
   if (!id || !UUID_PATTERN.test(id)) {
-    throw new Error('リクエストに有効な ID が含まれていません');
+    throw new Error("リクエストに有効な ID が含まれていません");
   }
-  if (!url || typeof url !== 'string') {
-    throw new Error('リクエストに URL が含まれていません');
+  if (!url || typeof url !== "string") {
+    throw new Error("リクエストに URL が含まれていません");
   }
   if (!BUCKET_NAME) {
-    throw new Error('環境変数 PDF_BUCKET_NAME が設定されていません');
+    throw new Error("環境変数 PDF_BUCKET_NAME が設定されていません");
   }
 
   const targetUrl = assertAllowedUrl(url);
   const browser = await puppeteer.launch({
     headless: true,
     args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--no-zygote",
     ],
   });
 
@@ -93,18 +94,18 @@ export const handler = async (
     const page = await browser.newPage();
 
     // 結果ページへ遷移し、データ取得（バックエンドAPI呼び出し）を含めて描画が終わるまで待つ
-    await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 20000 });
+    await page.goto(targetUrl, { waitUntil: "networkidle0", timeout: 20000 });
 
     // ローディング状態のまま描画されていないかを確認する簡易ガード
-    await page.waitForSelector('.page-container', { timeout: 10000 });
+    await page.waitForSelector(".page-container", { timeout: 10000 });
 
     // 印刷用CSS（@media print）を適用させる
-    await page.emulateMediaType('print');
+    await page.emulateMediaType("print");
 
     const pdfBuffer = await page.pdf({
-      format: 'A4',
+      format: "A4",
       printBackground: true,
-      margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' },
+      margin: { top: "15mm", bottom: "15mm", left: "10mm", right: "10mm" },
     });
 
     const objectKey = `skill-sheets/${id}.pdf`;
@@ -115,7 +116,7 @@ export const handler = async (
         Bucket: BUCKET_NAME,
         Key: objectKey,
         Body: pdfBuffer,
-        ContentType: 'application/pdf',
+        ContentType: "application/pdf",
         ContentDisposition: `attachment; filename="${encodeURIComponent(safeFileName)}.pdf"`,
       }),
     );
