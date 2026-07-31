@@ -74,7 +74,7 @@ describe('ResultPage', () => {
           AnimatedIconButton: {
             name: 'AnimatedIconButton',
             template: '<button @click="$emit(\'click\')">{{ label }}</button>',
-            props: ['icon', 'label', 'animationType', 'buttonClass'],
+            props: ['icon', 'label', 'animationType'],
             emits: ['click'],
           },
         },
@@ -144,7 +144,8 @@ describe('ResultPage', () => {
     vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(urlSurveyState);
     const wrapper = createWrapper();
     await flushPromises();
-    expect(wrapper.find('.primary-button').text()).toContain('自分のスキルシートを作成');
+    const button = wrapper.findComponent({ name: 'AnimatedIconButton' });
+    expect(button.props('label')).toContain('自分のスキルシートを作成');
   });
 
   // ─── ナビゲーション ────────────────────────────────────────────
@@ -158,7 +159,7 @@ describe('ResultPage', () => {
   });
 
   it('印刷するボタンをクリックすると window.print が呼ばれる', async () => {
-    window.print = () => {}; //printメソッドがテストだと存在しないため
+    window.print = () => {};
     const printMock = vi.spyOn(window, 'print');
     const wrapper = createWrapper();
     await flushPromises();
@@ -166,7 +167,7 @@ describe('ResultPage', () => {
     expect(printMock).toHaveBeenCalledOnce();
   });
 
-  it('トップへ戻るボタンをクリックすると TopPage へ遷移す', async () => {
+  it('トップへ戻るボタンをクリックすると TopPage へ遷移する', async () => {
     const wrapper = createWrapper();
     await flushPromises();
     const buttons = wrapper.findAllComponents({ name: 'AnimatedIconButton' });

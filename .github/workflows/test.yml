@@ -2,9 +2,9 @@ name: Fullstack Automated Tests
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main"]
+    branches: ['main']
   workflow_dispatch:
 
 permissions:
@@ -21,13 +21,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: "npm"
+          cache: 'npm'
           # フロントエンド用のpackage-lock.jsonの場所を指定
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache-dependency-path: './vue-frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./vue-frontend # フロントエンドのディレクトリで実行
+        working-directory: ./vue-frontend
+
+      - name: Type check
+        run: npm run type-check
+        working-directory: ./vue-frontend
+
+      - name: Lint
+        run: npm run lint
+        working-directory: ./vue-frontend
 
       - name: Run Frontend tests
         run: npm run test:unit
@@ -58,9 +66,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: "maven"
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Run Backend tests (Maven)
         env:

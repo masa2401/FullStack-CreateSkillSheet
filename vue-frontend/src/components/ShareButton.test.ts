@@ -110,12 +110,12 @@ describe('ShareButton', () => {
       expect(store.getSavedIdOrSave).toHaveBeenCalledOnce();
     });
 
-    it('既に savedSheetId がある場合は getSavedIdOrSave を呼ばない', async () => {
+    it('既に savedSheetId がある場合でも getSavedIdOrSave は呼ばれる', async () => {
       const wrapper = createWrapper({ savedSheetId: 'already-saved-id' });
       const store = useSurveyStore();
       await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
       await flushPromises();
-      expect(store.getSavedIdOrSave).not.toHaveBeenCalled();
+      expect(store.getSavedIdOrSave).toHaveBeenCalled();
     });
 
     it('保存に失敗してもメニュー表示は維持される', async () => {

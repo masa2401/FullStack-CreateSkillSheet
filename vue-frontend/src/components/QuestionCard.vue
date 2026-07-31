@@ -1,22 +1,9 @@
 <script setup lang="ts">
-import type { StarLevel } from '@/types';
+import type { MergedQuestion, StarLevel } from '@/types';
 import AnswerItem from './AnswerItem.vue';
 
-interface Answer {
-  id: number;
-  label: string;
-  isChecked: boolean;
-  value?: StarLevel;
-}
-
-interface Question {
-  id: number;
-  questionText: string;
-  answers: Answer[];
-}
-
 interface Props {
-  question: Question;
+  question: MergedQuestion;
 }
 
 defineProps<Props>();
@@ -32,15 +19,8 @@ const emit = defineEmits<{
   <div class="question-card">
     <h4 class="question-text">{{ question.questionText }}</h4>
     <div class="answers-grid">
-      <AnswerItem
-        v-for="answer in question.answers"
-        :key="answer.id"
-        :answer-id="answer.id"
-        :label="answer.label"
-        :is-checked="answer.isChecked"
-        :value="answer.value"
-        @update:answer="emit('update:answer', $event)"
-      />
+      <AnswerItem v-for="answer in question.answers" :key="answer.id" :answer-id="answer.id" :label="answer.label"
+        :is-checked="answer.isChecked" :value="answer.value" @update:answer="emit('update:answer', $event)" />
     </div>
   </div>
 </template>

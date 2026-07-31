@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { useNameValidation } from './useNameValidation';
 
 describe('useNameValidation', () => {
@@ -11,15 +11,14 @@ describe('useNameValidation', () => {
     expect(validationErrors.value).toHaveLength(0);
   });
 
-  it('送信後に名前を入力するとエラーがリアルタイムで消える', () => {
+  it('送信後に名前を入力するとエラーがリアルタイムで消える', async () => {
     const userName = ref('');
-    const { validate, validationErrors, onInput } = useNameValidation(userName);
+    const { validate, validationErrors } = useNameValidation(userName);
 
     validate();
     expect(validationErrors.value).toHaveLength(1);
     userName.value = 'テストユーザー';
-
-    onInput();
+    await nextTick();
     expect(validationErrors.value).toHaveLength(0);
   });
 

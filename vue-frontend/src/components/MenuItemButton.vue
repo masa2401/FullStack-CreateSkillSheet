@@ -7,11 +7,11 @@ interface Props {
     disabled?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
-    variant: 'default',
-    spin: false,
-    disabled: false
-})
+const {
+    variant = 'default',
+    spin = false,
+    disabled = false
+} = defineProps<Props>();
 
 const emit = defineEmits<{ click: [] }>();
 </script>

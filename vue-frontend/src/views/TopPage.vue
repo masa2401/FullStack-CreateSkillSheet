@@ -1,4 +1,5 @@
 ﻿<script setup lang="ts">
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import ValidationError from '@/components/ValidationError.vue';
 import { useNameValidation } from '@/composables/useNameValidation';
 import { CATEGORY_MASTERS } from '@/data/questions';
@@ -9,12 +10,9 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const store = useSurveyStore();
-const isHovering = ref<boolean>(false);
 
 const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!;
 const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!;
-
-// ─── フォームデータ ──────────────────────────────────────────────────────────
 
 const userName = ref<string>(store.userName);
 const engineerChecked = computed({
@@ -26,16 +24,11 @@ const designerChecked = computed({
   set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val),
 });
 
-// ─── バリデーション ──────────────────────────────────────────────────────────
+const { validationErrors, validate, isSubmitDisabled } = useNameValidation(userName);
 
-const { validationErrors, validate, onInput } = useNameValidation(userName);
-
-// ─── イベントハンドラ ────────────────────────────────────────────────────────
-
-/** アンケート開始処理 */
 const validateAndProceed = (): void => {
   if (!validate()) return;
-  store.setUserName(userName.value.trim()); // setStorageValue → ストアのアクション
+  store.setUserName(userName.value.trim());
   router.push(ROUTES.SURVEY);
 };
 </script>
@@ -57,15 +50,8 @@ const validateAndProceed = (): void => {
             </span>
             お名前を入力してください
           </label>
-          <input
-            type="text"
-            id="name-input"
-            class="name-input"
-            :class="{ 'input-error': validationErrors.length > 0 }"
-            v-model="userName"
-            placeholder="お名前を入力"
-            @input="onInput"
-          />
+          <input type="text" id="name-input" class="name-input" :class="{ 'input-error': validationErrors.length > 0 }"
+            v-model="userName" placeholder="お名前を入力" />
         </div>
 
         <div class="category-section">
@@ -77,12 +63,8 @@ const validateAndProceed = (): void => {
           </h3>
           <div class="category-cards">
             <label class="category-card" :class="{ active: engineerChecked }">
-              <input
-                type="checkbox"
-                class="category-checkbox"
-                v-model="engineerChecked"
-                aria-describedby="engineer-desc"
-              />
+              <input type="checkbox" class="category-checkbox" v-model="engineerChecked"
+                aria-describedby="engineer-desc" />
               <div class="card-content">
                 <div class="card-icon-large">
                   <font-awesome-icon :icon="engineerMaster.icon" />
@@ -99,12 +81,8 @@ const validateAndProceed = (): void => {
               </div>
             </label>
             <label class="category-card" :class="{ active: designerChecked }">
-              <input
-                type="checkbox"
-                class="category-checkbox"
-                v-model="designerChecked"
-                aria-describedby="designer-desc"
-              />
+              <input type="checkbox" class="category-checkbox" v-model="designerChecked"
+                aria-describedby="designer-desc" />
               <div class="card-content">
                 <div class="card-icon-large">
                   <font-awesome-icon :icon="designerMaster.icon" />
@@ -136,15 +114,8 @@ const validateAndProceed = (): void => {
       </ValidationError>
 
       <div class="button-section">
-        <button
-          @click="validateAndProceed"
-          class="start-button"
-          @mouseenter="isHovering = true"
-          @mouseleave="isHovering = false"
-        >
-          アンケートを開始 &ensp;
-          <font-awesome-icon icon="fa-solid fa-arrow-right" :bounce="isHovering" />
-        </button>
+        <AnimatedIconButton icon="fa-solid fa-arrow-right" label="アンケートを開始" animation-type="bounce"
+          :disabled="isSubmitDisabled" @click="validateAndProceed" />
       </div>
     </div>
   </div>
@@ -226,6 +197,7 @@ const validateAndProceed = (): void => {
 }
 
 @keyframes shake {
+
   0%,
   100% {
     transform: translateX(0);
@@ -368,26 +340,7 @@ const validateAndProceed = (): void => {
 .button-section {
   display: flex;
   justify-content: center;
-}
-
-.start-button {
-  font-size: 1rem;
-  padding: var(--p-8, 1rem) var(--p-16, 2rem);
   margin-top: var(--p-24, 3rem);
-  background: #483c32;
-  color: #ffffff;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 500;
-  box-shadow: 0 6px 16px rgba(72, 60, 50, 0.3);
-  transition: all 0.3s;
-}
-
-.start-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(72, 60, 50, 0.4);
-  background: #5a4a3e;
 }
 
 .fade-enter-active,

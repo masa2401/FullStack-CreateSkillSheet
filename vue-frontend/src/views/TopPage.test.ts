@@ -40,7 +40,7 @@ describe('TopPage', () => {
             initialState: {
               survey: {
                 userName: '',
-                categoryDate: initialSelections,
+                selections: initialSelections,
                 ...surveyState,
               },
             },
@@ -66,20 +66,20 @@ describe('TopPage', () => {
 
   it('名前未入力でボタンをクリックするとエラーが表示される', async () => {
     const wrapper = createWrapper();
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     expect(wrapper.find('.error-message').exists()).toBe(true);
   });
 
   it('スペースのみの入力はエラーになる', async () => {
     const wrapper = createWrapper();
     await wrapper.find('#name-input').setValue(' ');
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     expect(wrapper.find('.error-message').exists()).toBe(true);
   });
 
   it('送信試行後に名前を入力するとエラーがリアルタイムで消える', async () => {
     const wrapper = createWrapper();
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     expect(wrapper.find('.error-message').exists()).toBe(true);
 
     await wrapper.find('#name-input').setValue('山田太郎');
@@ -132,7 +132,7 @@ describe('TopPage', () => {
   it('有効な名前でボタンをクリックすると SurveyPage へ遷移する', async () => {
     const wrapper = createWrapper();
     await wrapper.find('#name-input').setValue('山田太郎');
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY);
   });
@@ -141,7 +141,7 @@ describe('TopPage', () => {
     const wrapper = createWrapper();
     const store = useSurveyStore();
     await wrapper.find('#name-input').setValue('山田太郎');
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     await flushPromises();
     expect(store.userName).toBe('山田太郎');
   });
@@ -150,14 +150,14 @@ describe('TopPage', () => {
     const wrapper = createWrapper();
     const store = useSurveyStore();
     await wrapper.find('#name-input').setValue('　山田太郎　');
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     await flushPromises();
     expect(store.userName).toBe('山田太郎');
   });
 
   it('バリデーションエラー時は遷移しない', async () => {
     const wrapper = createWrapper();
-    await wrapper.find('.start-button').trigger('click');
+    await wrapper.find('.action-button').trigger('click');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe(ROUTES.TOP);
   });

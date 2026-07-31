@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import { useRouter } from 'vue-router';
 import { ROUTES } from '@/utils/constants';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
@@ -14,7 +14,9 @@ const goToTop = () => {
   <div class="notfound-container">
     <div class="notfound-content">
       <div>
-        <span class="error-icon"><font-awesome-icon icon="fa-solid fa-magnifying-glass" bounce /></span>
+        <span class="error-icon">
+          <font-awesome-icon icon="fa-solid fa-magnifying-glass" bounce />
+        </span>
         <h2 class="error-code">404</h2>
       </div>
       <h3 class="error-title">ページが見つかりません</h3>
@@ -22,8 +24,7 @@ const goToTop = () => {
         お探しのページは存在しないか、<br />
         移動または削除された可能性があります。
       </p>
-      <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animation="bounce"
-        button-class="action-button primary-button" @click="goToTop" />
+      <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animation="bounce" @click="goToTop" />
     </div>
   </div>
 </template>
@@ -73,41 +74,6 @@ const goToTop = () => {
   font-size: 1rem;
   line-height: 1.8;
   margin: var(--p-8, 1rem) 0 var(--p-16, 2rem);
-}
-
-.action-button {
-  padding: var(--p-8, 1rem) var(--p-16, 2rem);
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  white-space: nowrap;
-}
-
-.button-icon {
-  font-size: 1.1rem;
-  display: inline-block;
-}
-
-.button-text {
-  display: inline-block;
-}
-
-.primary-button {
-  background: #483c32;
-  color: #ffffff;
-  box-shadow: 0 6px 16px rgba(72, 60, 50, 0.3);
-}
-
-.primary-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(72, 60, 50, 0.4);
-  background: #5a4a3e;
-  border-color: #5a4a3e;
 }
 
 @media (max-width: 768px) {

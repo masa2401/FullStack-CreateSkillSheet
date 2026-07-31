@@ -1,4 +1,5 @@
 ﻿<script setup lang="ts">
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
 import QuestionCard from '@/components/QuestionCard.vue';
 import ValidationError from '@/components/ValidationError.vue';
 import { useMergedSurvey } from '@/composables/useMergedSurvey';
@@ -6,27 +7,17 @@ import { useSurveyValidation } from '@/composables/useSurveyValidation';
 import { useSurveyStore } from '@/stores/useSurveyStore';
 import type { StarLevel } from '@/types';
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
-import { nextTick, ref } from 'vue';
+import { nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const store = useSurveyStore();
-const isHovering = ref<boolean>(false);
-
-// ─── ストアからデータを取得 ──────────────────────────────────────────────────
 
 const { mergedCategories } = useMergedSurvey();
-
-// ─── バリデーション ──────────────────────────────────────────────────────────
-
 const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories);
 
 // ─── イベントハンドラ ────────────────────────────────────────────────────────
 
-/**
- * 質問の更新ハンドラ。
- * QuestionCard から @update:question イベントで呼ばれる。
- */
 const handleAnswerUpdate = (
   categoryId: number,
   questionId: number,
@@ -100,11 +91,8 @@ const onSubmit = async (): Promise<void> => {
           <font-awesome-icon icon="fa-solid fa-triangle-exclamation" shake />
           すべてのチェック項目に習熟度を選択してください
         </p>
-        <button @mouseenter="isHovering = true" @mouseleave="isHovering = false" @click="onSubmit" class="submit-button"
-          :class="{ disabled: isSubmitDisabled }" :disabled="isSubmitDisabled">
-          次へ進む &ensp;
-          <font-awesome-icon icon="fa-solid fa-arrow-right" :bounce="isHovering" />
-        </button>
+        <AnimatedIconButton animation-type="bounce" icon="fa-solid fa-arrow-right" label="次へ進む" @click="onSubmit"
+          :disabled="isSubmitDisabled" />
       </div>
     </div>
   </div>
@@ -205,32 +193,6 @@ const onSubmit = async (): Promise<void> => {
   justify-content: center;
   gap: var(--p-8, 1rem);
   margin-top: var(--p-16, 2rem);
-}
-
-.submit-button {
-  font-size: 1rem;
-  padding: var(--p-8, 1rem) var(--p-16, 2rem);
-  background: #483c32;
-  color: #ffffff;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 700;
-  box-shadow: 0 6px 16px rgba(72, 60, 50, 0.3);
-  transition: all 0.3s;
-}
-
-.submit-button:hover:not(.disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(72, 60, 50, 0.4);
-  background: #5a4a3e;
-}
-
-.submit-button.disabled {
-  background: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
-  opacity: 0.6;
 }
 
 .submit-hint {

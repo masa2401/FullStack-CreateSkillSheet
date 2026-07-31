@@ -1,9 +1,6 @@
 import { useValidation } from '@/composables/useValidation';
 import type { MergedCategory, ValidationError } from '@/types';
 import type { ComputedRef } from 'vue';
-import { computed, watch } from 'vue';
-
-// ─── composable ────────────────────────────────────────────────────────────────
 
 export function useSurveyValidation(mergedCategories: ComputedRef<MergedCategory[]>) {
   const buildErrors = (): ValidationError[] => {
@@ -20,22 +17,5 @@ export function useSurveyValidation(mergedCategories: ComputedRef<MergedCategory
     });
     return errors;
   };
-
-  const { validationErrors, hasAttemptedSubmit, validate } = useValidation(buildErrors);
-
-  const isSubmitDisabled = computed(
-    () => hasAttemptedSubmit.value && validationErrors.value.length > 0,
-  );
-
-  watch(
-    () => mergedCategories,
-    () => {
-      if (hasAttemptedSubmit.value) {
-        validationErrors.value = buildErrors();
-      }
-    },
-    { deep: true },
-  );
-
-  return { validationErrors, hasAttemptedSubmit, validate, isSubmitDisabled };
+  return useValidation(buildErrors);
 }
