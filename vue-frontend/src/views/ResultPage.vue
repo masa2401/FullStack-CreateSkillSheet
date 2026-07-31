@@ -13,14 +13,16 @@ const router = useRouter();
 const store = useSurveyStore();
 const { mergedCategories } = useMergedSurvey();
 
+const goToTop = () => router.push(ROUTES.TOP);
+const goBack = () => router.push(ROUTES.SURVEY);
+const handlePrint = () => window.print();
+
 type PageStatus =
   | { type: 'loading' }
   | { type: 'ready'; isSharedView: boolean }
   | { type: 'error'; reason: 'expired' | 'notfound' };
 
 const pageStatus = ref<PageStatus>({ type: 'loading' });
-
-// ─── データ取得 ──────────────────────────────────────────────────────────────
 
 onMounted(async () => {
   const sharedId = getIdFromUrl();
@@ -32,7 +34,6 @@ onMounted(async () => {
       pageStatus.value = { type: 'ready', isSharedView: true };
       return;
     }
-    // 期限切れ・見つからない場合はエラー状態をセットして終了
     pageStatus.value = { type: 'error', reason: result.status };
     return;
   }
@@ -43,8 +44,6 @@ onMounted(async () => {
     pageStatus.value = { type: 'ready', isSharedView: true };
     return;
   }
-
-  // 通常の自分の結果表示
   pageStatus.value = { type: 'ready', isSharedView: false };
 });
 
@@ -63,12 +62,6 @@ const displayCategories = computed(() =>
         .filter((q) => q.answers.length > 0),
     })),
 );
-
-// ─── イベントハンドラ ────────────────────────────────────────────────────────
-
-const goToTop = () => router.push(ROUTES.TOP);
-const goBack = () => router.push(ROUTES.SURVEY);
-const handlePrint = () => window.print();
 </script>
 
 <template>
@@ -108,9 +101,7 @@ const handlePrint = () => window.print();
               <div class="skill-info">
                 <div class="skill-name">{{ answer.label }}</div>
                 <div class="skill-level">
-                  <span class="level-stars">{{
-                    LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
-                    }}</span>
+                  <span class="level-stars">{{ LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars }}</span>
                   <span class="level-number">&nbsp;({{ answer.value }}/5)</span>
                 </div>
               </div>
@@ -121,25 +112,20 @@ const handlePrint = () => window.print();
 
       <div class="button-group no-print">
         <template v-if="!pageStatus.isSharedView">
-          <AnimatedIconButton icon="fa-solid fa-arrow-left" label="修正する" animationType="beat"
-            button-class="action-button secondary-button" @click="goBack" />
+          <AnimatedIconButton animationType="beat" icon="fa-solid fa-arrow-left" label="修正する" variant="secondary"
+            @click="goBack" />
 
-          <AnimatedIconButton icon="fa-solid fa-print" label="印刷する" animationType="bounce"
-            button-class="action-button print-button" @click="handlePrint" />
+          <AnimatedIconButton animationType="bounce" icon="fa-solid fa-print" label="印刷する" variant="secondary"
+            @click="handlePrint" />
 
           <ShareButton />
 
-          <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animationType="beat"
-            button-class="action-button primary-button" @click="goToTop" />
+          <AnimatedIconButton animationType="beat" icon="fa-regular fa-house" label="トップへ戻る" variant="secondary"
+            @click="goToTop" />
         </template>
 
         <template v-else>
-          <button @click="goToTop" class="action-button primary-button">
-            <span class="button-icon">
-              <font-awesome-icon icon="fa-solid fa-pen" />
-            </span>
-            <span class="button-text">自分のスキルシートを作成</span>
-          </button>
+          <AnimatedIconButton icon="fa-solid fa-pen" label="自分のスキルシートを作成" @click="goToTop" />
         </template>
       </div>
     </div>
@@ -318,57 +304,6 @@ const handlePrint = () => window.print();
   margin-top: var(--p-24, 3rem);
 }
 
-.action-button {
-  padding: var(--p-8, 1rem) var(--p-16, 2rem);
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  white-space: nowrap;
-}
-
-.button-icon {
-  font-size: 1.1rem;
-  display: inline-block;
-}
-
-.button-text {
-  display: inline-block;
-}
-
-.primary-button {
-  background: #483c32;
-  color: #ffffff;
-  box-shadow: 0 6px 16px rgba(72, 60, 50, 0.3);
-}
-
-.primary-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(72, 60, 50, 0.4);
-  background: #5a4a3e;
-  border-color: #5a4a3e;
-}
-
-.secondary-button,
-.print-button {
-  background: #ffffff;
-  color: #483c32;
-  border-color: #483c32;
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-}
-
-.secondary-button:hover,
-.print-button:hover {
-  background: #483c32;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.25);
-}
-
 .loading-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
@@ -400,7 +335,6 @@ const handlePrint = () => window.print();
   font-weight: 600;
 }
 
-/* レスポンシブ対応 */
 @media (max-width: 768px) {
   .page-title {
     font-size: 2rem;
@@ -433,11 +367,6 @@ const handlePrint = () => window.print();
     flex-direction: column;
     width: 100%;
     gap: var(--p-4, 0.5rem);
-  }
-
-  .action-button {
-    width: 100%;
-    justify-content: center;
   }
 }
 

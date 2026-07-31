@@ -13,7 +13,7 @@ const showMenu = ref<boolean>(false);
 const toggleMenu = async () => {
   showMenu.value = !showMenu.value;
 
-  if (showMenu.value && isBackendEnabled() && !store.savedSheetId) {
+  if (showMenu.value && isBackendEnabled()) {
     try {
       await store.getSavedIdOrSave();
     } catch (error) {
@@ -29,9 +29,8 @@ const closeMenu = () => {
 
 <template>
   <div class="share-button-container">
-    <AnimatedIconButton icon="fa-solid fa-arrow-up-right-from-square" label="結果を共有" :aria-expanded="showMenu"
-      aria-haspopup="true" animationType="bounce" button-class="share-button" @click="toggleMenu" />
-
+    <AnimatedIconButton animationType="bounce" icon="fa-solid fa-arrow-up-right-from-square" label="結果を共有"
+      variant="secondary" :aria-expanded="showMenu" aria-haspopup="true" @click="toggleMenu" />
     <transition name="slide-fade">
       <div v-if="showMenu" class="share-menu">
         <ShareUrlButton @done="closeMenu" />
@@ -45,31 +44,6 @@ const closeMenu = () => {
 <style scoped>
 .share-button-container {
   position: relative;
-}
-
-.share-button {
-  height: 100%;
-  padding: var(--p-8, 1rem) var(--p-16, 2rem);
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: #ffffff;
-  color: #483c32;
-  border-color: #483c32;
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  white-space: nowrap;
-}
-
-.share-button:hover {
-  background: #483c32;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.25);
 }
 
 .share-menu {

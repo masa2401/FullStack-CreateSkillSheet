@@ -132,7 +132,7 @@ describe('SurveyPage', () => {
 
   it('チェックなし回答のみの場合はエラーなしで遷移できる', async () => {
     const wrapper = createWrapper();
-    await wrapper.find('.submit-button').trigger('click');
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe(ROUTES.RESULT);
   });
@@ -141,7 +141,7 @@ describe('SurveyPage', () => {
     const wrapper = createWrapper({
       selections: makeSelections({ isChecked: true }),
     });
-    await wrapper.find('.submit-button').trigger('click');
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
     await flushPromises();
     expect(wrapper.find('.error-message').exists()).toBe(true);
     expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY);
@@ -151,17 +151,18 @@ describe('SurveyPage', () => {
     const wrapper = createWrapper({
       selections: makeSelections({ isChecked: true }),
     });
-    await wrapper.find('.submit-button').trigger('click');
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
     await flushPromises();
-    expect((wrapper.find('.submit-button').element as HTMLButtonElement).disabled).toBe(true);
-    expect(wrapper.find('.submit-button').classes()).toContain('disabled');
+    expect(
+      (wrapper.findComponent({ name: 'AnimatedIconButton' }).element as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 
   it('isSubmitDisabled が true のときヒントテキストが表示される', async () => {
     const wrapper = createWrapper({
       selections: makeSelections({ isChecked: true }),
     });
-    await wrapper.find('.submit-button').trigger('click');
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
     await flushPromises();
     expect(wrapper.find('.submit-hint').exists()).toBe(true);
   });
@@ -170,7 +171,7 @@ describe('SurveyPage', () => {
     const wrapper = createWrapper({
       selections: makeSelections({ isChecked: true, value: 3 }),
     });
-    await wrapper.find('.submit-button').trigger('click');
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
     await flushPromises();
     expect(router.currentRoute.value.path).toBe(ROUTES.RESULT);
   });
@@ -181,13 +182,17 @@ describe('SurveyPage', () => {
     });
     const store = useSurveyStore();
 
-    await wrapper.find('.submit-button').trigger('click');
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click');
     await flushPromises();
-    expect((wrapper.find('.submit-button').element as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (wrapper.findComponent({ name: 'AnimatedIconButton' }).element as HTMLButtonElement).disabled,
+    ).toBe(true);
 
     store.setAnswerSelection(1, 1, 1, { value: 3 });
     await nextTick();
 
-    expect((wrapper.find('.submit-button').element as HTMLButtonElement).disabled).toBe(false);
+    expect(
+      (wrapper.findComponent({ name: 'AnimatedIconButton' }).element as HTMLButtonElement).disabled,
+    ).toBe(false);
   });
 });

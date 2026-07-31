@@ -5,7 +5,7 @@ import MenuItemButton from './MenuItemButton.vue';
 const createWrappper = (props = {}) =>
   mount(MenuItemButton, {
     props: { icon: 'fa-solid fa-check', text: 'テスト', ...props },
-    grobal: { stubs: { 'font-awesome-icon': true } },
+    global: { stubs: { 'font-awesome-icon': true } },
   });
 
 describe('MenuItemButton', () => {

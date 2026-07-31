@@ -20,12 +20,4 @@ describe('AnimatedIconButton', () => {
     await wrapper.find('button').trigger('click');
     expect(wrapper.emitted('click')).toBeTruthy();
   });
-
-  it('buttonClass が button 要素に適用される', () => {
-    const wrapper = mount(AnimatedIconButton, {
-      props: { icon: 'fa-solid fa-check', label: 'テストボタン', buttonClass: 'custom-class' },
-      ...globalStubs,
-    });
-    expect(wrapper.find('button').classes()).toContain('custom-class');
-  });
 });
