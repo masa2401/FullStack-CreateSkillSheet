@@ -1,11 +1,10 @@
-import { useSurveyStore } from '@/stores/useSurveyStore.ts';
-import { globalStubs } from '@/test/utils.ts';
-import { ROUTES } from '@/utils/constants.ts';
-import { createTestingPinia } from '@pinia/testing';
-import { flushPromises, mount } from '@vue/test-utils';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { createMemoryHistory, createRouter } from 'vue-router';
-import TopPage from './TopPage.vue';
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
+import { ROUTES } from '@/utils/constants.ts'
+import { createTestingPinia } from '@pinia/testing'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
+import TopPage from './TopPage.vue'
 
 const buildRouter = () =>
   createRouter({
@@ -14,21 +13,21 @@ const buildRouter = () =>
       { path: '/', component: TopPage },
       { path: '/survey', component: { template: '<div />' } },
     ],
-  });
+  })
 
 const initialSelections = [
   { categoryId: 1, isChecked: true, questions: [] },
   { categoryId: 2, isChecked: false, questions: [] },
   { categoryId: 3, isChecked: false, questions: [] },
-];
+]
 
 describe('TopPage', () => {
-  let router: ReturnType<typeof buildRouter>;
+  let router: ReturnType<typeof buildRouter>
 
   beforeEach(async () => {
-    router = buildRouter();
-    await router.push(ROUTES.TOP);
-  });
+    router = buildRouter()
+    await router.push(ROUTES.TOP)
+  })
 
   const createWrapper = (surveyState: Record<string, unknown> = {}) =>
     mount(TopPage, {
@@ -46,119 +45,119 @@ describe('TopPage', () => {
             },
           }),
         ],
-        ...globalStubs,
+        stubs: { 'font-awesome-icon': true },
       },
-    });
+    })
 
   // ─── 初期表示 ──────────────────────────────────────────────────
 
   it('名前入力欄が空の状態で表示される', () => {
-    const wrapper = createWrapper();
-    expect((wrapper.find('#name-input').element as HTMLInputElement).value).toBe('');
-  });
+    const wrapper = createWrapper()
+    expect((wrapper.find('#name-input').element as HTMLInputElement).value).toBe('')
+  })
 
   it('store に保存済みのユーザー名が入力欄に反映される', () => {
-    const wrapper = createWrapper({ userName: '山田太郎' });
-    expect((wrapper.find('#name-input').element as HTMLInputElement).value).toBe('山田太郎');
-  });
+    const wrapper = createWrapper({ userName: '山田太郎' })
+    expect((wrapper.find('#name-input').element as HTMLInputElement).value).toBe('山田太郎')
+  })
 
   // ─── バリデーション ───────────────────────────────────────────────
 
   it('名前未入力でボタンをクリックするとエラーが表示される', async () => {
-    const wrapper = createWrapper();
-    await wrapper.find('.action-button').trigger('click');
-    expect(wrapper.find('.error-message').exists()).toBe(true);
-  });
+    const wrapper = createWrapper()
+    await wrapper.find('.action-button').trigger('click')
+    expect(wrapper.find('.error-message').exists()).toBe(true)
+  })
 
   it('スペースのみの入力はエラーになる', async () => {
-    const wrapper = createWrapper();
-    await wrapper.find('#name-input').setValue(' ');
-    await wrapper.find('.action-button').trigger('click');
-    expect(wrapper.find('.error-message').exists()).toBe(true);
-  });
+    const wrapper = createWrapper()
+    await wrapper.find('#name-input').setValue(' ')
+    await wrapper.find('.action-button').trigger('click')
+    expect(wrapper.find('.error-message').exists()).toBe(true)
+  })
 
   it('送信試行後に名前を入力するとエラーがリアルタイムで消える', async () => {
-    const wrapper = createWrapper();
-    await wrapper.find('.action-button').trigger('click');
-    expect(wrapper.find('.error-message').exists()).toBe(true);
+    const wrapper = createWrapper()
+    await wrapper.find('.action-button').trigger('click')
+    expect(wrapper.find('.error-message').exists()).toBe(true)
 
-    await wrapper.find('#name-input').setValue('山田太郎');
-    await wrapper.find('#name-input').trigger('input');
-    expect(wrapper.find('.error-message').exists()).toBe(false);
-  });
+    await wrapper.find('#name-input').setValue('山田太郎')
+    await wrapper.find('#name-input').trigger('input')
+    expect(wrapper.find('.error-message').exists()).toBe(false)
+  })
 
   // ─── カテゴリ選択 ────────────────────────────────────────────────
 
   it('エンジニアカードにチェックを入れると active クラスが付く', async () => {
-    const wrapper = createWrapper();
-    const [enginnerCheckbox] = wrapper.findAll('input[type="checkbox"]');
-    await enginnerCheckbox!.setValue(true);
-    expect(wrapper.findAll('.category-card')[0]!.classes()).toContain('active');
-  });
+    const wrapper = createWrapper()
+    const [enginnerCheckbox] = wrapper.findAll('input[type="checkbox"]')
+    await enginnerCheckbox!.setValue(true)
+    expect(wrapper.findAll('.category-card')[0]!.classes()).toContain('active')
+  })
 
   it('デザイナーカードにチェックを入れると active クラスが付く', async () => {
-    const wrapper = createWrapper();
-    await wrapper.findAll('input[type="checkbox"]')[1]!.setValue(true);
-    expect(wrapper.findAll('.category-card')[1]!.classes()).toContain('active');
-  });
+    const wrapper = createWrapper()
+    await wrapper.findAll('input[type="checkbox"]')[1]!.setValue(true)
+    expect(wrapper.findAll('.category-card')[1]!.classes()).toContain('active')
+  })
 
   it('エンジニアカードをチェックすると store の selections が更新される', async () => {
-    const wrapper = createWrapper();
-    const store = useSurveyStore();
-    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true);
-    expect(store.selections.find((s) => s.categoryId === 2)?.isChecked).toBe(true);
-  });
+    const wrapper = createWrapper()
+    const store = useSurveyStore()
+    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true)
+    expect(store.selections.find((s) => s.categoryId === 2)?.isChecked).toBe(true)
+  })
 
   it('両カードを同時に選択できる', async () => {
-    const wrapper = createWrapper();
-    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true);
-    await wrapper.findAll('input[type="checkbox"]')[1]!.setValue(true);
-    const cards = wrapper.findAll('.category-card');
-    expect(cards[0]!.classes()).toContain('active');
-    expect(cards[1]!.classes()).toContain('active');
-  });
+    const wrapper = createWrapper()
+    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true)
+    await wrapper.findAll('input[type="checkbox"]')[1]!.setValue(true)
+    const cards = wrapper.findAll('.category-card')
+    expect(cards[0]!.classes()).toContain('active')
+    expect(cards[1]!.classes()).toContain('active')
+  })
 
   it('チェック済みカードのチェックを外すと active クラスが消える', async () => {
     const engineerCheckedSelections = initialSelections.map((s) =>
       s.categoryId === 2 ? { ...s, isChecked: true } : s,
-    );
-    const wrapper = createWrapper({ selections: engineerCheckedSelections });
-    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(false);
-    expect(wrapper.findAll('.category-card')[0]!.classes()).not.toContain('active');
-  });
+    )
+    const wrapper = createWrapper({ selections: engineerCheckedSelections })
+    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(false)
+    expect(wrapper.findAll('.category-card')[0]!.classes()).not.toContain('active')
+  })
 
   // ─── 画面遷移・ストア更新 ────────────────────────────────────────────
 
   it('有効な名前でボタンをクリックすると SurveyPage へ遷移する', async () => {
-    const wrapper = createWrapper();
-    await wrapper.find('#name-input').setValue('山田太郎');
-    await wrapper.find('.action-button').trigger('click');
-    await flushPromises();
-    expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY);
-  });
+    const wrapper = createWrapper()
+    await wrapper.find('#name-input').setValue('山田太郎')
+    await wrapper.find('.action-button').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY)
+  })
 
   it('遷移時に store.userName が更新される', async () => {
-    const wrapper = createWrapper();
-    const store = useSurveyStore();
-    await wrapper.find('#name-input').setValue('山田太郎');
-    await wrapper.find('.action-button').trigger('click');
-    await flushPromises();
-    expect(store.userName).toBe('山田太郎');
-  });
+    const wrapper = createWrapper()
+    const store = useSurveyStore()
+    await wrapper.find('#name-input').setValue('山田太郎')
+    await wrapper.find('.action-button').trigger('click')
+    await flushPromises()
+    expect(store.userName).toBe('山田太郎')
+  })
 
   it('名前の前後スペースはトリミングされて保存される', async () => {
-    const wrapper = createWrapper();
-    const store = useSurveyStore();
-    await wrapper.find('#name-input').setValue('　山田太郎　');
-    await wrapper.find('.action-button').trigger('click');
-    await flushPromises();
-    expect(store.userName).toBe('山田太郎');
-  });
+    const wrapper = createWrapper()
+    const store = useSurveyStore()
+    await wrapper.find('#name-input').setValue('　山田太郎　')
+    await wrapper.find('.action-button').trigger('click')
+    await flushPromises()
+    expect(store.userName).toBe('山田太郎')
+  })
 
   it('バリデーションエラー時は遷移しない', async () => {
-    const wrapper = createWrapper();
-    await wrapper.find('.action-button').trigger('click');
-    await flushPromises();
-    expect(router.currentRoute.value.path).toBe(ROUTES.TOP);
-  });
-});
+    const wrapper = createWrapper()
+    await wrapper.find('.action-button').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
+  })
+})

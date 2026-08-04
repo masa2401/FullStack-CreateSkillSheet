@@ -76,6 +76,14 @@ describe('usePdfStatus', () => {
     expect(state.value).toBe('error');
   });
 
+  it('fetchPdfStatus が例外を投げた場合は error になる', async () => {
+    vi.spyOn(apiUtils, 'fetchPdfStatus').mockRejectedValue(new Error('network error'));
+    const sheetId = ref<string | null>('sheet-1');
+    const { state } = usePdfStatus(sheetId);
+    await flushPromises();
+    expect(state.value).toBe('error');
+  });
+
   describe('retry', () => {
     it('regenerate 成功時はポーリングを再開する', async () => {
       vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' });
@@ -94,6 +102,17 @@ describe('usePdfStatus', () => {
       vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue(false);
       const sheetId = ref<string | null>('sheet-1');
       const { state, retry } = usePdfStatus(sheetId);
+      await flushPromises();
+
+      await retry();
+      expect(state.value).toBe('error');
+    });
+
+    it('regeneratePdf が例外を投げた場合は error になる', async () => {
+      vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValueOnce({ status: 'generating' });
+      vi.spyOn(apiUtils, 'regeneratePdf').mockRejectedValue(new Error('network error'));
+      const sheetId = ref<string | null>('sheet-1');
+      const { retry, state } = usePdfStatus(sheetId);
       await flushPromises();
 
       await retry();

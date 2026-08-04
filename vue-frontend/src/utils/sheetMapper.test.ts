@@ -1,6 +1,6 @@
-import type { SurveyState } from '@/types';
-import { describe, expect, it } from 'vitest';
-import { toSheetDto, toSurveyState } from './sheetMapper';
+import type { SurveyState } from '@/types'
+import { describe, expect, it } from 'vitest'
+import { toSheetDto, toSurveyState } from './sheetMapper'
 
 const mockSurveyState: SurveyState = {
   userName: 'テストユーザー',
@@ -33,26 +33,26 @@ const mockSurveyState: SurveyState = {
       ],
     },
   ],
-};
+}
 
 describe('toSheetDto', () => {
   it('userName が正しく変換される', () => {
-    const dto = toSheetDto(mockSurveyState);
-    expect(dto.userName).toBe('テストユーザー');
-  });
+    const dto = toSheetDto(mockSurveyState)
+    expect(dto.userName).toBe('テストユーザー')
+  })
 
   it('isChecked: false のカテゴリは除外される', () => {
-    const dto = toSheetDto(mockSurveyState);
-    expect(dto.categories).toHaveLength(1);
-    expect(dto.categories[0]!.categoryId).toBe(1);
-  });
+    const dto = toSheetDto(mockSurveyState)
+    expect(dto.categories).toHaveLength(1)
+    expect(dto.categories[0]!.categoryId).toBe(1)
+  })
 
   it('isChecked: false の回答は除外される', () => {
-    const dto = toSheetDto(mockSurveyState);
-    const answers = dto.categories[0]!.questions[0]!.answers;
-    expect(answers).toHaveLength(1);
-    expect(answers[0]!.answerId).toBe(1);
-  });
+    const dto = toSheetDto(mockSurveyState)
+    const answers = dto.categories[0]!.questions[0]!.answers
+    expect(answers).toHaveLength(1)
+    expect(answers[0]!.answerId).toBe(1)
+  })
 
   it('value が undefined の回答は除外される', () => {
     const state: SurveyState = {
@@ -69,22 +69,22 @@ describe('toSheetDto', () => {
           ],
         },
       ],
-    };
-    const dto = toSheetDto(state);
-    expect(dto.categories[0]!.questions).toHaveLength(0);
-  });
+    }
+    const dto = toSheetDto(state)
+    expect(dto.categories[0]!.questions).toHaveLength(0)
+  })
 
   it('回答が0件の質問は除外される', () => {
-    const dto = toSheetDto(mockSurveyState);
-    expect(dto.categories[0]!.questions).toHaveLength(1);
-    expect(dto.categories[0]!.questions[0]!.questionId).toBe(1);
-  });
+    const dto = toSheetDto(mockSurveyState)
+    expect(dto.categories[0]!.questions).toHaveLength(1)
+    expect(dto.categories[0]!.questions[0]!.questionId).toBe(1)
+  })
 
   it('value が正しく変換される', () => {
-    const dto = toSheetDto(mockSurveyState);
-    expect(dto.categories[0]!.questions[0]!.answers[0]!.value).toBe(3);
-  });
-});
+    const dto = toSheetDto(mockSurveyState)
+    expect(dto.categories[0]!.questions[0]!.answers[0]!.value).toBe(3)
+  })
+})
 
 describe('toSurveyState', () => {
   it('userName が正しく変換される', () => {
@@ -101,19 +101,19 @@ describe('toSurveyState', () => {
           ],
         },
       ],
-    };
-    const state = toSurveyState(dto);
-    expect(state.userName).toBe('テストユーザー');
-  });
+    }
+    const state = toSurveyState(dto)
+    expect(state.userName).toBe('テストユーザー')
+  })
 
   it('カテゴリの isChecked は常に true になる', () => {
     const dto = {
       userName: 'テストユーザー',
       categories: [{ categoryId: 1, questions: [] }],
-    };
-    const state = toSurveyState(dto);
-    expect(state.selections[0]!.isChecked).toBe(true);
-  });
+    }
+    const state = toSurveyState(dto)
+    expect(state.selections[0]!.isChecked).toBe(true)
+  })
 
   it('回答の isChecked は常に true になる', () => {
     const dto = {
@@ -129,10 +129,10 @@ describe('toSurveyState', () => {
           ],
         },
       ],
-    };
-    const state = toSurveyState(dto);
-    expect(state.selections[0]!.questions[0]!.answers[0]!.isChecked).toBe(true);
-  });
+    }
+    const state = toSurveyState(dto)
+    expect(state.selections[0]!.questions[0]!.answers[0]!.isChecked).toBe(true)
+  })
 
   it('有効な value は StarLevel に変換される', () => {
     const dto = {
@@ -148,10 +148,10 @@ describe('toSurveyState', () => {
           ],
         },
       ],
-    };
-    const state = toSurveyState(dto);
-    expect(state.selections[0]!.questions[0]!.answers[0]!.value).toBe(4);
-  });
+    }
+    const state = toSurveyState(dto)
+    expect(state.selections[0]!.questions[0]!.answers[0]!.value).toBe(4)
+  })
 
   it('無効な value（範囲外）は undefined になる', () => {
     const dto = {
@@ -167,16 +167,16 @@ describe('toSurveyState', () => {
           ],
         },
       ],
-    };
-    const state = toSurveyState(dto);
-    expect(state.selections[0]!.questions[0]!.answers[0]!.value).toBeUndefined();
-  });
+    }
+    const state = toSurveyState(dto)
+    expect(state.selections[0]!.questions[0]!.answers[0]!.value).toBeUndefined()
+  })
 
   it('toSheetDto → toSurveyState で構造が保たれる', () => {
-    const dto = toSheetDto(mockSurveyState);
-    const state = toSurveyState(dto);
-    expect(state.userName).toBe('テストユーザー');
-    expect(state.selections[0]!.categoryId).toBe(1);
-    expect(state.selections[0]!.questions[0]!.answers[0]!.value).toBe(3);
-  });
-});
+    const dto = toSheetDto(mockSurveyState)
+    const state = toSurveyState(dto)
+    expect(state.userName).toBe('テストユーザー')
+    expect(state.selections[0]!.categoryId).toBe(1)
+    expect(state.selections[0]!.questions[0]!.answers[0]!.value).toBe(3)
+  })
+})

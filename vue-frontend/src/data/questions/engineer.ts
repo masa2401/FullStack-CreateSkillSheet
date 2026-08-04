@@ -1,4 +1,4 @@
-import type { Question } from '@/types';
+import type { Question } from '@/types'
 
 export const engineerQuestions: Question[] = [
   {
@@ -110,4 +110,4 @@ export const engineerQuestions: Question[] = [
       { id: 7, label: 'Datadog' },
     ],
   },
-];
+]

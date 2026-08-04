@@ -29,6 +29,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SheetExpiredException.class)
     public ResponseEntity<ProblemDetail> handleExpired(SheetExpiredException e) {
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.GONE, e.getMessage());
+        body.setProperty("expiryDays", e.getExpiryDays());
         return ResponseEntity
                 .status(HttpStatus.GONE)
                 .body(body);

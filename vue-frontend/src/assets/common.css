@@ -1,4 +1,3 @@
-/* リセット・基本設定 */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -25,13 +24,11 @@ body {
   color: #333;
 }
 
-/* リスト */
 ul,
 ol {
   list-style: none;
 }
 
-/* ボタン */
 button {
   font-family: inherit;
   cursor: pointer;

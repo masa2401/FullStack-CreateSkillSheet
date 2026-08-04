@@ -89,7 +89,7 @@ public class SkillSheetService {
                 .orElseThrow(() -> new NoSuchElementException("スキルシートが見つかりません"));
 
         if (sheet.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new SheetExpiredException("この共有リンクの有効期限は切れています");
+            throw new SheetExpiredException("この共有リンクの有効期限は切れています", expiryDays);
         }
 
         // エンティティ → DTOに変換して返す（逆方向の変換）
