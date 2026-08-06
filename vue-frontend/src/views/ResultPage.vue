@@ -1,51 +1,59 @@
 ﻿<script setup lang="ts">
-import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import ShareButton from '@/components/ShareButton.vue';
-import { useMergedSurvey } from '@/composables/useMergedSurvey';
-import { useSurveyStore } from '@/stores/useSurveyStore';
-import { fetchSheet, isBackendEnabled } from '@/utils/api';
-import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
-import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils';
-import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const store = useSurveyStore();
-const { mergedCategories } = useMergedSurvey();
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import ShareButton from '@/components/ShareButton.vue'
+import { useMergedSurvey } from '@/composables/useMergedSurvey'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import { fetchSheet, isBackendEnabled } from '@/utils/api'
+import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
+import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 
-const goToTop = () => router.push(ROUTES.TOP);
-const goBack = () => router.push(ROUTES.SURVEY);
-const handlePrint = () => window.print();
+const router = useRouter()
+const store = useSurveyStore()
+const { mergedCategories } = useMergedSurvey()
+
+const goToTop = () => router.push(ROUTES.TOP)
+const goBack = () => router.push(ROUTES.SURVEY)
+const handlePrint = () => window.print()
 
 type PageStatus =
   | { type: 'loading' }
   | { type: 'ready'; isSharedView: boolean }
-  | { type: 'error'; reason: 'expired' | 'notfound' };
+  | { type: 'error'; reason: 'expired' | 'notfound'; expiryDays?: number }
 
-const pageStatus = ref<PageStatus>({ type: 'loading' });
+const pageStatus = ref<PageStatus>({ type: 'loading' })
 
 onMounted(async () => {
-  const sharedId = getIdFromUrl();
+  const sharedId = getIdFromUrl()
   if (sharedId && isBackendEnabled()) {
-    const result = await fetchSheet(sharedId);
-    if (result === null) return;
-    if (result.status === 'success') {
-      store.loadFromSharedState(result.data);
-      pageStatus.value = { type: 'ready', isSharedView: true };
-      return;
+    const result = await fetchSheet(sharedId)
+    if (result) {
+      if (result.status === 'success') {
+        store.loadFromSharedState(result.data)
+        pageStatus.value = { type: 'ready', isSharedView: true }
+        return
+      }
+      if (result.status === 'expired') {
+        pageStatus.value = { type: 'error', reason: result.status, expiryDays: result.expiryDays }
+        return
+      }
+      if (result.status === 'notfound') {
+        pageStatus.value = { type: 'error', reason: result.status }
+        return
+      }
     }
-    pageStatus.value = { type: 'error', reason: result.status };
-    return;
   }
 
-  const urlData = getDataFromUrl();
+  const urlData = getDataFromUrl()
   if (urlData) {
-    store.loadFromSharedState(urlData);
-    pageStatus.value = { type: 'ready', isSharedView: true };
-    return;
+    store.loadFromSharedState(urlData)
+    pageStatus.value = { type: 'ready', isSharedView: true }
+    return
   }
-  pageStatus.value = { type: 'ready', isSharedView: false };
-});
+  pageStatus.value = { type: 'ready', isSharedView: false }
+})
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
@@ -61,11 +69,14 @@ const displayCategories = computed(() =>
         }))
         .filter((q) => q.answers.length > 0),
     })),
-);
+)
 </script>
 
 <template>
-  <div class="page-container" v-if="pageStatus.type === 'ready'">
+  <div
+    class="page-container"
+    v-if="pageStatus.type === 'ready'"
+  >
     <div class="content-wrapper">
       <div class="header-section">
         <div class="result-header">
@@ -76,10 +87,16 @@ const displayCategories = computed(() =>
         </div>
         <div class="description-group">
           <div class="image">
-            <img src="../assets/mission.png" alt="" />
+            <img
+              src="../assets/mission.png"
+              alt=""
+            />
           </div>
           <ul class="stars-description">
-            <li v-for="level in LEVEL_LABELS" :key="level.stars">
+            <li
+              v-for="level in LEVEL_LABELS"
+              :key="level.stars"
+            >
               {{ level.stars }}： {{ level.text }}
             </li>
           </ul>
@@ -88,20 +105,37 @@ const displayCategories = computed(() =>
     </div>
 
     <div class="content-wrapper">
-      <div v-for="category in displayCategories" :key="category.id" v-show="category.isChecked"
-        class="category-section">
+      <div
+        v-for="category in displayCategories"
+        :key="category.id"
+        v-show="category.isChecked"
+        class="category-section"
+      >
         <div class="category-header">
-          <font-awesome-icon :icon="category.icon" class="category-icon" />
+          <font-awesome-icon
+            :icon="category.icon"
+            class="category-icon"
+          />
           <h3 class="category-title">{{ category.label }}</h3>
         </div>
-        <div v-for="question in category.questions" :key="question.id" class="question-block">
+        <div
+          v-for="question in category.questions"
+          :key="question.id"
+          class="question-block"
+        >
           <h4 class="question-title">{{ question.questionText }}</h4>
           <div class="skills-grid">
-            <div v-for="answer in question.answers" :key="answer.label" class="skill-card">
+            <div
+              v-for="answer in question.answers"
+              :key="answer.label"
+              class="skill-card"
+            >
               <div class="skill-info">
                 <div class="skill-name">{{ answer.label }}</div>
                 <div class="skill-level">
-                  <span class="level-stars">{{ LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars }}</span>
+                  <span class="level-stars">{{
+                    LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
+                  }}</span>
                   <span class="level-number">&nbsp;({{ answer.value }}/5)</span>
                 </div>
               </div>
@@ -112,26 +146,48 @@ const displayCategories = computed(() =>
 
       <div class="button-group no-print">
         <template v-if="!pageStatus.isSharedView">
-          <AnimatedIconButton animationType="beat" icon="fa-solid fa-arrow-left" label="修正する" variant="secondary"
-            @click="goBack" />
+          <AnimatedIconButton
+            animationType="beat"
+            icon="fa-solid fa-arrow-left"
+            label="修正する"
+            variant="secondary"
+            @click="goBack"
+          />
 
-          <AnimatedIconButton animationType="bounce" icon="fa-solid fa-print" label="印刷する" variant="secondary"
-            @click="handlePrint" />
+          <AnimatedIconButton
+            animationType="bounce"
+            icon="fa-solid fa-print"
+            label="印刷する"
+            variant="secondary"
+            @click="handlePrint"
+          />
 
           <ShareButton />
 
-          <AnimatedIconButton animationType="beat" icon="fa-regular fa-house" label="トップへ戻る" variant="secondary"
-            @click="goToTop" />
+          <AnimatedIconButton
+            animationType="beat"
+            icon="fa-regular fa-house"
+            label="トップへ戻る"
+            variant="secondary"
+            @click="goToTop"
+          />
         </template>
 
         <template v-else>
-          <AnimatedIconButton icon="fa-solid fa-pen" label="自分のスキルシートを作成" @click="goToTop" />
+          <AnimatedIconButton
+            icon="fa-solid fa-pen"
+            label="自分のスキルシートを作成"
+            @click="goToTop"
+          />
         </template>
       </div>
     </div>
   </div>
 
-  <div v-else-if="pageStatus.type === 'error'" class="error-container">
+  <div
+    v-else-if="pageStatus.type === 'error'"
+    class="error-container"
+  >
     <div class="error-content">
       <span class="error-icon">
         <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
@@ -146,16 +202,30 @@ const displayCategories = computed(() =>
       <p class="error-message">
         {{
           pageStatus.reason === 'expired'
-            ? '共有リンクの有効期限（3日間）が切れています。'
+            ? `共有リンクの有効期限（${pageStatus.expiryDays}日間）が切れています。`
             : 'お探しのスキルシートは存在しないか、削除された可能性があります。'
         }}
       </p>
-      <button @click="goToTop" class="action-button primary-button">トップへ戻る</button>
+      <button
+        @click="goToTop"
+        class="action-button primary-button"
+      >
+        トップへ戻る
+      </button>
     </div>
   </div>
 
-  <div v-else class="loading-container" role="status" aria-label="データを読み込んでいます" aria-live="polite">
-    <div class="loading-spinner" aria-hidden="true"></div>
+  <div
+    v-else
+    class="loading-container"
+    role="status"
+    aria-label="データを読み込んでいます"
+    aria-live="polite"
+  >
+    <div
+      class="loading-spinner"
+      aria-hidden="true"
+    ></div>
     <p class="loading-text">データを読み込んでいます...</p>
   </div>
 </template>
@@ -441,7 +511,7 @@ const displayCategories = computed(() =>
     font-size: 1rem;
     margin: 0 0 var(--p-4, 0.5rem);
     break-after: avoid;
-    break-inside: avoid
+    break-inside: avoid;
   }
 
   .skills-grid {

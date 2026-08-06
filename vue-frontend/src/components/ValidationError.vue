@@ -1,59 +1,59 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { ValidationError } from '@/types';
+import { computed } from 'vue'
+
+import type { ValidationError } from '@/types'
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface Props {
-  errors: ValidationError[];
+  errors: ValidationError[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 // ─── 内部型 ──────────────────────────────────────────────────────────────────
 
 /** カテゴリ × 質問 でグループ化したエラーを表す型 */
 interface GroupedError extends ValidationError {
-  count: number;
+  count: number
 }
 
 // ─── ロジック ────────────────────────────────────────────────────────────────
 
-/**
- * エラーをカテゴリと質問ごとにグループ化する。
- * 同じ (category, text) の組み合わせをまとめ、件数を count に持つ。
- */
 const groupedErrors = computed<GroupedError[]>(() => {
-  const groups: Record<string, GroupedError> = {};
+  const groups: Record<string, GroupedError> = {}
 
   props.errors.forEach((error) => {
-    const key = `${error.category}|${error.text ?? ''}`;
+    const key = `${error.category}|${error.text ?? ''}`
     if (!groups[key]) {
       groups[key] = {
         category: error.category,
         text: error.text,
         count: 0,
-      };
+      }
     }
-    groups[key].count++;
-  });
+    groups[key].count++
+  })
 
-  return Object.values(groups);
-});
+  return Object.values(groups)
+})
 
-/**
- * 質問文の冒頭 30 文字のみ表示する（長い場合は末尾に "..." を付ける）。
- */
-const getTextPreview = (text?: string) => {
-  if (!text) return '';
-  return text.length > 30 ? `${text.substring(0, 30)}...` : text;
-};
+const PREVIEW_LENGTH = 30
+
+const getTextPreview = (text: string) =>
+  text.length > PREVIEW_LENGTH ? `${text.substring(0, PREVIEW_LENGTH)}...` : text
 </script>
 
 <template>
   <transition name="fade">
-    <div v-if="errors.length > 0" class="error-message" id="error-message" role="alert" aria-live="assertive"
-      tabindex="-1">
+    <div
+      v-if="errors.length > 0"
+      class="error-message"
+      id="error-message"
+      role="alert"
+      aria-live="assertive"
+      tabindex="-1"
+    >
       <div class="error-content">
         <div class="error-title">
           <div class="error-icon">
@@ -64,14 +64,24 @@ const getTextPreview = (text?: string) => {
         <div class="error-text">
           <slot name="description"></slot>
           <ul class="error-list">
-            <li v-for="(group, index) in groupedErrors" :key="index" class="error-item">
-              <font-awesome-icon icon="fa-solid fa-circle-exclamation" class="error-bullet" />
+            <li
+              v-for="(group, index) in groupedErrors"
+              :key="index"
+              class="error-item"
+            >
+              <font-awesome-icon
+                icon="fa-solid fa-circle-exclamation"
+                class="error-bullet"
+              />
               <div class="error-details">
                 <div class="error-main">
                   <strong>{{ group.category }}</strong>
                   <span class="error-count">（{{ group.count }}件）</span>
                 </div>
-                <div v-if="group.text" class="error-question">
+                <div
+                  v-if="group.text"
+                  class="error-question"
+                >
                   {{ getTextPreview(group.text) }}
                 </div>
               </div>
@@ -97,7 +107,6 @@ const getTextPreview = (text?: string) => {
 }
 
 @keyframes shake {
-
   0%,
   100% {
     transform: translateX(0);
@@ -134,7 +143,7 @@ const getTextPreview = (text?: string) => {
   gap: var(--p-4, 0.5rem);
 }
 
-.error-title>h4 {
+.error-title > h4 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
@@ -208,7 +217,7 @@ const getTextPreview = (text?: string) => {
     font-size: 1.5rem;
   }
 
-  .error-title>h4 {
+  .error-title > h4 {
     font-size: 1.2rem;
   }
 

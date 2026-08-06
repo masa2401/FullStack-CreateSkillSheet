@@ -1,20 +1,21 @@
 ﻿<script setup lang="ts">
-import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import QuestionCard from '@/components/QuestionCard.vue';
-import ValidationError from '@/components/ValidationError.vue';
-import { useMergedSurvey } from '@/composables/useMergedSurvey';
-import { useSurveyValidation } from '@/composables/useSurveyValidation';
-import { useSurveyStore } from '@/stores/useSurveyStore';
-import type { StarLevel } from '@/types';
-import { LEVEL_LABELS, ROUTES } from '@/utils/constants';
-import { nextTick } from 'vue';
-import { useRouter } from 'vue-router';
+import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const store = useSurveyStore();
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import QuestionCard from '@/components/QuestionCard.vue'
+import ValidationError from '@/components/ValidationError.vue'
+import { useMergedSurvey } from '@/composables/useMergedSurvey'
+import { useSurveyValidation } from '@/composables/useSurveyValidation'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import type { StarLevel } from '@/types'
+import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
 
-const { mergedCategories } = useMergedSurvey();
-const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories);
+const router = useRouter()
+const store = useSurveyStore()
+
+const { mergedCategories } = useMergedSurvey()
+const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories)
 
 // ─── イベントハンドラ ────────────────────────────────────────────────────────
 
@@ -24,19 +25,19 @@ const handleAnswerUpdate = (
   answerId: number,
   patch: { isChecked?: boolean; value?: StarLevel },
 ): void => {
-  store.setAnswerSelection(categoryId, questionId, answerId, patch);
-};
+  store.setAnswerSelection(categoryId, questionId, answerId, patch)
+}
 
 const onSubmit = async (): Promise<void> => {
   if (!validate()) {
-    await nextTick();
-    const target = document.getElementById('error-message');
-    target?.scrollIntoView({ behavior: 'smooth' });
-    target?.focus();
-    return;
+    await nextTick()
+    const target = document.getElementById('error-message')
+    target?.scrollIntoView({ behavior: 'smooth' })
+    target?.focus()
+    return
   }
-  router.push(ROUTES.RESULT);
-};
+  router.push(ROUTES.RESULT)
+}
 </script>
 
 <template>
@@ -53,10 +54,16 @@ const onSubmit = async (): Promise<void> => {
           </p>
           <div class="description-group">
             <div class="image">
-              <img src="../assets/customers.png" alt="" />
+              <img
+                src="../assets/customers.png"
+                alt=""
+              />
             </div>
             <ul class="stars-description">
-              <li v-for="level in LEVEL_LABELS" :key="level.stars">
+              <li
+                v-for="level in LEVEL_LABELS"
+                :key="level.stars"
+              >
                 {{ level.stars }}： {{ level.text }}
               </li>
             </ul>
@@ -66,16 +73,30 @@ const onSubmit = async (): Promise<void> => {
     </div>
 
     <div class="wrap">
-      <template v-for="category in mergedCategories" :key="category.id">
-        <div v-if="category.isChecked" class="category-section">
+      <template
+        v-for="category in mergedCategories"
+        :key="category.id"
+      >
+        <div
+          v-if="category.isChecked"
+          class="category-section"
+        >
           <div class="category-header">
-            <font-awesome-icon :icon="category.icon" class="category-icon" />
+            <font-awesome-icon
+              :icon="category.icon"
+              class="category-icon"
+            />
             <h3 class="category-title">{{ category.label }}</h3>
           </div>
 
-          <QuestionCard v-for="question in category.questions" :key="question.id" :question="question" @update:answer="
-            handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
-            " />
+          <QuestionCard
+            v-for="question in category.questions"
+            :key="question.id"
+            :question="question"
+            @update:answer="
+              handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
+            "
+          />
         </div>
       </template>
 
@@ -87,12 +108,23 @@ const onSubmit = async (): Promise<void> => {
       </ValidationError>
 
       <div class="submit-section">
-        <p v-if="isSubmitDisabled" class="submit-hint">
-          <font-awesome-icon icon="fa-solid fa-triangle-exclamation" shake />
+        <p
+          v-if="isSubmitDisabled"
+          class="submit-hint"
+        >
+          <font-awesome-icon
+            icon="fa-solid fa-triangle-exclamation"
+            shake
+          />
           すべてのチェック項目に習熟度を選択してください
         </p>
-        <AnimatedIconButton animation-type="bounce" icon="fa-solid fa-arrow-right" label="次へ進む" @click="onSubmit"
-          :disabled="isSubmitDisabled" />
+        <AnimatedIconButton
+          animation-type="bounce"
+          icon="fa-solid fa-arrow-right"
+          label="次へ進む"
+          @click="onSubmit"
+          :disabled="isSubmitDisabled"
+        />
       </div>
     </div>
   </div>
@@ -205,7 +237,6 @@ const onSubmit = async (): Promise<void> => {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;

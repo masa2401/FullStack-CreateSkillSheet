@@ -4,39 +4,34 @@ import type {
   QuestionSelection,
   StarLevel,
   SurveyState,
-} from '@/types';
+} from '@/types'
 
 interface AnswerDto {
-  answerId: number;
-  value: number;
+  answerId: number
+  value: number
 }
 interface QuestionDto {
-  questionId: number;
-  answers: AnswerDto[];
+  questionId: number
+  answers: AnswerDto[]
 }
 interface CategoryDto {
-  categoryId: number;
-  questions: QuestionDto[];
+  categoryId: number
+  questions: QuestionDto[]
 }
 
 export interface SheetDto {
-  userName: string;
-  categories: CategoryDto[];
+  userName: string
+  categories: CategoryDto[]
 }
 
 // ─── 定数 ──────────────────────────────────────────────────────────
 
-const STAR_LEVELS: readonly StarLevel[] = [1, 2, 3, 4, 5];
+const STAR_LEVELS: readonly StarLevel[] = [1, 2, 3, 4, 5]
 const toStarLevel = (value: number): StarLevel | undefined =>
-  (STAR_LEVELS as readonly number[]).includes(value) ? (value as StarLevel) : undefined;
+  (STAR_LEVELS as readonly number[]).includes(value) ? (value as StarLevel) : undefined
 
 // ─── SurveyState → SheetDto（保存時） ──────────────────────────────
 
-/**
- * SurveyState（状態のみ）をSheetDtoに変換する。
- * label / questionText はマスターデータから引き当てて付与する。
- * バックエンドのスキーマは変えないため、DTOの形は変わらない。
- */
 export const toSheetDto = (state: SurveyState): SheetDto => ({
   userName: state.userName,
   categories: state.selections
@@ -55,18 +50,10 @@ export const toSheetDto = (state: SurveyState): SheetDto => ({
         }))
         .filter((q) => q.answers.length > 0),
     })),
-});
+})
 
 // ─── SheetDto → SurveyState（取得時） ──────────────────────────────
 
-/**
- * バックエンドから取得したSheetDtoをSurveyStateに変換する。
- * DTOのlabel/questionTextでマスターデータのIDを逆引きして、
- * AnswerSelection / QuestionSelection を組み立てる。
- *
- * マスターデータに存在しないlabel/questionTextは無視する。
- * （バックエンドの質問を将来編集可能にした際の差分吸収）
- */
 export const toSurveyState = (dto: SheetDto): SurveyState => ({
   userName: dto.userName,
   selections: dto.categories.map(
@@ -87,4 +74,4 @@ export const toSurveyState = (dto: SheetDto): SurveyState => ({
       ),
     }),
   ),
-});
+})

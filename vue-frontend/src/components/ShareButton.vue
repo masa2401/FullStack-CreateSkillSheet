@@ -1,41 +1,57 @@
 <script setup lang="ts">
-import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import { useSurveyStore } from '@/stores/useSurveyStore.ts';
-import { isBackendEnabled } from '@/utils/api.ts';
-import { ref } from 'vue';
-import CsvButton from './CsvButton.vue';
-import PdfButton from './PdfButton.vue';
-import ShareUrlButton from './ShareUrlButton.vue';
+import { ref } from 'vue'
 
-const store = useSurveyStore();
-const showMenu = ref<boolean>(false);
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
+import { isBackendEnabled } from '@/utils/api.ts'
+
+import CsvButton from './CsvButton.vue'
+import PdfButton from './PdfButton.vue'
+import ShareUrlButton from './ShareUrlButton.vue'
+
+const store = useSurveyStore()
+const showMenu = ref<boolean>(false)
 
 const toggleMenu = async () => {
-  showMenu.value = !showMenu.value;
+  showMenu.value = !showMenu.value
 
   if (showMenu.value && isBackendEnabled()) {
     try {
-      await store.getSavedIdOrSave();
+      await store.getSavedIdOrSave()
     } catch (error) {
       console.error('シート保存エラー', error)
     }
   }
-};
+}
 
 const closeMenu = () => {
-  showMenu.value = false;
-};
+  showMenu.value = false
+}
 </script>
 
 <template>
   <div class="share-button-container">
-    <AnimatedIconButton animationType="bounce" icon="fa-solid fa-arrow-up-right-from-square" label="結果を共有"
-      variant="secondary" :aria-expanded="showMenu" aria-haspopup="true" @click="toggleMenu" />
+    <AnimatedIconButton
+      animationType="bounce"
+      icon="fa-solid fa-arrow-up-right-from-square"
+      label="結果を共有"
+      variant="secondary"
+      :aria-expanded="showMenu"
+      aria-haspopup="true"
+      @click="toggleMenu"
+    />
     <transition name="slide-fade">
-      <div v-if="showMenu" class="share-menu">
+      <div
+        v-if="showMenu"
+        class="share-menu"
+        role="menu"
+      >
         <ShareUrlButton @done="closeMenu" />
         <CsvButton @done="closeMenu" />
-        <PdfButton v-if="isBackendEnabled()" @done="closeMenu" />
+        <PdfButton
+          v-if="isBackendEnabled()"
+          @done="closeMenu"
+        />
       </div>
     </transition>
   </div>

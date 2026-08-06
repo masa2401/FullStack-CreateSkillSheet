@@ -1,59 +1,83 @@
 <script setup lang="ts">
-import type { StarLevel } from '@/types';
-import { LEVEL_LABELS } from '@/utils/constants';
+import type { StarLevel } from '@/types'
+import { LEVEL_LABELS } from '@/utils/constants'
 
 interface Props {
-  answerId: number;
-  label: string;
-  isChecked: boolean;
-  value?: StarLevel;
+  answerId: number
+  label: string
+  isChecked: boolean
+  value?: StarLevel
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:answer': [payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } }];
-}>();
+  'update:answer': [
+    payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
+  ]
+}>()
 
 // チェックボックスの変更
 const handleCheckChange = (e: Event) => {
-  const target = e.target as HTMLInputElement;
+  const target = e.target as HTMLInputElement
   emit('update:answer', {
     answerId: props.answerId,
     patch: {
-      isChecked: target.checked
+      isChecked: target.checked,
     },
-  });
-};
+  })
+}
 
 // 習熟度の変更
 const handleLevelChange = (level: StarLevel) => {
   emit('update:answer', {
     answerId: props.answerId,
     patch: { value: level },
-  });
-};
+  })
+}
 </script>
 
 <template>
   <div class="answer-item">
     <label class="checkbox-label">
-      <input type="checkbox" :checked="isChecked" @change="handleCheckChange" class="custom-checkbox" />
+      <input
+        type="checkbox"
+        :checked="isChecked"
+        @change="handleCheckChange"
+        class="custom-checkbox"
+      />
       <span class="checkbox-text">{{ label }}</span>
     </label>
 
     <transition name="slide-fade">
-      <div v-if="isChecked" class="level-selector">
+      <div
+        v-if="isChecked"
+        class="level-selector"
+      >
         <div class="level-buttons">
-          <label v-for="level in 5" :key="level" class="level-button" :class="{ active: value === level }"
-            :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`">
-            <input type="radio" :checked="value === level" @change="handleLevelChange(level as StarLevel)"
-              class="level-radio" :aria-label="`${level}段階`" />
+          <label
+            v-for="level in LEVEL_LABELS.length"
+            :key="level"
+            class="level-button"
+            :class="{ active: value === level }"
+            :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`"
+          >
+            <input
+              type="radio"
+              :checked="value === level"
+              @change="handleLevelChange(level as StarLevel)"
+              class="level-radio"
+              :aria-label="`${level}段階`"
+            />
             <span class="level-number">{{ level }}</span>
             <span class="level-stars">{{ '★'.repeat(level) }}</span>
           </label>
         </div>
-        <span v-if="!value" class="warning-text">
+        <span
+          v-if="!value"
+          class="warning-text"
+          role="alert"
+        >
           <font-awesome-icon icon="fa-regular fa-lightbulb" />
           習熟度を選択してください
         </span>
@@ -126,7 +150,7 @@ const handleLevelChange = (level: StarLevel) => {
   box-shadow: 0 4px 8px rgba(72, 60, 50, 0.15);
 }
 
-.level-button.active {
+.level-button:has(.level-radio:checked) {
   background: #483c32;
   border-color: #483c32;
   color: #ffffff;
@@ -175,7 +199,6 @@ const handleLevelChange = (level: StarLevel) => {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;

@@ -1,36 +1,37 @@
 ﻿<script setup lang="ts">
-import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import ValidationError from '@/components/ValidationError.vue';
-import { useNameValidation } from '@/composables/useNameValidation';
-import { CATEGORY_MASTERS } from '@/data/questions';
-import { useSurveyStore } from '@/stores/useSurveyStore';
-import { ROUTES } from '@/utils/constants';
-import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const store = useSurveyStore();
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import ValidationError from '@/components/ValidationError.vue'
+import { useNameValidation } from '@/composables/useNameValidation'
+import { CATEGORY_MASTERS } from '@/data/questions'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import { ROUTES } from '@/utils/constants'
 
-const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!;
-const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!;
+const router = useRouter()
+const store = useSurveyStore()
 
-const userName = ref<string>(store.userName);
+const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!
+const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!
+
+const userName = ref<string>(store.userName)
 const engineerChecked = computed({
   get: () => store.selections.find((c) => c.categoryId === engineerMaster.id)?.isChecked ?? false,
   set: (val: boolean) => store.setCategoryChecked(engineerMaster.id, val),
-});
+})
 const designerChecked = computed({
   get: () => store.selections.find((c) => c.categoryId === designerMaster.id)?.isChecked ?? false,
   set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val),
-});
+})
 
-const { validationErrors, validate, isSubmitDisabled } = useNameValidation(userName);
+const { validationErrors, validate, isSubmitDisabled } = useNameValidation(userName)
 
 const validateAndProceed = (): void => {
-  if (!validate()) return;
-  store.setUserName(userName.value.trim());
-  router.push(ROUTES.SURVEY);
-};
+  if (!validate()) return
+  store.setUserName(userName.value.trim())
+  router.push(ROUTES.SURVEY)
+}
 </script>
 
 <template>
@@ -44,14 +45,23 @@ const validateAndProceed = (): void => {
       </div>
       <div class="input-group">
         <div class="input-section">
-          <label class="input-label" for="name-input">
+          <label
+            class="input-label"
+            for="name-input"
+          >
             <span class="label-icon">
               <font-awesome-icon icon="fa-solid fa-pen" />
             </span>
             お名前を入力してください
           </label>
-          <input type="text" id="name-input" class="name-input" :class="{ 'input-error': validationErrors.length > 0 }"
-            v-model="userName" placeholder="お名前を入力" />
+          <input
+            type="text"
+            id="name-input"
+            class="name-input"
+            :class="{ 'input-error': validationErrors.length > 0 }"
+            v-model="userName"
+            placeholder="お名前を入力"
+          />
         </div>
 
         <div class="category-section">
@@ -62,37 +72,57 @@ const validateAndProceed = (): void => {
             該当するカテゴリを選択してください(複数選択可)
           </h3>
           <div class="category-cards">
-            <label class="category-card" :class="{ active: engineerChecked }">
-              <input type="checkbox" class="category-checkbox" v-model="engineerChecked"
-                aria-describedby="engineer-desc" />
+            <label class="category-card">
+              <input
+                type="checkbox"
+                class="category-checkbox"
+                v-model="engineerChecked"
+                aria-describedby="engineer-desc"
+              />
               <div class="card-content">
                 <div class="card-icon-large">
                   <font-awesome-icon :icon="engineerMaster.icon" />
                 </div>
                 <h4 class="card-category-title">{{ engineerMaster.label }}</h4>
-                <p id="engineer-desc" class="card-category-desc">
+                <p
+                  id="engineer-desc"
+                  class="card-category-desc"
+                >
                   {{ engineerMaster.description }}
                 </p>
                 <div class="check-indicator">
-                  <span v-if="engineerChecked" class="check-mark">
+                  <span
+                    v-if="engineerChecked"
+                    class="check-mark"
+                  >
                     <font-awesome-icon icon="fa-solid fa-check" />
                   </span>
                 </div>
               </div>
             </label>
-            <label class="category-card" :class="{ active: designerChecked }">
-              <input type="checkbox" class="category-checkbox" v-model="designerChecked"
-                aria-describedby="designer-desc" />
+            <label class="category-card">
+              <input
+                type="checkbox"
+                class="category-checkbox"
+                v-model="designerChecked"
+                aria-describedby="designer-desc"
+              />
               <div class="card-content">
                 <div class="card-icon-large">
                   <font-awesome-icon :icon="designerMaster.icon" />
                 </div>
                 <h4 class="card-category-title">{{ designerMaster.label }}</h4>
-                <p id="designer-desc" class="card-category-desc">
+                <p
+                  id="designer-desc"
+                  class="card-category-desc"
+                >
                   {{ designerMaster.description }}
                 </p>
                 <div class="check-indicator">
-                  <span v-if="designerChecked" class="check-mark">
+                  <span
+                    v-if="designerChecked"
+                    class="check-mark"
+                  >
                     <font-awesome-icon icon="fa-solid fa-check" />
                   </span>
                 </div>
@@ -114,8 +144,13 @@ const validateAndProceed = (): void => {
       </ValidationError>
 
       <div class="button-section">
-        <AnimatedIconButton icon="fa-solid fa-arrow-right" label="アンケートを開始" animation-type="bounce"
-          :disabled="isSubmitDisabled" @click="validateAndProceed" />
+        <AnimatedIconButton
+          icon="fa-solid fa-arrow-right"
+          label="アンケートを開始"
+          animation-type="bounce"
+          :disabled="isSubmitDisabled"
+          @click="validateAndProceed"
+        />
       </div>
     </div>
   </div>
@@ -197,7 +232,6 @@ const validateAndProceed = (): void => {
 }
 
 @keyframes shake {
-
   0%,
   100% {
     transform: translateX(0);
@@ -248,7 +282,7 @@ const validateAndProceed = (): void => {
   border-color: #483c32;
 }
 
-.category-card.active {
+.category-card:has(.category-checkbox:checked) {
   background: linear-gradient(135deg, #483c32 0%, #5a4a3e 100%);
   border-color: #483c32;
   transform: scale(1.02);
@@ -260,9 +294,9 @@ const validateAndProceed = (): void => {
   outline-offset: 2px;
 }
 
-.category-card.active .card-category-title,
-.category-card.active .card-category-desc,
-.category-card.active .card-icon-large {
+.category-card:has(.category-checkbox:checked) .card-category-title,
+.category-card:has(.category-checkbox:checked) .card-category-desc,
+.category-card:has(.category-checkbox:checked) .card-icon-large {
   color: #ffffff;
 }
 

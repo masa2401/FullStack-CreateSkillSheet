@@ -1,8 +1,14 @@
 package com.skillsheet.exception;
 
 public class SheetExpiredException extends RuntimeException {
-    public SheetExpiredException(String message) {
+    private final long expiryDays;
+
+    public SheetExpiredException(String message, long expiryDays) {
         super(message);
+        this.expiryDays = expiryDays;
     }
 
+    public long getExpiryDays() {
+        return expiryDays;
+    }
 }

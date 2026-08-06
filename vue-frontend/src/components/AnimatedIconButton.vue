@@ -1,23 +1,38 @@
 <script setup lang="ts">
-
 interface Props {
-  icon: string;
-  label: string;
-  animationType?: 'beat' | 'bounce' | 'fade' | 'spin' | 'none';
-  variant?: 'primary' | 'secondary';
+  icon: string
+  label: string
+  animationType?: 'beat' | 'bounce' | 'fade' | 'spin' | 'none'
+  variant?: 'primary' | 'secondary'
 }
-const { variant = 'primary' } = defineProps<Props>();
+const { variant = 'primary' } = defineProps<Props>()
 defineOptions({ inheritAttrs: false })
 
-const emit = defineEmits<{ click: [] }>();
-const handleClick = () => { emit('click') };
+const emit = defineEmits<{ click: [] }>()
+const handleClick = () => {
+  emit('click')
+}
 </script>
 
 <template>
-  <button type="button" v-bind="$attrs" class="action-button" :class="variant" @click="handleClick">
-    <span class="button-icon" aria-hidden="true">
-      <font-awesome-icon :icon="icon" :beat="animationType === 'beat'" :bounce="animationType === 'bounce'"
-        :fade="animationType === 'fade'" :spin="animationType === 'spin'" />
+  <button
+    type="button"
+    v-bind="$attrs"
+    class="action-button"
+    :class="variant"
+    @click="handleClick"
+  >
+    <span
+      class="button-icon"
+      aria-hidden="true"
+    >
+      <font-awesome-icon
+        :icon="icon"
+        :beat="animationType === 'beat'"
+        :bounce="animationType === 'bounce'"
+        :fade="animationType === 'fade'"
+        :spin="animationType === 'spin'"
+      />
     </span>
     <span class="button-text">{{ label }}</span>
   </button>

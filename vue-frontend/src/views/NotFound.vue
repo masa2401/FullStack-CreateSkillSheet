@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import AnimatedIconButton from '@/components/AnimatedIconButton.vue';
-import { ROUTES } from '@/utils/constants';
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import { ROUTES } from '@/utils/constants'
+
+const router = useRouter()
 
 const goToTop = () => {
-  router.push(ROUTES.TOP);
-};
+  router.push(ROUTES.TOP)
+}
 </script>
 
 <template>
@@ -15,7 +16,10 @@ const goToTop = () => {
     <div class="notfound-content">
       <div>
         <span class="error-icon">
-          <font-awesome-icon icon="fa-solid fa-magnifying-glass" bounce />
+          <font-awesome-icon
+            icon="fa-solid fa-magnifying-glass"
+            bounce
+          />
         </span>
         <h2 class="error-code">404</h2>
       </div>
@@ -24,7 +28,12 @@ const goToTop = () => {
         お探しのページは存在しないか、<br />
         移動または削除された可能性があります。
       </p>
-      <AnimatedIconButton icon="fa-regular fa-house" label="トップへ戻る" animation="bounce" @click="goToTop" />
+      <AnimatedIconButton
+        icon="fa-regular fa-house"
+        label="トップへ戻る"
+        animation="bounce"
+        @click="goToTop"
+      />
     </div>
   </div>
 </template>

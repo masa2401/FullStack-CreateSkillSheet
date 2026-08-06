@@ -1,7 +1,10 @@
-import type { MergedCategory } from '@/types';
-import { describe, expect, it } from 'vitest';
-import { computed, ref } from 'vue';
-import { useSurveyValidation } from './useSurveyValidation';
+import { computed, ref } from 'vue'
+
+import { describe, expect, it } from 'vitest'
+
+import type { MergedCategory } from '@/types'
+
+import { useSurveyValidation } from './useSurveyValidation'
 
 const makeCategory = (overrides?: Partial<MergedCategory>): MergedCategory => ({
   id: 1,
@@ -16,16 +19,16 @@ const makeCategory = (overrides?: Partial<MergedCategory>): MergedCategory => ({
     },
   ],
   ...overrides,
-});
+})
 
 describe('userSurveyValidation', () => {
   it('チェックなしの回答はエラーにならない', () => {
-    const categories = ref([makeCategory()]);
-    const { validate, validationErrors } = useSurveyValidation(computed(() => categories.value));
+    const categories = ref([makeCategory()])
+    const { validate, validationErrors } = useSurveyValidation(computed(() => categories.value))
 
-    validate();
-    expect(validationErrors.value).toHaveLength(0);
-  });
+    validate()
+    expect(validationErrors.value).toHaveLength(0)
+  })
 
   it('チェックありで習熟度未選択はエラーになる', () => {
     const categories = ref([
@@ -38,13 +41,13 @@ describe('userSurveyValidation', () => {
           },
         ],
       }),
-    ]);
-    const { validate, validationErrors } = useSurveyValidation(computed(() => categories.value));
+    ])
+    const { validate, validationErrors } = useSurveyValidation(computed(() => categories.value))
 
-    validate();
-    expect(validationErrors.value).toHaveLength(1);
-    expect(validationErrors.value[0]!.category).toBe('共通');
-  });
+    validate()
+    expect(validationErrors.value).toHaveLength(1)
+    expect(validationErrors.value[0]!.category).toBe('共通')
+  })
 
   it('isChecked が false のカテゴリはバリデーション対象外', () => {
     const categories = ref([
@@ -58,10 +61,10 @@ describe('userSurveyValidation', () => {
           },
         ],
       }),
-    ]);
-    const { validate, validationErrors } = useSurveyValidation(computed(() => categories.value));
+    ])
+    const { validate, validationErrors } = useSurveyValidation(computed(() => categories.value))
 
-    validate();
-    expect(validationErrors.value).toHaveLength(0);
-  });
-});
+    validate()
+    expect(validationErrors.value).toHaveLength(0)
+  })
+})

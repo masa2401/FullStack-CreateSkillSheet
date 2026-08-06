@@ -1,7 +1,7 @@
-import { commonQuestions } from '@/data/questions/common';
-import { designerQuestions } from '@/data/questions/designer';
-import { engineerQuestions } from '@/data/questions/engineer';
-import type { CategoryMaster } from '@/types';
+import { commonQuestions } from '@/data/questions/common'
+import { designerQuestions } from '@/data/questions/designer'
+import { engineerQuestions } from '@/data/questions/engineer'
+import type { CategoryMaster } from '@/types'
 
 export const CATEGORY_MASTERS: CategoryMaster[] = [
   {
@@ -31,8 +31,8 @@ export const CATEGORY_MASTERS: CategoryMaster[] = [
     isCheckedByDefault: false,
     questions: designerQuestions,
   },
-];
+]
 
 export const CATEGORY_MASTER_BY_ID: Map<number, CategoryMaster> = new Map(
   CATEGORY_MASTERS.map((c) => [c.id, c]),
-);
+)

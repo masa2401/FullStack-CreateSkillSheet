@@ -1,26 +1,34 @@
 <script setup lang="ts">
-import type { MergedQuestion, StarLevel } from '@/types';
-import AnswerItem from './AnswerItem.vue';
+import type { MergedQuestion, StarLevel } from '@/types'
+
+import AnswerItem from './AnswerItem.vue'
 
 interface Props {
-  question: MergedQuestion;
+  question: MergedQuestion
 }
 
-defineProps<Props>();
+defineProps<Props>()
 
 const emit = defineEmits<{
   'update:answer': [
     payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
-  ];
-}>();
+  ]
+}>()
 </script>
 
 <template>
   <div class="question-card">
     <h4 class="question-text">{{ question.questionText }}</h4>
     <div class="answers-grid">
-      <AnswerItem v-for="answer in question.answers" :key="answer.id" :answer-id="answer.id" :label="answer.label"
-        :is-checked="answer.isChecked" :value="answer.value" @update:answer="emit('update:answer', $event)" />
+      <AnswerItem
+        v-for="answer in question.answers"
+        :key="answer.id"
+        :answer-id="answer.id"
+        :label="answer.label"
+        :is-checked="answer.isChecked"
+        :value="answer.value"
+        @update:answer="emit('update:answer', $event)"
+      />
     </div>
   </div>
 </template>

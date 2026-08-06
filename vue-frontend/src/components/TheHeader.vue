@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ROUTES } from '@/utils/constants';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'
 
-const router = useRouter();
-const route = useRoute();
+import { ROUTES } from '@/utils/constants'
+
+const router = useRouter()
+const route = useRoute()
 
 const goToTop = () => {
   if (route.path !== ROUTES.TOP) {
-    router.push(ROUTES.TOP);
+    router.push(ROUTES.TOP)
   }
-};
+}
 </script>
 
 <template>
