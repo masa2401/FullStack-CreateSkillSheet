@@ -53,11 +53,11 @@ describe('AnswerItem.vue', () => {
 
   it('習熟度未選択時は警告テキストが表示される', () => {
     const wrapper = createWrapper({ isChecked: true, value: undefined })
-    expect(wrapper.find('.warning-text').exists()).toBe(true)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
   })
 
   it('習熟度選択済みなら警告テキストが表示されない', () => {
     const wrapper = createWrapper({ isChecked: true, value: 3 })
-    expect(wrapper.find('.warning-text').exists()).toBe(false)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 })

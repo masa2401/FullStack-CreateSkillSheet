@@ -1,40 +1,40 @@
 <script setup lang="ts">
-  import type { StarLevel } from '@/types'
-  import { LEVEL_LABELS } from '@/utils/constants'
+import type { StarLevel } from '@/types'
+import { LEVEL_LABELS } from '@/utils/constants'
 
-  interface Props {
-    answerId: number
-    label: string
-    isChecked: boolean
-    value?: StarLevel
-  }
+interface Props {
+  answerId: number
+  label: string
+  isChecked: boolean
+  value?: StarLevel
+}
 
-  const props = defineProps<Props>()
+const props = defineProps<Props>()
 
-  const emit = defineEmits<{
-    'update:answer': [
-      payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
-    ]
-  }>()
+const emit = defineEmits<{
+  'update:answer': [
+    payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
+  ]
+}>()
 
-  // チェックボックスの変更
-  const handleCheckChange = (e: Event) => {
-    const target = e.target as HTMLInputElement
-    emit('update:answer', {
-      answerId: props.answerId,
-      patch: {
-        isChecked: target.checked,
-      },
-    })
-  }
+// チェックボックスの変更
+const handleCheckChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  emit('update:answer', {
+    answerId: props.answerId,
+    patch: {
+      isChecked: target.checked,
+    },
+  })
+}
 
-  // 習熟度の変更
-  const handleLevelChange = (level: StarLevel) => {
-    emit('update:answer', {
-      answerId: props.answerId,
-      patch: { value: level },
-    })
-  }
+// 習熟度の変更
+const handleLevelChange = (level: StarLevel) => {
+  emit('update:answer', {
+    answerId: props.answerId,
+    patch: { value: level },
+  })
+}
 </script>
 
 <template>
@@ -76,6 +76,7 @@
         <span
           v-if="!value"
           class="warning-text"
+          role="alert"
         >
           <font-awesome-icon icon="fa-regular fa-lightbulb" />
           習熟度を選択してください
@@ -86,144 +87,144 @@
 </template>
 
 <style scoped>
-  .answer-item {
-    border-left: 4px solid #d3c6a6;
-    padding-left: var(--p-8, 1rem);
+.answer-item {
+  border-left: 4px solid #d3c6a6;
+  padding-left: var(--p-8, 1rem);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--p-4, 0.5rem);
+  cursor: pointer;
+  font-size: 1rem;
+  color: #444;
+  padding: var(--p-4, 0.5rem) 0;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #483c32;
+}
+
+.checkbox-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.level-selector {
+  margin-top: var(--p-4, 0.5rem);
+  padding: var(--p-8, 1rem);
+  background: #ffffff;
+  border-radius: var(--radius, 12px);
+  border: 1px solid #d3c6a6;
+}
+
+.level-buttons {
+  display: flex;
+  gap: var(--p-4, 0.5rem);
+  margin-bottom: var(--p-4, 0.5rem);
+  flex-wrap: wrap;
+}
+
+.level-button {
+  flex: 1;
+  min-width: 80px;
+  padding: var(--p-4, 0.5rem);
+  background: #ffffff;
+  border: 2px solid #d3c6a6;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-4, 0.5rem);
+}
+
+.level-button:hover {
+  border-color: #483c32;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(72, 60, 50, 0.15);
+}
+
+.level-button:has(.level-radio:checked) {
+  background: #483c32;
+  border-color: #483c32;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.level-radio {
+  display: none;
+}
+
+.level-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.level-stars {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.warning-text {
+  color: #f59e0b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+  animation: pulse 2s infinite;
+}
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-fade-enter-from {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
   }
 
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: var(--p-4, 0.5rem);
-    cursor: pointer;
-    font-size: 1rem;
-    color: #444;
-    padding: var(--p-4, 0.5rem) 0;
+  50% {
+    opacity: 0.6;
   }
+}
 
-  .custom-checkbox {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: #483c32;
-  }
-
-  .checkbox-text {
-    flex: 1;
-    line-height: 1.5;
-  }
-
-  .level-selector {
-    margin-top: var(--p-4, 0.5rem);
-    padding: var(--p-8, 1rem);
-    background: #ffffff;
-    border-radius: var(--radius, 12px);
-    border: 1px solid #d3c6a6;
-  }
-
+@media (max-width: 768px) {
   .level-buttons {
-    display: flex;
     gap: var(--p-4, 0.5rem);
-    margin-bottom: var(--p-4, 0.5rem);
-    flex-wrap: wrap;
   }
 
   .level-button {
-    flex: 1;
-    min-width: 80px;
+    min-width: 60px;
     padding: var(--p-4, 0.5rem);
-    background: #ffffff;
-    border: 2px solid #d3c6a6;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--p-4, 0.5rem);
-  }
-
-  .level-button:hover {
-    border-color: #483c32;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(72, 60, 50, 0.15);
-  }
-
-  .level-button.active {
-    background: #483c32;
-    border-color: #483c32;
-    color: #ffffff;
-    transform: scale(1.05);
-  }
-
-  .level-radio {
-    display: none;
   }
 
   .level-number {
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1rem;
   }
 
   .level-stars {
-    font-size: 0.75rem;
-    opacity: 0.8;
+    font-size: 0.65rem;
   }
-
-  .warning-text {
-    color: #f59e0b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-align: center;
-    display: block;
-    animation: pulse 2s infinite;
-  }
-
-  .slide-fade-enter-active {
-    transition: all 0.3s ease;
-  }
-
-  .slide-fade-leave-active {
-    transition: all 0.2s ease;
-  }
-
-  .slide-fade-enter-from {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-
-  .slide-fade-leave-to {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.6;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .level-buttons {
-      gap: var(--p-4, 0.5rem);
-    }
-
-    .level-button {
-      min-width: 60px;
-      padding: var(--p-4, 0.5rem);
-    }
-
-    .level-number {
-      font-size: 1rem;
-    }
-
-    .level-stars {
-      font-size: 0.65rem;
-    }
-  }
+}
 </style>

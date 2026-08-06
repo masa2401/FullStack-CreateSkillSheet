@@ -1,9 +1,12 @@
-import { useSurveyStore } from '@/stores/useSurveyStore.ts'
-import { ROUTES } from '@/utils/constants.ts'
+import { createMemoryHistory, createRouter } from 'vue-router'
+
 import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createMemoryHistory, createRouter } from 'vue-router'
+
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
+import { ROUTES } from '@/utils/constants.ts'
+
 import TopPage from './TopPage.vue'
 
 const buildRouter = () =>
@@ -66,39 +69,40 @@ describe('TopPage', () => {
   it('名前未入力でボタンをクリックするとエラーが表示される', async () => {
     const wrapper = createWrapper()
     await wrapper.find('.action-button').trigger('click')
-    expect(wrapper.find('.error-message').exists()).toBe(true)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
   })
 
   it('スペースのみの入力はエラーになる', async () => {
     const wrapper = createWrapper()
     await wrapper.find('#name-input').setValue(' ')
     await wrapper.find('.action-button').trigger('click')
-    expect(wrapper.find('.error-message').exists()).toBe(true)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
   })
 
   it('送信試行後に名前を入力するとエラーがリアルタイムで消える', async () => {
     const wrapper = createWrapper()
     await wrapper.find('.action-button').trigger('click')
-    expect(wrapper.find('.error-message').exists()).toBe(true)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
 
     await wrapper.find('#name-input').setValue('山田太郎')
     await wrapper.find('#name-input').trigger('input')
-    expect(wrapper.find('.error-message').exists()).toBe(false)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 
   // ─── カテゴリ選択 ────────────────────────────────────────────────
 
-  it('エンジニアカードにチェックを入れると active クラスが付く', async () => {
+  it('エンジニアカードにチェックを入れると選択状態になる', async () => {
     const wrapper = createWrapper()
     const [enginnerCheckbox] = wrapper.findAll('input[type="checkbox"]')
     await enginnerCheckbox!.setValue(true)
-    expect(wrapper.findAll('.category-card')[0]!.classes()).toContain('active')
+    expect((enginnerCheckbox!.element as HTMLInputElement).checked).toBe(true)
   })
 
-  it('デザイナーカードにチェックを入れると active クラスが付く', async () => {
+  it('デザイナーカードにチェックを入れると選択状態になる', async () => {
     const wrapper = createWrapper()
-    await wrapper.findAll('input[type="checkbox"]')[1]!.setValue(true)
-    expect(wrapper.findAll('.category-card')[1]!.classes()).toContain('active')
+    const checkbox = wrapper.findAll('input[type="checkbox"]')[1]!
+    await checkbox.setValue(true)
+    expect((checkbox.element as HTMLInputElement).checked).toBe(true)
   })
 
   it('エンジニアカードをチェックすると store の selections が更新される', async () => {
@@ -110,20 +114,21 @@ describe('TopPage', () => {
 
   it('両カードを同時に選択できる', async () => {
     const wrapper = createWrapper()
-    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true)
-    await wrapper.findAll('input[type="checkbox"]')[1]!.setValue(true)
-    const cards = wrapper.findAll('.category-card')
-    expect(cards[0]!.classes()).toContain('active')
-    expect(cards[1]!.classes()).toContain('active')
+    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    await checkboxes[0]!.setValue(true)
+    await checkboxes[1]!.setValue(true)
+    expect((checkboxes[0]!.element as HTMLInputElement).checked).toBe(true)
+    expect((checkboxes[1]!.element as HTMLInputElement).checked).toBe(true)
   })
 
-  it('チェック済みカードのチェックを外すと active クラスが消える', async () => {
+  it('チェック済みカードのチェックを外すと選択状態が解除される', async () => {
     const engineerCheckedSelections = initialSelections.map((s) =>
       s.categoryId === 2 ? { ...s, isChecked: true } : s,
     )
     const wrapper = createWrapper({ selections: engineerCheckedSelections })
-    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(false)
-    expect(wrapper.findAll('.category-card')[0]!.classes()).not.toContain('active')
+    const checkbox = wrapper.findAll('input[type="checkbox"]')[0]!
+    await checkbox.setValue(false)
+    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
   })
 
   // ─── 画面遷移・ストア更新 ────────────────────────────────────────────

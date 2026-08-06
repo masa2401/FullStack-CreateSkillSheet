@@ -1,11 +1,14 @@
+import { createMemoryHistory, createRouter } from 'vue-router'
+
+import { createTestingPinia } from '@pinia/testing'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import type { CategorySelection, SurveyState } from '@/types/state.ts'
 import * as apiUtils from '@/utils/api.ts'
 import { ROUTES } from '@/utils/constants'
 import * as shareUtils from '@/utils/shareUtils.ts'
-import { createTestingPinia } from '@pinia/testing'
-import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createMemoryHistory, createRouter } from 'vue-router'
+
 import ResultPage from './ResultPage.vue'
 
 const buildRouter = () =>
@@ -107,6 +110,11 @@ describe('ResultPage', () => {
     expect(wrapper.find('.page-title').text()).toContain('URLユーザー')
   })
 
+  it('データ読み込み中はローディング表示になる', () => {
+    const wrapper = createWrapper()
+    expect(wrapper.find('[role="status"]').exists()).toBe(true)
+  })
+
   // ─── 表示内容 ──────────────────────────────────────────────────
 
   it('isChecked = true のカテゴリのみ表示される', async () => {
@@ -136,6 +144,24 @@ describe('ResultPage', () => {
     expect(wrapper.find('.level-stars').text()).toBe('★★★☆☆')
   })
 
+  it('習熟度未設定の回答は星が空表示になる', async () => {
+    const wrapper = createWrapper({
+      selections: [
+        {
+          categoryId: 1,
+          isChecked: true,
+          questions: [
+            { questionId: 1, answers: [{ answerId: 1, isChecked: true, value: undefined }] },
+          ],
+        },
+        { categoryId: 2, isChecked: false, questions: [] },
+        { categoryId: 3, isChecked: false, questions: [] },
+      ],
+    })
+    await flushPromises()
+    expect(wrapper.find('.level-stars').text()).toBe('')
+  })
+
   it('通常ビューでは ShareButton が表示される', async () => {
     const wrapper = createWrapper()
     await flushPromises()
@@ -160,11 +186,32 @@ describe('ResultPage', () => {
   it('fetchSheet が expired を返す場合はエラー画面になる', async () => {
     vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
     vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
-    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'expired' })
+    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'expired', expiryDays: 5 })
 
     const wrapper = createWrapper()
     await flushPromises()
     expect(wrapper.find('.error-title').text()).toContain('有効期限')
+  })
+
+  it('fetchSheet が notfound を返す場合はエラー画面になる', async () => {
+    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'notfound' })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+    expect(wrapper.find('.error-title').text()).toContain('リンクが見つかりません')
+    expect(wrapper.find('.error-message').text()).toContain('削除された可能性があります')
+  })
+
+  it('fetchSheet が null を返す場合は通常の結果画面にフォールバックする', async () => {
+    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue(null)
+
+    const wrapper = createWrapper()
+    await flushPromises()
+    expect(wrapper.find('.page-title').text()).toContain('テストユーザー')
   })
 
   // ─── ナビゲーション ────────────────────────────────────────────

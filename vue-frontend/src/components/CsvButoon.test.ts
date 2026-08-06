@@ -31,12 +31,12 @@ describe('CsvButton', () => {
 
   it('初期状態では「CSVとして保存」と表示される', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.menu-text').text()).toBe('CSVとして保存')
+    expect(wrapper.find('button').text()).toBe('CSVとして保存')
   })
 
   it('初期状態では success クラスがない', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.menu-item').classes()).not.toContain('success')
+    expect(wrapper.find('button').classes()).not.toContain('success')
   })
 
   // ─── ダウンロード成功 ──────────────────────────────────────────
@@ -44,22 +44,22 @@ describe('CsvButton', () => {
   it('ダウンロード成功時に success クラスが付与される', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
     const wrapper = createWrapper()
-    await wrapper.find('.menu-item').trigger('click')
-    expect(wrapper.find('.menu-item').classes()).toContain('success')
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.find('button').classes()).toContain('success')
   })
 
   it('ダウンロード成功時に「ダウンロード完了」と表示される', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
     const wrapper = createWrapper()
-    await wrapper.find('.menu-item').trigger('click')
-    expect(wrapper.find('.menu-text').text()).toBe('ダウンロード完了')
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.find('button').text()).toBe('ダウンロード完了')
   })
 
   it('ダウンロード失敗時は success クラスが付与されない', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
     const wrapper = createWrapper()
-    await wrapper.find('.menu-item').trigger('click')
-    expect(wrapper.find('.menu-item').classes()).not.toContain('success')
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.find('button').classes()).not.toContain('success')
   })
 
   // ─── 自動クローズ ──────────────────────────────────────────────
@@ -76,7 +76,7 @@ describe('CsvButton', () => {
     it('成功の2秒後に done イベントが emit される', async () => {
       vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
 
       expect(wrapper.emitted('done')).toBeUndefined()
       vi.advanceTimersByTime(2000)
@@ -88,7 +88,7 @@ describe('CsvButton', () => {
     it('失敗時は done イベントが emit されない', async () => {
       vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
 
       vi.advanceTimersByTime(2000)
       await wrapper.vm.$nextTick()

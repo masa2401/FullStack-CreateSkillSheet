@@ -1,6 +1,8 @@
-import type { ValidationError as VError } from '@/types'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+
+import type { ValidationError as VError } from '@/types'
+
 import ValidationError from './ValidationError.vue'
 
 describe('ValidationError', () => {
@@ -9,13 +11,13 @@ describe('ValidationError', () => {
 
   it('errors が空のとき何も表示されない', () => {
     const wrapper = createWrapper({ errors: [] })
-    expect(wrapper.find('.error-message').exists()).toBe(false)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 
   it('errors がある場合エラーメッセージが表示される', () => {
     const errors: VError[] = [{ category: 'テスト', text: 'エラー' }]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.find('.error-message').exists()).toBe(true)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
   })
 
   it('同じカテゴリ・テキストのエラーは1件にグループ化される', () => {

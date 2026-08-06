@@ -1,9 +1,12 @@
-import { useSurveyStore } from '@/stores/useSurveyStore.ts'
-import * as apiUtils from '@/utils/api'
+import { nextTick } from 'vue'
+
 import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
+import * as apiUtils from '@/utils/api'
+
 import ShareButton from './ShareButton.vue'
 
 const createWrapper = (initialState: Record<string, unknown> = {}) =>
@@ -46,13 +49,13 @@ describe('ShareButton', () => {
 
   it('初期状態ではメニューが非表示', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.share-menu').exists()).toBe(false)
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
   })
 
   it('ボタンクリックでメニューが表示される', async () => {
     const wrapper = createWrapper()
     await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    expect(wrapper.find('.share-menu').exists()).toBe(true)
+    expect(wrapper.find('[role="menu"]').exists()).toBe(true)
   })
 
   it('メニューを再度クリックすると閉じる', async () => {
@@ -60,7 +63,7 @@ describe('ShareButton', () => {
     const button = wrapper.findComponent({ name: 'AnimatedIconButton' })
     await button.trigger('click')
     await button.trigger('click')
-    expect(wrapper.find('.share-menu').exists()).toBe(false)
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
   })
 
   it('ShareUrlButton と CsvButton がメニュー内に表示される', async () => {
@@ -73,10 +76,10 @@ describe('ShareButton', () => {
   it('done イベントを受け取るとメニューが閉じる', async () => {
     const wrapper = createWrapper()
     await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    expect(wrapper.find('.share-menu').exists()).toBe(true)
+    expect(wrapper.find('[role="menu"]').exists()).toBe(true)
     wrapper.findComponent({ name: 'ShareUrlButton' }).vm.$emit('done')
     await nextTick()
-    expect(wrapper.find('.share-menu').exists()).toBe(false)
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
   })
 
   // ─── バックエンド無効時 ─────────────────────────────────
@@ -122,7 +125,7 @@ describe('ShareButton', () => {
       vi.mocked(store.getSavedIdOrSave).mockRejectedValue(new Error('保存に失敗しました'))
       await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
       await flushPromises()
-      expect(wrapper.find('.share-menu').exists()).toBe(true)
+      expect(wrapper.find('[role="menu"]').exists()).toBe(true)
     })
   })
 })

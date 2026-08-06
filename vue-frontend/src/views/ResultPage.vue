@@ -1,35 +1,35 @@
 ﻿<script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue'
-  import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-  import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-  import ShareButton from '@/components/ShareButton.vue'
-  import { useMergedSurvey } from '@/composables/useMergedSurvey'
-  import { useSurveyStore } from '@/stores/useSurveyStore'
-  import { fetchSheet, isBackendEnabled } from '@/utils/api'
-  import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
-  import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import ShareButton from '@/components/ShareButton.vue'
+import { useMergedSurvey } from '@/composables/useMergedSurvey'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import { fetchSheet, isBackendEnabled } from '@/utils/api'
+import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
+import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 
-  const router = useRouter()
-  const store = useSurveyStore()
-  const { mergedCategories } = useMergedSurvey()
+const router = useRouter()
+const store = useSurveyStore()
+const { mergedCategories } = useMergedSurvey()
 
-  const goToTop = () => router.push(ROUTES.TOP)
-  const goBack = () => router.push(ROUTES.SURVEY)
-  const handlePrint = () => window.print()
+const goToTop = () => router.push(ROUTES.TOP)
+const goBack = () => router.push(ROUTES.SURVEY)
+const handlePrint = () => window.print()
 
-  type PageStatus =
-    | { type: 'loading' }
-    | { type: 'ready'; isSharedView: boolean }
-    | { type: 'error'; reason: 'expired' | 'notfound'; expiryDays?: number }
+type PageStatus =
+  | { type: 'loading' }
+  | { type: 'ready'; isSharedView: boolean }
+  | { type: 'error'; reason: 'expired' | 'notfound'; expiryDays?: number }
 
-  const pageStatus = ref<PageStatus>({ type: 'loading' })
+const pageStatus = ref<PageStatus>({ type: 'loading' })
 
-  onMounted(async () => {
-    const sharedId = getIdFromUrl()
-    if (sharedId && isBackendEnabled()) {
-      const result = await fetchSheet(sharedId)
-      if (result === null) return
+onMounted(async () => {
+  const sharedId = getIdFromUrl()
+  if (sharedId && isBackendEnabled()) {
+    const result = await fetchSheet(sharedId)
+    if (result) {
       if (result.status === 'success') {
         store.loadFromSharedState(result.data)
         pageStatus.value = { type: 'ready', isSharedView: true }
@@ -39,32 +39,37 @@
         pageStatus.value = { type: 'error', reason: result.status, expiryDays: result.expiryDays }
         return
       }
+      if (result.status === 'notfound') {
+        pageStatus.value = { type: 'error', reason: result.status }
+        return
+      }
     }
+  }
 
-    const urlData = getDataFromUrl()
-    if (urlData) {
-      store.loadFromSharedState(urlData)
-      pageStatus.value = { type: 'ready', isSharedView: true }
-      return
-    }
-    pageStatus.value = { type: 'ready', isSharedView: false }
-  })
+  const urlData = getDataFromUrl()
+  if (urlData) {
+    store.loadFromSharedState(urlData)
+    pageStatus.value = { type: 'ready', isSharedView: true }
+    return
+  }
+  pageStatus.value = { type: 'ready', isSharedView: false }
+})
 
-  // ─── 分岐処理 ──────────────────────────────────────────────────────────────
+// ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
-  const displayCategories = computed(() =>
-    mergedCategories.value
-      .filter((cat) => cat.isChecked)
-      .map((cat) => ({
-        ...cat,
-        questions: cat.questions
-          .map((q) => ({
-            ...q,
-            answers: q.answers.filter((a) => a.isChecked),
-          }))
-          .filter((q) => q.answers.length > 0),
-      })),
-  )
+const displayCategories = computed(() =>
+  mergedCategories.value
+    .filter((cat) => cat.isChecked)
+    .map((cat) => ({
+      ...cat,
+      questions: cat.questions
+        .map((q) => ({
+          ...q,
+          answers: q.answers.filter((a) => a.isChecked),
+        }))
+        .filter((q) => q.answers.length > 0),
+    })),
+)
 </script>
 
 <template>
@@ -226,331 +231,331 @@
 </template>
 
 <style scoped>
-  .page-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-    padding: var(--p-24, 3rem) 0;
-  }
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
+  padding: var(--p-24, 3rem) 0;
+}
 
-  .header-section {
-    background: #ffffff;
-    border-radius: var(--radius, 12px);
-    box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-    padding: 0;
-  }
+.header-section {
+  background: #ffffff;
+  border-radius: var(--radius, 12px);
+  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
+  padding: 0;
+}
 
-  .result-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--p-4, 0.5rem);
-    background: #ffffff;
-    border-radius: var(--radius, 12px);
-    padding: var(--p-16, 2rem);
-  }
+.result-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--p-4, 0.5rem);
+  background: #ffffff;
+  border-radius: var(--radius, 12px);
+  padding: var(--p-16, 2rem);
+}
 
-  .description-group {
-    display: flex;
-    justify-content: center;
-    gap: var(--p-24, 3rem);
-    padding-bottom: var(--p-16, 2rem);
-  }
+.description-group {
+  display: flex;
+  justify-content: center;
+  gap: var(--p-24, 3rem);
+  padding-bottom: var(--p-16, 2rem);
+}
 
-  .stars-description {
-    display: flex;
-    flex-direction: column;
-    width: fit-content;
-  }
+.stars-description {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
 
-  .header-icon {
-    font-size: 2.4rem;
-  }
+.header-icon {
+  font-size: 2.4rem;
+}
 
+.page-title {
+  font-size: 2.5rem;
+  color: #483c32;
+  margin: 0;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
+}
+
+.content-wrapper {
+  max-width: 1000px;
+  margin: var(--p-20, 2.5rem) auto 0;
+  padding: 0 var(--p-8, 1rem);
+}
+
+.category-section {
+  background: #ffffff;
+  border-radius: var(--radius, 12px);
+  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
+  margin-bottom: var(--p-12, 1.5rem);
+}
+
+.category-header {
+  color: #483c32;
+  padding: var(--p-16, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-4, 0.5rem);
+}
+
+.category-icon {
+  font-size: 2rem;
+}
+
+.category-title {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.question-block {
+  padding: 0 var(--p-24, 3rem) var(--p-20, 2.5rem);
+}
+
+.question-title {
+  font-size: 1.1rem;
+  color: #483c32;
+  margin: 0 0 var(--p-8, 1rem);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.skills-grid {
+  display: grid;
+  gap: var(--p-12, 1.5rem);
+}
+
+.skill-card {
+  background: #ffffff;
+  padding: var(--p-4, 0.5rem) var(--p-8, 1rem);
+  border-left: 4px solid #d3c6a6;
+  transition: all 0.3s;
+}
+
+.skill-info {
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--p-8, 1rem);
+}
+
+.skill-name {
+  flex: 1;
+  color: #483c32;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.skill-level {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.level-stars {
+  color: #fbbf24;
+  font-size: 1.2rem;
+}
+
+.level-number {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: var(--p-8, 1rem);
+  flex-wrap: wrap;
+  margin-top: var(--p-24, 3rem);
+}
+
+.loading-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--p-16, 2rem);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(72, 60, 50, 0.3);
+  border-top-color: #483c32;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: #483c32;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
   .page-title {
-    font-size: 2.5rem;
-    color: #483c32;
-    margin: 0;
-    font-weight: 800;
-    text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-  }
-
-  .content-wrapper {
-    max-width: 1000px;
-    margin: var(--p-20, 2.5rem) auto 0;
-    padding: 0 var(--p-8, 1rem);
-  }
-
-  .category-section {
-    background: #ffffff;
-    border-radius: var(--radius, 12px);
-    box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-    margin-bottom: var(--p-12, 1.5rem);
-  }
-
-  .category-header {
-    color: #483c32;
-    padding: var(--p-16, 2rem);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--p-4, 0.5rem);
-  }
-
-  .category-icon {
     font-size: 2rem;
   }
 
-  .category-title {
-    font-size: 1.5rem;
-    margin: 0;
-    font-weight: 700;
+  .image {
+    display: none;
+  }
+
+  .category-header {
+    padding: var(--p-8, 1rem);
   }
 
   .question-block {
-    padding: 0 var(--p-24, 3rem) var(--p-20, 2.5rem);
-  }
-
-  .question-title {
-    font-size: 1.1rem;
-    color: #483c32;
-    margin: 0 0 var(--p-8, 1rem);
-    font-weight: 600;
-    line-height: 1.6;
-  }
-
-  .skills-grid {
-    display: grid;
-    gap: var(--p-12, 1.5rem);
-  }
-
-  .skill-card {
-    background: #ffffff;
-    padding: var(--p-4, 0.5rem) var(--p-8, 1rem);
-    border-left: 4px solid #d3c6a6;
-    transition: all 0.3s;
+    padding: var(--p-8, 1rem);
   }
 
   .skill-info {
-    display: grid;
-    grid-template-columns: 9fr 1fr;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    gap: var(--p-4, 0.5rem);
+  }
+
+  .skill-level {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+    gap: var(--p-4, 0.5rem);
+  }
+}
+
+/* 印刷用スタイル */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 10mm;
+  }
+
+  .no-print,
+  .button-group {
+    display: none !important;
+  }
+
+  .page-container {
+    background: #ffffff !important;
+    padding: 0;
+    min-height: auto;
+  }
+
+  .header-section {
+    padding: 0 0 var(--p-8, 1rem) 0;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius, 12px);
+  }
+
+  .header-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--p-4, 0.5rem);
+  }
+
+  .page-title {
+    font-size: 1.8rem;
+    text-shadow: none;
+    break-after: avoid;
+  }
+
+  .content-wrapper {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .category-section {
+    margin-bottom: var(--p-12, 1.5rem);
+    box-shadow: none;
+    border: 1.5px solid #d1d5db;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    border-radius: 0;
+    padding: var(--p-8, 1rem) 0;
+  }
+
+  .category-header {
+    padding: var(--p-8, 1rem);
+    margin-bottom: var(--p-4, 0.5rem);
+  }
+
+  .category-icon {
+    font-size: 1.75rem;
+  }
+
+  .category-title {
+    font-size: 1.3rem;
+  }
+
+  .question-block {
+    padding: 0 var(--p-12, 1.5rem) var(--p-16, 2rem);
+  }
+
+  .question-title {
+    font-size: 1rem;
+    margin: 0 0 var(--p-4, 0.5rem);
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  .skills-grid {
+    gap: var(--p-4, 0.5rem);
+  }
+
+  .skill-card {
+    padding: var(--p-8, 1rem);
+    border-radius: var(--radius, 12px);
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .skill-info {
     gap: var(--p-8, 1rem);
   }
 
   .skill-name {
-    flex: 1;
-    color: #483c32;
-    font-size: 1rem;
-    font-weight: 500;
-  }
-
-  .skill-level {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
+    font-size: 0.9rem;
   }
 
   .level-stars {
-    color: #fbbf24;
-    font-size: 1.2rem;
-  }
-
-  .level-number {
-    font-size: 0.8em;
-    color: #666;
-  }
-
-  .button-group {
-    display: flex;
-    justify-content: center;
-    gap: var(--p-8, 1rem);
-    flex-wrap: wrap;
-    margin-top: var(--p-24, 3rem);
-  }
-
-  .loading-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: var(--p-16, 2rem);
-  }
-
-  .loading-spinner {
-    width: 60px;
-    height: 60px;
-    border: 5px solid rgba(72, 60, 50, 0.3);
-    border-top-color: #483c32;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .loading-text {
-    color: #483c32;
-    font-size: 1.2rem;
+    font-size: 0.9rem;
+    color: #1a1a1a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
     font-weight: 600;
   }
 
-  @media (max-width: 768px) {
-    .page-title {
-      font-size: 2rem;
-    }
-
-    .image {
-      display: none;
-    }
-
-    .category-header {
-      padding: var(--p-8, 1rem);
-    }
-
-    .question-block {
-      padding: var(--p-8, 1rem);
-    }
-
-    .skill-info {
-      flex-direction: column;
-      align-items: center;
-      gap: var(--p-4, 0.5rem);
-    }
-
-    .skill-level {
-      width: 100%;
-      justify-content: space-between;
-    }
-
-    .button-group {
-      flex-direction: column;
-      width: 100%;
-      gap: var(--p-4, 0.5rem);
-    }
+  .level-number {
+    color: #444 !important;
   }
 
-  /* 印刷用スタイル */
-  @media print {
-    @page {
-      size: A4;
-      margin: 15mm 10mm;
-    }
-
-    .no-print,
-    .button-group {
-      display: none !important;
-    }
-
-    .page-container {
-      background: #ffffff !important;
-      padding: 0;
-      min-height: auto;
-    }
-
-    .header-section {
-      padding: 0 0 var(--p-8, 1rem) 0;
-      border: 1px solid #e5e7eb;
-      border-radius: var(--radius, 12px);
-    }
-
-    .header-icon {
-      font-size: 2.5rem;
-      margin-bottom: var(--p-4, 0.5rem);
-    }
-
-    .page-title {
-      font-size: 1.8rem;
-      text-shadow: none;
-      break-after: avoid;
-    }
-
-    .content-wrapper {
-      padding: 0;
-      max-width: 100%;
-    }
-
-    .category-section {
-      margin-bottom: var(--p-12, 1.5rem);
-      box-shadow: none;
-      border: 1.5px solid #d1d5db;
-      -webkit-box-decoration-break: clone;
-      box-decoration-break: clone;
-      border-radius: 0;
-      padding: var(--p-8, 1rem) 0;
-    }
-
-    .category-header {
-      padding: var(--p-8, 1rem);
-      margin-bottom: var(--p-4, 0.5rem);
-    }
-
-    .category-icon {
-      font-size: 1.75rem;
-    }
-
-    .category-title {
-      font-size: 1.3rem;
-    }
-
-    .question-block {
-      padding: 0 var(--p-12, 1.5rem) var(--p-16, 2rem);
-    }
-
-    .question-title {
-      font-size: 1rem;
-      margin: 0 0 var(--p-4, 0.5rem);
-      break-after: avoid;
-      break-inside: avoid;
-    }
-
-    .skills-grid {
-      gap: var(--p-4, 0.5rem);
-    }
-
-    .skill-card {
-      padding: var(--p-8, 1rem);
-      border-radius: var(--radius, 12px);
-      box-shadow: none;
-      border: 1px solid #e5e7eb;
-      break-inside: avoid;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    .skill-info {
-      gap: var(--p-8, 1rem);
-    }
-
-    .skill-name {
-      font-size: 0.9rem;
-    }
-
-    .level-stars {
-      font-size: 0.9rem;
-      color: #1a1a1a !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-      font-weight: 600;
-    }
-
-    .level-number {
-      color: #444 !important;
-    }
-
-    h2,
-    h3,
-    h4 {
-      break-after: avoid;
-    }
-
-    a[href]:after {
-      content: none !important;
-    }
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
   }
+
+  a[href]:after {
+    content: none !important;
+  }
+}
 </style>

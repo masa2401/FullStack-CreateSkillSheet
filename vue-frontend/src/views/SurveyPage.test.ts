@@ -1,10 +1,13 @@
-import { useSurveyStore } from '@/stores/useSurveyStore.ts'
-import { ROUTES } from '@/utils/constants.ts'
+import { nextTick } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
+
 import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
-import { createMemoryHistory, createRouter } from 'vue-router'
+
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
+import { ROUTES } from '@/utils/constants.ts'
+
 import SurveyPage from './SurveyPage.vue'
 
 const buildRouter = () =>
@@ -143,7 +146,7 @@ describe('SurveyPage', () => {
     })
     await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
     await flushPromises()
-    expect(wrapper.find('.error-message').exists()).toBe(true)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
     expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY)
   })
 

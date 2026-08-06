@@ -1,5 +1,7 @@
-import type { CategorySelection } from '@/types'
 import { describe, expect, it, vi } from 'vitest'
+
+import type { CategorySelection } from '@/types'
+
 import { convertToCSV, downloadCSV } from './csvUtils'
 
 const mockSelections: CategorySelection[] = [
@@ -100,6 +102,12 @@ describe('convertToCSV', () => {
     const csv = convertToCSV('改行\nユーザー', mockSelections)
     expect(csv).toContain('"改行\nユーザー"')
   })
+
+  it('selectionsが不正な場合はエラーをthrowする', () => {
+    expect(() => convertToCSV('テストユーザー', null as unknown as CategorySelection[])).toThrow(
+      'CSVへの変換に失敗しました',
+    )
+  })
 })
 
 describe('downloadCSV', () => {
@@ -118,5 +126,14 @@ describe('downloadCSV', () => {
 
   it('userName が空の場合は false を返す', () => {
     expect(downloadCSV('', mockSelections)).toBe(false)
+  })
+
+  it('Blob生成に失敗した場合はfalseを返す', () => {
+    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => {
+      throw new Error('blob error')
+    })
+    const result = downloadCSV('テストユーザー', mockSelections)
+    expect(result).toBe(false)
+    createObjectURLSpy.mockRestore()
   })
 })

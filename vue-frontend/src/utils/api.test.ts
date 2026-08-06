@@ -85,7 +85,7 @@ describe('saveSheet', () => {
 
 describe('fetchSheet', () => {
   afterEach(() => {
-    vi.resetAllMocks()
+    vi.restoreAllMocks()
     vi.unstubAllEnvs()
   })
 
@@ -141,7 +141,8 @@ describe('fetchSheet', () => {
 
 describe('checkSheetExists', () => {
   afterEach(() => {
-    vi.resetAllMocks()
+    vi.restoreAllMocks()
+    vi.unstubAllEnvs()
   })
 
   it('バックエンド無効時は false を返す', async () => {

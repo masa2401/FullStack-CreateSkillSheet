@@ -1,48 +1,47 @@
 <script setup lang="ts">
-  import type { ValidationError } from '@/types'
-  import { computed } from 'vue'
+import { computed } from 'vue'
 
-  // ─── Props ───────────────────────────────────────────────────────────────────
+import type { ValidationError } from '@/types'
 
-  interface Props {
-    errors: ValidationError[]
-  }
+// ─── Props ───────────────────────────────────────────────────────────────────
 
-  const props = defineProps<Props>()
+interface Props {
+  errors: ValidationError[]
+}
 
-  // ─── 内部型 ──────────────────────────────────────────────────────────────────
+const props = defineProps<Props>()
 
-  /** カテゴリ × 質問 でグループ化したエラーを表す型 */
-  interface GroupedError extends ValidationError {
-    count: number
-  }
+// ─── 内部型 ──────────────────────────────────────────────────────────────────
 
-  // ─── ロジック ────────────────────────────────────────────────────────────────
+/** カテゴリ × 質問 でグループ化したエラーを表す型 */
+interface GroupedError extends ValidationError {
+  count: number
+}
 
-  const groupedErrors = computed<GroupedError[]>(() => {
-    const groups: Record<string, GroupedError> = {}
+// ─── ロジック ────────────────────────────────────────────────────────────────
 
-    props.errors.forEach((error) => {
-      const key = `${error.category}|${error.text ?? ''}`
-      if (!groups[key]) {
-        groups[key] = {
-          category: error.category,
-          text: error.text,
-          count: 0,
-        }
+const groupedErrors = computed<GroupedError[]>(() => {
+  const groups: Record<string, GroupedError> = {}
+
+  props.errors.forEach((error) => {
+    const key = `${error.category}|${error.text ?? ''}`
+    if (!groups[key]) {
+      groups[key] = {
+        category: error.category,
+        text: error.text,
+        count: 0,
       }
-      groups[key].count++
-    })
-
-    return Object.values(groups)
+    }
+    groups[key].count++
   })
 
-  const PREVIEW_LENGTH = 30
+  return Object.values(groups)
+})
 
-  const getTextPreview = (text?: string) => {
-    if (!text) return ''
-    return text.length > PREVIEW_LENGTH ? `${text.substring(0, PREVIEW_LENGTH)}...` : text
-  }
+const PREVIEW_LENGTH = 30
+
+const getTextPreview = (text: string) =>
+  text.length > PREVIEW_LENGTH ? `${text.substring(0, PREVIEW_LENGTH)}...` : text
 </script>
 
 <template>
@@ -95,135 +94,135 @@
 </template>
 
 <style scoped>
-  .error-message {
-    background: #fff5f5;
-    border: 2px solid #f88;
-    border-radius: var(--radius, 12px);
-    padding: var(--p-16, 2rem);
-    margin-top: var(--p-16, 2rem);
-    display: flex;
-    gap: var(--p-4, 0.5rem);
-    box-shadow: 0 2px 8px rgba(255, 0, 0, 0.15);
-    animation: shake 0.5s ease;
+.error-message {
+  background: #fff5f5;
+  border: 2px solid #f88;
+  border-radius: var(--radius, 12px);
+  padding: var(--p-16, 2rem);
+  margin-top: var(--p-16, 2rem);
+  display: flex;
+  gap: var(--p-4, 0.5rem);
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.15);
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
   }
 
-  @keyframes shake {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
+  25% {
+    transform: translateX(-5px);
+  }
 
-    25% {
-      transform: translateX(-5px);
-    }
+  75% {
+    transform: translateX(5px);
+  }
+}
 
-    75% {
-      transform: translateX(5px);
-    }
+.error-icon {
+  color: #ef4444;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: var(--p-8, 1rem);
+  color: #c00;
+}
+
+.error-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--p-4, 0.5rem);
+}
+
+.error-title > h4 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.error-text {
+  width: 100%;
+  text-align: center;
+}
+
+.error-list {
+  width: fit-content;
+  margin: var(--p-8, 1rem) auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.error-item {
+  display: flex;
+  align-items: baseline;
+  width: fit-content;
+  padding: var(--p-4, 0.5rem);
+  line-height: 1.4;
+}
+
+.error-bullet {
+  color: #ef4444;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.error-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.error-main strong {
+  font-weight: 700;
+}
+
+.error-count {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.error-question {
+  color: #666;
+  font-size: 0.85rem;
+  margin-left: 0;
+  line-height: 1.3;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .error-message {
+    padding: var(--p-12, 1.5rem);
   }
 
   .error-icon {
-    color: #ef4444;
-    font-size: 2rem;
-    flex-shrink: 0;
-  }
-
-  .error-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    gap: var(--p-8, 1rem);
-    color: #c00;
-  }
-
-  .error-title {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--p-4, 0.5rem);
+    font-size: 1.5rem;
   }
 
   .error-title > h4 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-
-  .error-text {
-    width: 100%;
-    text-align: center;
-  }
-
-  .error-list {
-    width: fit-content;
-    margin: var(--p-8, 1rem) auto 0;
-    padding: 0;
-    list-style: none;
+    font-size: 1.2rem;
   }
 
   .error-item {
-    display: flex;
-    align-items: baseline;
-    width: fit-content;
-    padding: var(--p-4, 0.5rem);
-    line-height: 1.4;
-  }
-
-  .error-bullet {
-    color: #ef4444;
     font-size: 0.9rem;
-    flex-shrink: 0;
   }
-
-  .error-main {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .error-main strong {
-    font-weight: 700;
-  }
-
-  .error-count {
-    color: #666;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-
-  .error-question {
-    color: #666;
-    font-size: 0.85rem;
-    margin-left: 0;
-    line-height: 1.3;
-  }
-
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: opacity 0.3s ease;
-  }
-
-  .fade-enter-from,
-  .fade-leave-to {
-    opacity: 0;
-  }
-
-  @media (max-width: 768px) {
-    .error-message {
-      padding: var(--p-12, 1.5rem);
-    }
-
-    .error-icon {
-      font-size: 1.5rem;
-    }
-
-    .error-title > h4 {
-      font-size: 1.2rem;
-    }
-
-    .error-item {
-      font-size: 0.9rem;
-    }
-  }
+}
 </style>

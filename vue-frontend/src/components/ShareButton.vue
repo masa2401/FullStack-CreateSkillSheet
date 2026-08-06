@@ -1,30 +1,32 @@
 <script setup lang="ts">
-  import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-  import { useSurveyStore } from '@/stores/useSurveyStore.ts'
-  import { isBackendEnabled } from '@/utils/api.ts'
-  import { ref } from 'vue'
-  import CsvButton from './CsvButton.vue'
-  import PdfButton from './PdfButton.vue'
-  import ShareUrlButton from './ShareUrlButton.vue'
+import { ref } from 'vue'
 
-  const store = useSurveyStore()
-  const showMenu = ref<boolean>(false)
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
+import { isBackendEnabled } from '@/utils/api.ts'
 
-  const toggleMenu = async () => {
-    showMenu.value = !showMenu.value
+import CsvButton from './CsvButton.vue'
+import PdfButton from './PdfButton.vue'
+import ShareUrlButton from './ShareUrlButton.vue'
 
-    if (showMenu.value && isBackendEnabled()) {
-      try {
-        await store.getSavedIdOrSave()
-      } catch (error) {
-        console.error('シート保存エラー', error)
-      }
+const store = useSurveyStore()
+const showMenu = ref<boolean>(false)
+
+const toggleMenu = async () => {
+  showMenu.value = !showMenu.value
+
+  if (showMenu.value && isBackendEnabled()) {
+    try {
+      await store.getSavedIdOrSave()
+    } catch (error) {
+      console.error('シート保存エラー', error)
     }
   }
+}
 
-  const closeMenu = () => {
-    showMenu.value = false
-  }
+const closeMenu = () => {
+  showMenu.value = false
+}
 </script>
 
 <template>
@@ -42,6 +44,7 @@
       <div
         v-if="showMenu"
         class="share-menu"
+        role="menu"
       >
         <ShareUrlButton @done="closeMenu" />
         <CsvButton @done="closeMenu" />
@@ -55,54 +58,54 @@
 </template>
 
 <style scoped>
-  .share-button-container {
-    position: relative;
+.share-button-container {
+  position: relative;
+}
+
+.share-menu {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
+  border: 1px solid #483c32;
+  padding: var(--p-4, 0.5rem);
+  min-width: 200px;
+  z-index: 100;
+}
+
+/* アニメーション */
+.slide-fade-enter-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-fade-enter-from {
+  transform: translateX(-50%) translateY(10px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(-50%) translateY(10px);
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .share-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .share-menu {
-    position: absolute;
-    bottom: calc(100% + 0.5rem);
-    left: 50%;
-    transform: translateX(-50%);
-    background: #ffffff;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
-    border: 1px solid #483c32;
-    padding: var(--p-4, 0.5rem);
-    min-width: 200px;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    transform: none;
+    margin: 0 var(--p-8, 1rem);
   }
-
-  /* アニメーション */
-  .slide-fade-enter-active {
-    transition: all 0.3s ease;
-  }
-
-  .slide-fade-leave-active {
-    transition: all 0.2s ease;
-  }
-
-  .slide-fade-enter-from {
-    transform: translateX(-50%) translateY(10px);
-    opacity: 0;
-  }
-
-  .slide-fade-leave-to {
-    transform: translateX(-50%) translateY(10px);
-    opacity: 0;
-  }
-
-  @media (max-width: 768px) {
-    .share-button {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .share-menu {
-      left: 0;
-      right: 0;
-      transform: none;
-      margin: 0 var(--p-8, 1rem);
-    }
-  }
+}
 </style>

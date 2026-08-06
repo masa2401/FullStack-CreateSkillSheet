@@ -1,6 +1,8 @@
-import type { SurveyState } from '@/types'
 import LZString from 'lz-string'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { SurveyState } from '@/types'
+
 import {
   copyToClipboard,
   createShareUrl,
@@ -36,6 +38,22 @@ describe('encodeData', () => {
     const data = { ...mockSurveyState, userName: '' }
     const result = encodeData(data)
     expect(result).not.toBeNull()
+  })
+
+  it('JSON変換に失敗した場合、encodeDataはnullを返す', () => {
+    const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementation(() => {
+      throw new Error('boom')
+    })
+    expect(encodeData(mockSurveyState)).toBeNull()
+    stringifySpy.mockRestore()
+  })
+
+  it('encodeDataが失敗した場合、createShareUrlは例外を投げる', () => {
+    const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementation(() => {
+      throw new Error('boom')
+    })
+    expect(() => createShareUrl(mockSurveyState)).toThrow('データのエンコードに失敗しました')
+    stringifySpy.mockRestore()
   })
 })
 

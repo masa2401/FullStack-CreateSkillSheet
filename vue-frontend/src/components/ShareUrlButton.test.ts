@@ -1,8 +1,10 @@
-import * as apiUtils from '@/utils/api'
-import * as shareUtils from '@/utils/shareUtils'
 import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import * as apiUtils from '@/utils/api'
+import * as shareUtils from '@/utils/shareUtils'
+
 import MenuItemButton from './MenuItemButton.vue'
 import ShareUrlButton from './ShareUrlButton.vue'
 
@@ -36,12 +38,12 @@ describe('ShareUrlButton', () => {
 
   it('初期状態では「URLをコピー」と表示される', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.menu-text').text()).toBe('URLをコピー')
+    expect(wrapper.find('button').text()).toBe('URLをコピー')
   })
 
   it('初期状態では disabled ではない', () => {
     const wrapper = createWrapper()
-    expect((wrapper.find('.menu-item').element as HTMLButtonElement).disabled).toBe(false)
+    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(false)
   })
 
   // ─── バックエンド無効時 ────────────────────────────────────────
@@ -54,16 +56,16 @@ describe('ShareUrlButton', () => {
     it('コピー成功時に success クラスが付与される', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
-      expect(wrapper.find('.menu-item').classes()).toContain('success')
+      expect(wrapper.find('button').classes()).toContain('success')
     })
 
     it('コピー成功時に createShareUrl が呼ばれる', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
       const createShareUrlSpy = vi.spyOn(shareUtils, 'createShareUrl')
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
       expect(createShareUrlSpy).toHaveBeenCalled()
     })
@@ -71,9 +73,9 @@ describe('ShareUrlButton', () => {
     it('コピー失敗時は success クラスが付与されない', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(false)
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
-      expect(wrapper.find('.menu-item').classes()).not.toContain('success')
+      expect(wrapper.find('button').classes()).not.toContain('success')
     })
   })
 
@@ -87,7 +89,7 @@ describe('ShareUrlButton', () => {
 
     it('getSavedIdOrSave が呼ばれる', async () => {
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
       expect(mockGetSavedIdOrSave).toHaveBeenCalled()
     })
@@ -95,7 +97,7 @@ describe('ShareUrlButton', () => {
     it('IDベースの URL がクリップボードへコピーされる', async () => {
       const copyToClipboardSpy = vi.spyOn(shareUtils, 'copyToClipboard')
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
       expect(copyToClipboardSpy).toHaveBeenCalledWith(expect.stringContaining('id=sheet-id-123'))
     })
@@ -104,7 +106,7 @@ describe('ShareUrlButton', () => {
       mockGetSavedIdOrSave.mockRejectedValue(new Error('保存に失敗しました'))
       const createShareUrlSpy = vi.spyOn(shareUtils, 'createShareUrl')
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
       expect(createShareUrlSpy).toHaveBeenCalled()
     })
@@ -120,9 +122,9 @@ describe('ShareUrlButton', () => {
     it('保存中は disabled になる', async () => {
       mockGetSavedIdOrSave.mockReturnValue(new Promise(() => {}))
       const wrapper = createWrapper()
-      wrapper.find('.menu-item').trigger('click')
+      wrapper.find('button').trigger('click')
       await wrapper.vm.$nextTick()
-      expect((wrapper.find('.menu-item').element as HTMLButtonElement).disabled).toBe(true)
+      expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(true)
     })
 
     it('保存中に再度クリックしても getSavedIdOrSave は1回しか呼ばれない', async () => {
@@ -135,7 +137,7 @@ describe('ShareUrlButton', () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
 
       const wrapper = createWrapper()
-      const button = wrapper.find('.menu-item')
+      const button = wrapper.find('button')
 
       button.trigger('click')
       await wrapper.vm.$nextTick()
@@ -152,9 +154,9 @@ describe('ShareUrlButton', () => {
     it('保存完了後は disabled が解除される', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
-      expect((wrapper.find('.menu-item').element as HTMLButtonElement).disabled).toBe(false)
+      expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(false)
     })
   })
 
@@ -173,7 +175,7 @@ describe('ShareUrlButton', () => {
 
     it('コピー成功の2秒後に done イベントが emit される', async () => {
       const wrapper = createWrapper()
-      await wrapper.find('.menu-item').trigger('click')
+      await wrapper.find('button').trigger('click')
       await flushPromises()
 
       expect(wrapper.emitted('done')).toBeUndefined()
