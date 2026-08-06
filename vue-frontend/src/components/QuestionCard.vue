@@ -1,18 +1,19 @@
 <script setup lang="ts">
-  import type { MergedQuestion, StarLevel } from '@/types'
-  import AnswerItem from './AnswerItem.vue'
+import type { MergedQuestion, StarLevel } from '@/types'
 
-  interface Props {
-    question: MergedQuestion
-  }
+import AnswerItem from './AnswerItem.vue'
 
-  defineProps<Props>()
+interface Props {
+  question: MergedQuestion
+}
 
-  const emit = defineEmits<{
-    'update:answer': [
-      payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
-    ]
-  }>()
+defineProps<Props>()
+
+const emit = defineEmits<{
+  'update:answer': [
+    payload: { answerId: number; patch: { isChecked?: boolean; value?: StarLevel } },
+  ]
+}>()
 </script>
 
 <template>
@@ -33,33 +34,33 @@
 </template>
 
 <style scoped>
+.question-card {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: var(--p-12, 1.5rem) var(--p-8, 1rem);
+  transition: transform 0.2s;
+  width: 80ch;
+  margin: 0 auto;
+}
+
+.question-text {
+  font-size: 1.1rem;
+  margin: 0 0 var(--p-8, 1rem) 0;
+  color: #483c32;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.answers-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-8, 1rem);
+}
+
+@media (max-width: 768px) {
   .question-card {
-    background: #ffffff;
-    border-radius: 15px;
-    padding: var(--p-12, 1.5rem) var(--p-8, 1rem);
-    transition: transform 0.2s;
-    width: 80ch;
-    margin: 0 auto;
+    padding: var(--p-12, 1.5rem);
+    width: 100%;
   }
-
-  .question-text {
-    font-size: 1.1rem;
-    margin: 0 0 var(--p-8, 1rem) 0;
-    color: #483c32;
-    font-weight: 600;
-    line-height: 1.6;
-  }
-
-  .answers-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--p-8, 1rem);
-  }
-
-  @media (max-width: 768px) {
-    .question-card {
-      padding: var(--p-12, 1.5rem);
-      width: 100%;
-    }
-  }
+}
 </style>

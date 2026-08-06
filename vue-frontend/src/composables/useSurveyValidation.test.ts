@@ -1,6 +1,9 @@
-import type { MergedCategory } from '@/types'
-import { describe, expect, it } from 'vitest'
 import { computed, ref } from 'vue'
+
+import { describe, expect, it } from 'vitest'
+
+import type { MergedCategory } from '@/types'
+
 import { useSurveyValidation } from './useSurveyValidation'
 
 const makeCategory = (overrides?: Partial<MergedCategory>): MergedCategory => ({

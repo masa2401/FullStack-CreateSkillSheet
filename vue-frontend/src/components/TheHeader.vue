@@ -1,15 +1,16 @@
 <script setup lang="ts">
-  import { ROUTES } from '@/utils/constants'
-  import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
-  const router = useRouter()
-  const route = useRoute()
+import { ROUTES } from '@/utils/constants'
 
-  const goToTop = () => {
-    if (route.path !== ROUTES.TOP) {
-      router.push(ROUTES.TOP)
-    }
+const router = useRouter()
+const route = useRoute()
+
+const goToTop = () => {
+  if (route.path !== ROUTES.TOP) {
+    router.push(ROUTES.TOP)
   }
+}
 </script>
 
 <template>
@@ -33,50 +34,50 @@
 </template>
 
 <style scoped>
-  .header {
-    background: linear-gradient(135deg, #483c32 0%, #5a4a3e 100%);
-    padding: var(--p-12, 1.5rem) 0;
-    box-shadow: 0 2px 8px rgba(72, 60, 50, 0.2);
-    overflow: hidden;
-  }
+.header {
+  background: linear-gradient(135deg, #483c32 0%, #5a4a3e 100%);
+  padding: var(--p-12, 1.5rem) 0;
+  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.2);
+  overflow: hidden;
+}
 
+.title {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  border: transparent;
+}
+
+.title:hover {
+  transform: scale(1.02);
+}
+
+.icon {
+  font-size: 1.8rem;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+@media (max-width: 768px) {
   .title {
-    width: 100%;
-    margin: 0;
-    text-align: center;
-    color: #ffffff;
-    font-size: 1.5rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background: transparent;
-    border: transparent;
-  }
-
-  .title:hover {
-    transform: scale(1.02);
+    font-size: 1.2rem;
   }
 
   .icon {
-    font-size: 1.8rem;
-    display: inline-block;
-    vertical-align: baseline;
+    font-size: 1.5rem;
   }
+}
 
-  @media (max-width: 768px) {
-    .title {
-      font-size: 1.2rem;
-    }
-
-    .icon {
-      font-size: 1.5rem;
-    }
+@media print {
+  .header {
+    display: none !important;
   }
-
-  @media print {
-    .header {
-      display: none !important;
-    }
-  }
+}
 </style>

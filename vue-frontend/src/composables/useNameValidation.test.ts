@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
+
+import { describe, expect, it } from 'vitest'
+
 import { useNameValidation } from './useNameValidation'
 
 describe('useNameValidation', () => {

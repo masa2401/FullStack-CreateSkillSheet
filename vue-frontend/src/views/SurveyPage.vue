@@ -1,42 +1,43 @@
 ﻿<script setup lang="ts">
-  import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-  import QuestionCard from '@/components/QuestionCard.vue'
-  import ValidationError from '@/components/ValidationError.vue'
-  import { useMergedSurvey } from '@/composables/useMergedSurvey'
-  import { useSurveyValidation } from '@/composables/useSurveyValidation'
-  import { useSurveyStore } from '@/stores/useSurveyStore'
-  import type { StarLevel } from '@/types'
-  import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
-  import { nextTick } from 'vue'
-  import { useRouter } from 'vue-router'
+import { nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 
-  const router = useRouter()
-  const store = useSurveyStore()
+import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import QuestionCard from '@/components/QuestionCard.vue'
+import ValidationError from '@/components/ValidationError.vue'
+import { useMergedSurvey } from '@/composables/useMergedSurvey'
+import { useSurveyValidation } from '@/composables/useSurveyValidation'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import type { StarLevel } from '@/types'
+import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
 
-  const { mergedCategories } = useMergedSurvey()
-  const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories)
+const router = useRouter()
+const store = useSurveyStore()
 
-  // ─── イベントハンドラ ────────────────────────────────────────────────────────
+const { mergedCategories } = useMergedSurvey()
+const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories)
 
-  const handleAnswerUpdate = (
-    categoryId: number,
-    questionId: number,
-    answerId: number,
-    patch: { isChecked?: boolean; value?: StarLevel },
-  ): void => {
-    store.setAnswerSelection(categoryId, questionId, answerId, patch)
+// ─── イベントハンドラ ────────────────────────────────────────────────────────
+
+const handleAnswerUpdate = (
+  categoryId: number,
+  questionId: number,
+  answerId: number,
+  patch: { isChecked?: boolean; value?: StarLevel },
+): void => {
+  store.setAnswerSelection(categoryId, questionId, answerId, patch)
+}
+
+const onSubmit = async (): Promise<void> => {
+  if (!validate()) {
+    await nextTick()
+    const target = document.getElementById('error-message')
+    target?.scrollIntoView({ behavior: 'smooth' })
+    target?.focus()
+    return
   }
-
-  const onSubmit = async (): Promise<void> => {
-    if (!validate()) {
-      await nextTick()
-      const target = document.getElementById('error-message')
-      target?.scrollIntoView({ behavior: 'smooth' })
-      target?.focus()
-      return
-    }
-    router.push(ROUTES.RESULT)
-  }
+  router.push(ROUTES.RESULT)
+}
 </script>
 
 <template>
@@ -130,137 +131,137 @@
 </template>
 
 <style scoped>
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
+  padding: var(--p-24, 3rem) var(--p-8, 1rem) var(--p-16, 2rem);
+}
+
+.header-section {
+  max-width: 1000px;
+  margin: 0 auto var(--p-16, 2rem);
+}
+
+.inner {
+  color: #483c32;
+  max-width: 1000px;
+  padding: var(--p-16, 2rem) var(--p-8, 1rem);
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: var(--radius, 12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
+  border: 1px solid rgba(72, 60, 50, 0.1);
+}
+
+.name-card {
+  margin-bottom: var(--p-12, 1.5rem);
+}
+
+.user-greeting {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.instruction-text {
+  margin: 0 0 var(--p-8, 0.5rem);
+  font-size: 1.05rem;
+  color: #444;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.description-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--p-24, 3rem);
+}
+
+.stars-description {
+  font-size: 0.95rem;
+}
+
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.category-section {
+  margin-top: var(--p-16, 2rem);
+  background: #ffffff;
+  border-radius: var(--radius, 12px);
+  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
+  padding: var(--p-20, 2.5rem) 0;
+}
+
+.category-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--p-4, 0.5rem);
+  padding: var(--p-8, 1rem);
+}
+
+.category-icon {
+  font-size: 2rem;
+  color: #483c32;
+}
+
+.category-title {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #483c32;
+  font-weight: 700;
+}
+
+.submit-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-8, 1rem);
+  margin-top: var(--p-16, 2rem);
+}
+
+.submit-hint {
+  color: #c00e0b;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 768px) {
   .page-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-    padding: var(--p-24, 3rem) var(--p-8, 1rem) var(--p-16, 2rem);
-  }
-
-  .header-section {
-    max-width: 1000px;
-    margin: 0 auto var(--p-16, 2rem);
-  }
-
-  .inner {
-    color: #483c32;
-    max-width: 1000px;
-    padding: var(--p-16, 2rem) var(--p-8, 1rem);
-    margin: 0 auto;
-    background: #ffffff;
-    border-radius: var(--radius, 12px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
-    border: 1px solid rgba(72, 60, 50, 0.1);
-  }
-
-  .name-card {
-    margin-bottom: var(--p-12, 1.5rem);
-  }
-
-  .user-greeting {
-    font-size: 1.8rem;
-    font-weight: 700;
-  }
-
-  .instruction-text {
-    margin: 0 0 var(--p-8, 0.5rem);
-    font-size: 1.05rem;
-    color: #444;
-    text-align: center;
-    line-height: 1.6;
-  }
-
-  .description-group {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--p-24, 3rem);
-  }
-
-  .stars-description {
-    font-size: 0.95rem;
-  }
-
-  .wrap {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  .category-section {
-    margin-top: var(--p-16, 2rem);
-    background: #ffffff;
-    border-radius: var(--radius, 12px);
-    box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-    padding: var(--p-20, 2.5rem) 0;
-  }
-
-  .category-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--p-4, 0.5rem);
     padding: var(--p-8, 1rem);
   }
 
-  .category-icon {
-    font-size: 2rem;
-    color: #483c32;
+  .user-greeting {
+    font-size: 1.4rem;
   }
 
-  .category-title {
-    font-size: 1.5rem;
-    margin: 0;
-    color: #483c32;
-    font-weight: 700;
+  .stars-description {
+    margin-right: 0;
   }
 
-  .submit-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--p-8, 1rem);
-    margin-top: var(--p-16, 2rem);
+  .image {
+    display: none;
   }
-
-  .submit-hint {
-    color: #c00e0b;
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin: 0;
-    text-align: center;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.6;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .page-container {
-      padding: var(--p-8, 1rem);
-    }
-
-    .user-greeting {
-      font-size: 1.4rem;
-    }
-
-    .stars-description {
-      margin-right: 0;
-    }
-
-    .image {
-      display: none;
-    }
-  }
+}
 </style>

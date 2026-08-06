@@ -1,5 +1,7 @@
-import type { SurveyState } from '@/types'
 import { describe, expect, it } from 'vitest'
+
+import type { SurveyState } from '@/types'
+
 import { toSheetDto, toSurveyState } from './sheetMapper'
 
 const mockSurveyState: SurveyState = {

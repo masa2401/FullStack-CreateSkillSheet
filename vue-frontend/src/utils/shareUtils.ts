@@ -1,5 +1,6 @@
-import type { CategorySelection, SurveyState } from '@/types'
 import LZString from 'lz-string'
+
+import type { CategorySelection, SurveyState } from '@/types'
 
 // ─── 型ガード ──────────────────────────────────────────────
 

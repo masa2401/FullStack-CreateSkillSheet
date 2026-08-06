@@ -1,7 +1,9 @@
-import { CATEGORY_MASTERS } from '@/data/questions'
-import * as apiUtils from '@/utils/api'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { CATEGORY_MASTERS } from '@/data/questions'
+import * as apiUtils from '@/utils/api'
+
 import { useSurveyStore } from './useSurveyStore'
 
 vi.mock('@/utils/api')

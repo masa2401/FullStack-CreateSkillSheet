@@ -1,8 +1,10 @@
+import { computed, ref } from 'vue'
+
+import { defineStore } from 'pinia'
+
 import { CATEGORY_MASTERS } from '@/data/questions'
 import type { AnswerSelection, CategorySelection, QuestionSelection, SurveyState } from '@/types'
 import { checkSheetExists, saveSheet } from '@/utils/api'
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
 
 export const useSurveyStore = defineStore(
   'survey',

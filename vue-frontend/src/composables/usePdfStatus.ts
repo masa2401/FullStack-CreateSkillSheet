@@ -1,5 +1,6 @@
+import { type Ref, onUnmounted, ref, watch } from 'vue'
+
 import { fetchPdfStatus, regeneratePdf } from '@/utils/api'
-import { onUnmounted, ref, watch, type Ref } from 'vue'
 
 export type PdfGenerationState = 'waiting' | 'generating' | 'ready' | 'error'
 

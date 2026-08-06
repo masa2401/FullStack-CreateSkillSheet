@@ -1,6 +1,7 @@
+import type { Ref } from 'vue'
+
 import { useValidation } from '@/composables/useValidation'
 import type { ValidationError } from '@/types'
-import type { Ref } from 'vue'
 
 export function useNameValidation(userName: Ref<string>) {
   const buildErrors = (): ValidationError[] => {

@@ -1,5 +1,6 @@
-import type { ValidationError } from '@/types'
 import { computed, ref, watchEffect } from 'vue'
+
+import type { ValidationError } from '@/types'
 
 export function useValidation(buildErrors: () => ValidationError[]) {
   const validationErrors = ref<ValidationError[]>([])

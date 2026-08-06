@@ -1,5 +1,7 @@
-import type { ValidationError } from '@/types'
 import { describe, expect, it } from 'vitest'
+
+import type { ValidationError } from '@/types'
+
 import { useValidation } from './useValidation'
 
 const noErrors = (): ValidationError[] => []

@@ -1,7 +1,8 @@
+import { createRouter, createWebHashHistory } from 'vue-router'
+
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
 import TopPage from '@/views/TopPage.vue'
-import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),

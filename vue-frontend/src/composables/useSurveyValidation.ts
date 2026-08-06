@@ -1,6 +1,7 @@
+import type { ComputedRef } from 'vue'
+
 import { useValidation } from '@/composables/useValidation'
 import type { MergedCategory, ValidationError } from '@/types'
-import type { ComputedRef } from 'vue'
 
 export function useSurveyValidation(mergedCategories: ComputedRef<MergedCategory[]>) {
   const buildErrors = (): ValidationError[] => {

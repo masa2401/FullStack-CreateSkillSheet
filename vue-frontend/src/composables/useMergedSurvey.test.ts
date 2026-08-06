@@ -1,6 +1,8 @@
-import { useSurveyStore } from '@/stores/useSurveyStore'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
+
+import { useSurveyStore } from '@/stores/useSurveyStore'
+
 import { useMergedSurvey } from './useMergedSurvey'
 
 describe('useMergedSurvey', () => {

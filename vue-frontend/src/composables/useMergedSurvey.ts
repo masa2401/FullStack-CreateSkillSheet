@@ -1,7 +1,8 @@
+import { computed } from 'vue'
+
 import { CATEGORY_MASTER_BY_ID } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { MergedCategory } from '@/types'
-import { computed } from 'vue'
 
 export function useMergedSurvey() {
   const store = useSurveyStore()
