@@ -78,6 +78,7 @@ const validateAndProceed = (): void => {
                 class="category-checkbox"
                 v-model="engineerChecked"
                 aria-describedby="engineer-desc"
+                :aria-label="engineerMaster.label"
               />
               <div class="card-content">
                 <div class="card-icon-large">
@@ -106,6 +107,7 @@ const validateAndProceed = (): void => {
                 class="category-checkbox"
                 v-model="designerChecked"
                 aria-describedby="designer-desc"
+                :aria-label="designerMaster.label"
               />
               <div class="card-content">
                 <div class="card-icon-large">
@@ -301,7 +303,15 @@ const validateAndProceed = (): void => {
 }
 
 .category-checkbox {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .card-content {
