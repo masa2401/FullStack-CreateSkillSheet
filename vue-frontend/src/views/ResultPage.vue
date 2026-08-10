@@ -393,6 +393,65 @@ const displayCategories = computed(() =>
   animation: spin 1s linear infinite;
 }
 
+.error-container {
+  min-height: 85vh;
+  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--p-32, 4rem);
+}
+
+.error-content {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: var(--p-24, 3rem);
+  text-align: center;
+  max-width: 600px;
+  width: 75%;
+  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
+  border: 1px solid rgba(72, 60, 50, 0.1);
+}
+
+.error-icon {
+  display: block;
+  font-size: 3rem;
+  color: #b45309;
+  margin-bottom: 1rem;
+}
+
+.error-title {
+  color: #483c32;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.error-message {
+  color: #666;
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+
+.action-button {
+  border: none;
+  border-radius: var(--radius, 12px);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.primary-button {
+  background: #483c32;
+  color: #ffffff;
+}
+
+.action-button:hover {
+  opacity: 0.8;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

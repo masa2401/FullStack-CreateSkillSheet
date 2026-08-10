@@ -63,3 +63,50 @@ test.describe('共有・出力機能', () => {
     expect(clipboardText).toContain('#/result?data=')
   })
 })
+
+test.describe('共有URL（バックエンド連携）', () => {
+  test('idパラメータで共有シートを正常に取得できる', async ({ page }) => {
+    await page.route('**/api/sheets/*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          userName: 'mockUser',
+          categories: [
+            { categoryId: 1, questions: [{ questionId: 1, answers: [{ answerId: 1, value: 4 }] }] },
+          ],
+        }),
+      })
+    })
+
+    await page.goto('/#/result?id=mock-id-123')
+
+    await expect(page.getByRole('heading', { name: /mockUser 様のスキルシート/ })).toBeVisible()
+  })
+
+  test('期限切れの共有リンクはエラー画面になる', async ({ page }) => {
+    await page.route('**/api/sheets/*', async (route) => {
+      await route.fulfill({
+        status: 410,
+        contentType: 'application/json',
+        body: JSON.stringify({ expiryDays: 5 }),
+      })
+    })
+
+    await page.goto('/#/result?id=expired-id')
+
+    await expect(page.getByRole('heading', { name: /有効期限/ })).toBeVisible()
+
+    await expect(page.getByText(/5日間/)).toBeVisible()
+  })
+
+  test('存在しない共有リンクはエラー画面になる', async ({ page }) => {
+    await page.route('**/api/sheets/*', async (route) => {
+      await route.fulfill({ status: 404 })
+    })
+
+    await page.goto('/#/result?id=missing-id')
+
+    await expect(page.getByRole('heading', { name: 'リンクが見つかりません' })).toBeVisible()
+  })
+})
