@@ -110,3 +110,94 @@ test.describe('共有URL（バックエンド連携）', () => {
     await expect(page.getByRole('heading', { name: 'リンクが見つかりません' })).toBeVisible()
   })
 })
+
+test.describe('PDF生成', () => {
+  test('生成中から完了までボタンの表示が切り替わる', async ({ page }) => {
+    await page.route('**/api/sheets', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ id: 'saved-id-1' }),
+        })
+      } else {
+        await route.continue()
+      }
+    })
+
+    let statusCallCount = 0
+    await page.route('**/api/pdf/saved-id-1/status', async (route) => {
+      statusCallCount++
+      const body =
+        statusCallCount === 1
+          ? { status: 'generating' }
+          : { status: 'ready', downloadUrl: 'https://example.com/skill.pdf' }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      })
+    })
+
+    await page.goto('/')
+    await page.getByLabel('お名前を入力してください').fill('山田太郎')
+    await page.getByRole('button', { name: 'アンケートを開始' }).click()
+    await page.getByRole('button', { name: '次へ進む' }).click()
+    await page.getByRole('button', { name: '結果を共有' }).click()
+
+    await expect(page.getByRole('button', { name: 'PDFを準備中...' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+      timeout: 6000,
+    })
+  })
+
+  test('生成に失敗した場合は再試行でき、成功すればダウンロード可能になる', async ({ page }) => {
+    await page.route('**/api/sheets', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ id: 'saved-id-2' }),
+        })
+      } else {
+        await route.continue()
+      }
+    })
+
+    await page.route('**/api/pdf/saved-id-2/status', async (route) => {
+      await route.fulfill({ status: 500 })
+    })
+
+    await page.goto('/')
+    await page.getByLabel('お名前を入力してください').fill('山田太郎')
+    await page.getByRole('button', { name: 'アンケートを開始' }).click()
+    await page.getByRole('button', { name: '次へ進む' }).click()
+    await page.getByRole('button', { name: '結果を共有' }).click()
+
+    await expect(page.getByRole('button', { name: /再試行/ })).toBeVisible()
+
+    await page.route('**/api/pdf/saved-id-2/regenerate', async (route) => {
+      await route.fulfill({ status: 202 })
+    })
+
+    let retryCallCount = 0
+    await page.unroute('**/api/pdf/saved-id-2/status')
+    await page.route('**/api/pdf/saved-id-2/status', async (route) => {
+      retryCallCount++
+      const body =
+        retryCallCount === 1
+          ? { status: 'generating' }
+          : { status: 'ready', downloadUrl: 'https://example.com/x.pdf' }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      })
+
+      await page.getByRole('button', { name: /再試行/ }).click()
+      await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+        timeout: 6000,
+      })
+    })
+  })
+})
