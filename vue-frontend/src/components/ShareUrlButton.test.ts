@@ -110,6 +110,16 @@ describe('ShareUrlButton', () => {
       await flushPromises()
       expect(createShareUrlSpy).toHaveBeenCalled()
     })
+
+    it('バックエンド失敗時もコピー完了表示になる', async () => {
+      mockGetSavedIdOrSave.mockRejectedValue(new Error('保存に失敗しました'))
+      vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
+      const wrapper = createWrapper()
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+      expect(wrapper.find('button').classes()).toContain('success')
+      expect(wrapper.find('button').text()).toBe('コピー完了')
+    })
   })
 
   // ─── 多重送信抑制 ──────────────────────────────────────────────

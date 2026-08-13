@@ -241,4 +241,16 @@ describe('ResultPage', () => {
     await flushPromises()
     expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
   })
+
+  it('エラー画面のトップへ戻るボタンをクリックすると TopPage へ遷移する', async () => {
+    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'notfound' })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
+  })
 })

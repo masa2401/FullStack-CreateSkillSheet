@@ -58,6 +58,7 @@ test.describe('共有・出力機能', () => {
     await completeBasicFlow(page, '山田太郎')
     await page.getByRole('button', { name: '結果を共有' }).click()
     await page.getByRole('button', { name: 'URLをコピー' }).click()
+    await expect(page.getByRole('button', { name: 'コピー完了' })).toBeVisible()
 
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toContain('#/result?data=')
@@ -193,11 +194,10 @@ test.describe('PDF生成', () => {
         contentType: 'application/json',
         body: JSON.stringify(body),
       })
-
-      await page.getByRole('button', { name: /再試行/ }).click()
-      await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
-        timeout: 6000,
-      })
+    })
+    await page.getByRole('button', { name: /再試行/ }).click()
+    await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+      timeout: 6000,
     })
   })
 })

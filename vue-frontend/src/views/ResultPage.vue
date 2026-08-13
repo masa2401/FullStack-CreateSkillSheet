@@ -206,12 +206,11 @@ const displayCategories = computed(() =>
             : 'お探しのスキルシートは存在しないか、削除された可能性があります。'
         }}
       </p>
-      <button
+      <AnimatedIconButton
+        icon="fa-solid fa-house"
+        label="トップへ戻る"
         @click="goToTop"
-        class="action-button primary-button"
-      >
-        トップへ戻る
-      </button>
+      />
     </div>
   </div>
 
@@ -431,25 +430,6 @@ const displayCategories = computed(() =>
   color: #666;
   line-height: 1.7;
   margin: 0 0 2rem;
-}
-
-.action-button {
-  border: none;
-  border-radius: var(--radius, 12px);
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.primary-button {
-  background: #483c32;
-  color: #ffffff;
-}
-
-.action-button:hover {
-  opacity: 0.8;
 }
 
 @keyframes spin {
