@@ -59,4 +59,10 @@ describe('ValidationError', () => {
     const wrapper = createWrapper({ errors })
     expect(wrapper.find('.error-question').text()).not.toContain('...')
   })
+
+  it('text が無いエラーは補足テキストが表示されない', () => {
+    const errors: VError[] = [{ category: 'テスト' } as unknown as VError]
+    const wrapper = createWrapper({ errors })
+    expect(wrapper.find('.error-question').exists()).toBe(false)
+  })
 })

@@ -30,7 +30,7 @@ const router = createRouter({
       component: () => import('@/views/NotFound.vue'),
     },
   ],
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     } else {
@@ -40,7 +40,7 @@ const router = createRouter({
 })
 
 // ─── ナビゲーションガードの設定 ──────────────────────────────────────────
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   if (to.meta.requiresName) {
     const hash = window.location.hash
     const hasSharedData = hash.includes('data=') || hash.includes('id=')

@@ -14,27 +14,25 @@ const isSaving = ref<boolean>(false)
 const emit = defineEmits<{ done: [] }>()
 const { success: copySuccess, trigger } = useSuccessFeedback(() => emit('done'))
 
+const copyAndNotify = async (url: string) => {
+  const success = await copyToClipboard(url)
+  if (success) {
+    copySuccess.value = true
+    trigger()
+  }
+}
+
 const handleCopy = async () => {
   isSaving.value = true
-  let url: string
 
   try {
-    if (isBackendEnabled()) {
-      const id = await store.getSavedIdOrSave()
-      url = `${window.location.origin}/#/result?id=${id}`
-    } else {
-      url = createShareUrl(store.surveyState)
-    }
-
-    const success = await copyToClipboard(url)
-    if (success) {
-      copySuccess.value = true
-      trigger()
-    }
+    const url = isBackendEnabled()
+      ? `${window.location.origin}/#/result?id=${await store.getSavedIdOrSave()}`
+      : createShareUrl(store.surveyState)
+    await copyAndNotify(url)
   } catch (error) {
     console.error('URL生成エラー', error)
-    url = createShareUrl(store.surveyState)
-    await copyToClipboard(url)
+    await copyAndNotify(createShareUrl(store.surveyState))
   } finally {
     isSaving.value = false
   }

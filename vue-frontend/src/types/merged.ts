@@ -1,6 +1,6 @@
 import type { StarLevel } from './state'
 
-export type MergedAnswer = {
+type MergedAnswer = {
   id: number
   label: string
   isChecked: boolean

@@ -1,6 +1,6 @@
 export type StarLevel = 1 | 2 | 3 | 4 | 5
 
-export type Answer = {
+type Answer = {
   id: number
   label: string
 }
