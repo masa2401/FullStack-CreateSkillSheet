@@ -1,21 +1,13 @@
-import { expect, test } from '@playwright/test';
-
-
-
-
-
-
-
-
-
-
-
-
+import { expect, test } from '@playwright/test'
 
 async function completeBasicFlow(page: import('@playwright/test').Page, name: string) {
   await page.goto('/')
   await page.getByLabel('お名前を入力してください').fill(name)
   await page.getByRole('button', { name: 'アンケートを開始' }).click()
+
+  await page.getByRole('checkbox', { name: 'Slack' }).check()
+  await page.getByRole('radio', { name: '3段階' }).locator('..').click()
+
   await page.getByRole('button', { name: '次へ進む' }).click()
 }
 
@@ -48,6 +40,10 @@ test.describe('印刷スタイル', () => {
     await completeBasicFlow(page, '山田太郎')
     const printCalls: number[] = []
     await page.exposeFunction('__print', () => printCalls.push(1))
-    await page.evaluate(() => )
+    await page.evaluate(() => {
+      window.print = () => (window as unknown as { __print: () => void }).__print()
+    })
+    await page.getByRole('button', { name: '印刷する' }).click()
+    expect(printCalls.length).toBe(1)
   })
 })
