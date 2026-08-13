@@ -7,7 +7,7 @@ test.describe('レスポンシブ表示', () => {
     await page.goto('/')
 
     const hasHorizontalScroll = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientHeight,
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     )
     expect(hasHorizontalScroll).toBe(false)
   })

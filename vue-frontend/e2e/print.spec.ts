@@ -1,4 +1,16 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test';
+
+
+
+
+
+
+
+
+
+
+
+
 
 async function completeBasicFlow(page: import('@playwright/test').Page, name: string) {
   await page.goto('/')
@@ -13,5 +25,29 @@ test.describe('印刷スタイル', () => {
     await expect(page.locator('.button-group')).toBeVisible()
     await page.emulateMedia({ media: 'print' })
     await expect(page.locator('.button-group')).toBeHidden()
+  })
+
+  test('印刷プレビュー時、ヘッダーとフッターも非表示になる', async ({ page }) => {
+    await completeBasicFlow(page, '山田太郎')
+    await page.emulateMedia({ media: 'print' })
+    await expect(page.locator('header.header')).toBeHidden()
+    await expect(page.locator('footer.footer')).toBeHidden()
+  })
+
+  test('印刷時、スキルカードにbreak-inside: avoidが適用される', async ({ page }) => {
+    await completeBasicFlow(page, '山田太郎')
+    await page.emulateMedia({ media: 'print' })
+    const breakInside = await page
+      .locator('.skill-card')
+      .first()
+      .evaluate((el) => getComputedStyle(el).breakInside)
+    expect(breakInside).toBe('avoid')
+  })
+
+  test('印刷ボタンクリックでwindow.printが呼び出される', async ({ page }) => {
+    await completeBasicFlow(page, '山田太郎')
+    const printCalls: number[] = []
+    await page.exposeFunction('__print', () => printCalls.push(1))
+    await page.evaluate(() => )
   })
 })
