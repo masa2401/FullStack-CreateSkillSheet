@@ -4,7 +4,7 @@ import { CATEGORY_MASTER_BY_ID } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { MergedCategory } from '@/types'
 
-export function useMergedSurvey() {
+export const useMergedSurvey = () => {
   const store = useSurveyStore()
 
   const mergedCategories = computed<MergedCategory[]>(() =>
