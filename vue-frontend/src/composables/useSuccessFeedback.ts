@@ -1,6 +1,6 @@
 import { onUnmounted, ref } from 'vue'
 
-export function useSuccessFeedback(done: () => void, deley = 2000) {
+export const useSuccessFeedback = (done: () => void, deley = 2000) => {
   const success = ref(false)
   let timer: ReturnType<typeof setTimeout> | undefined
 

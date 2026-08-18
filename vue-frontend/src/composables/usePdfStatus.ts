@@ -13,7 +13,7 @@ const MAX_POLL_COUNT = 20
  * AWS Lambda（非同期Invoke）からの明示的な完了通知が無い構成のため、
  * S3オブジェクトの有無を一定間隔で確認する方式を取る。
  */
-export function usePdfStatus(sheetId: Ref<string | null>) {
+export const usePdfStatus = (sheetId: Ref<string | null>) => {
   const state = ref<PdfGenerationState>('waiting')
   const downloadUrl = ref<string>('')
 
