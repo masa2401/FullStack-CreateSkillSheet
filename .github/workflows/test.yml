@@ -74,13 +74,7 @@ jobs:
         run: npx playwright install-deps
         working-directory: ./vue-frontend
 
-      - name: Run Playwright E2E tests (PR: chromium only)
-        if: github.event_name == 'pull_request'
-        run: npx playwright test --project=chromium
-        working-directory: ./vue-frontend
-
-      - name: Run Playwright E2E tests (all browsers)
-        if: github.event_name != 'pull_request'
+      - name: Run Playwright E2E tests
         run: npx playwright test
         working-directory: ./vue-frontend
 
