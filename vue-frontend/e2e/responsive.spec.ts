@@ -50,4 +50,23 @@ test.describe('レスポンシブ表示', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await expect(resultPage.page.locator('.image')).toBeHidden()
   })
+
+  test('ResultPageのskill-infoがモバイル幅で縦積みになる', async ({ resultPage }) => {
+    await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
+
+    const flexDirection = await resultPage
+      .skillCard()
+      .locator('.skill-info')
+      .evaluate((el) => getComputedStyle(el).flexDirection)
+    expect(flexDirection).toBe('column')
+  })
+
+  test('ResultPageの操作ボタン群がモバイル幅で縦積みになる', async ({ resultPage }) => {
+    await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
+
+    const flexDirection = await resultPage.buttonGroup.evaluate(
+      (el) => getComputedStyle(el).flexDirection,
+    )
+    expect(flexDirection).toBe('column')
+  })
 })
