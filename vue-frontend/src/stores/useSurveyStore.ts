@@ -48,6 +48,10 @@ export const useSurveyStore = defineStore(
       selections: selections.value,
     }))
 
+    const hasAnswers = computed<boolean>(() =>
+      selections.value.some((cat) => cat.questions.some((q) => q.answers.some((a) => a.isChecked))),
+    )
+
     // ─── Actions ───────────────────────────────────────────────────
 
     const setUserName = (name: string): void => {
@@ -131,6 +135,7 @@ export const useSurveyStore = defineStore(
       userName,
       selections,
       surveyState,
+      hasAnswers,
       savedSheetId,
       savedDataSnapshot,
       setUserName,
