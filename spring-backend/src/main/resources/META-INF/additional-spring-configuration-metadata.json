@@ -1,0 +1,44 @@
+{
+  "properties": [
+    {
+      "name": "cors.allowed.origins",
+      "type": "java.lang.String",
+      "description": "CORS Origin 許可設定"
+    },
+    {
+      "name": "sheet.expiry.days",
+      "type": "java.lang.String",
+      "description": "DBへ保存するシートの保存期間（日数）"
+    },
+    {
+      "name": "sheet.save.rate-limit.max-requests",
+      "type": "java.lang.String",
+      "description": "DBへ保存 最大回数"
+    },
+    {
+      "name": "sheet.save.rate-limit.window-seconds",
+      "type": "java.lang.String",
+      "description": "DBへ保存 最小間隔（秒）"
+    },
+    {
+      "name": "aws.region",
+      "type": "java.lang.String",
+      "description": "AWS リージョン設定"
+    },
+    {
+      "name": "aws.lambda.pdf-function-name",
+      "type": "java.lang.String",
+      "description": "AWS Lambda 実行関数名"
+    },
+    {
+      "name": "aws.s3.pdf-bucket-name",
+      "type": "java.lang.String",
+      "description": "AWS S3 バケット名"
+    },
+    {
+      "name": "app.frontend-base-url",
+      "type": "java.lang.String",
+      "description": "フロントエンド デプロイ先URL"
+    }
+  ]
+}

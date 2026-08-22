@@ -1,10 +1,8 @@
 ﻿<script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-import ValidationError from '@/components/ValidationError.vue'
-import { useNameValidation } from '@/composables/useNameValidation'
 import { CATEGORY_MASTERS } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
@@ -15,7 +13,6 @@ const store = useSurveyStore()
 const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!
 const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!
 
-const userName = ref<string>(store.userName)
 const engineerChecked = computed({
   get: () => store.selections.find((c) => c.categoryId === engineerMaster.id)?.isChecked ?? false,
   set: (val: boolean) => store.setCategoryChecked(engineerMaster.id, val),
@@ -25,11 +22,7 @@ const designerChecked = computed({
   set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val),
 })
 
-const { validationErrors, validate, isSubmitDisabled } = useNameValidation(userName)
-
-const validateAndProceed = (): void => {
-  if (!validate()) return
-  store.setUserName(userName.value.trim())
+const goToSurvey = (): void => {
   router.push(ROUTES.SURVEY)
 }
 </script>
@@ -44,26 +37,6 @@ const validateAndProceed = (): void => {
         </p>
       </div>
       <div class="input-group">
-        <div class="input-section">
-          <label
-            class="input-label"
-            for="name-input"
-          >
-            <span class="label-icon">
-              <font-awesome-icon icon="fa-solid fa-pen" />
-            </span>
-            お名前を入力してください
-          </label>
-          <input
-            type="text"
-            id="name-input"
-            class="name-input"
-            :class="{ 'input-error': validationErrors.length > 0 }"
-            v-model="userName"
-            placeholder="お名前を入力"
-          />
-        </div>
-
         <div class="category-section">
           <h3 class="section-title">
             <span class="title-icon">
@@ -138,20 +111,12 @@ const validateAndProceed = (): void => {
         </div>
       </div>
 
-      <!-- バリデーションエラー表示 -->
-      <ValidationError :errors="validationErrors">
-        <template #description>
-          <p class="error-description">必須項目を入力してください。</p>
-        </template>
-      </ValidationError>
-
       <div class="button-section">
         <AnimatedIconButton
           icon="fa-solid fa-arrow-right"
           label="アンケートを開始"
           animation-type="bounce"
-          :disabled="isSubmitDisabled"
-          @click="validateAndProceed"
+          @click="goToSurvey"
         />
       </div>
     </div>
@@ -192,60 +157,6 @@ const validateAndProceed = (): void => {
   border-radius: var(--radius, 12px);
   padding: var(--p-16, 2rem) var(--p-20, 2.5rem);
   box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-}
-
-.input-section {
-  text-align: center;
-  margin-bottom: var(--p-16, 2rem);
-}
-
-.input-label {
-  display: block;
-  font-size: 1.2rem;
-  color: #483c32;
-  margin-bottom: var(--p-4, 0.5rem);
-  font-weight: 600;
-}
-
-.label-icon {
-  font-size: 1.2rem;
-}
-
-.name-input {
-  width: 75%;
-  padding: var(--p-8, 1rem);
-  font-size: 1.2rem;
-  border: 2px solid #d3c6a6;
-  border-radius: var(--radius, 12px);
-  transition: all 0.3s;
-  box-sizing: border-box;
-  background: #ffffff;
-}
-
-.name-input:focus {
-  outline: none;
-  border-color: #483c32;
-  box-shadow: 0 0 0 4px rgba(72, 60, 50, 0.1);
-}
-
-.name-input.input-error {
-  border-color: #f88;
-  animation: shake 0.5s ease;
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-5px);
-  }
-
-  75% {
-    transform: translateX(5px);
-  }
 }
 
 .section-title {

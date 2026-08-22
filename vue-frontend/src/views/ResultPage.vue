@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import ShareButton from '@/components/ShareButton.vue'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
+import { useNameCommit } from '@/composables/useNameCommit'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
@@ -13,6 +14,8 @@ import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 const router = useRouter()
 const store = useSurveyStore()
 const { mergedCategories } = useMergedSurvey()
+
+const NAME_MAX_LENGTH = 20
 
 const goToTop = () => router.push(ROUTES.TOP)
 const goBack = () => router.push(ROUTES.SURVEY)
