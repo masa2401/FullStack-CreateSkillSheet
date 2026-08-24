@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.skillsheet.dto.request.SaveSheetRequest;
 import com.skillsheet.dto.response.SaveSheetResponse;
+import com.skillsheet.service.SaveRateLimiter;
 import com.skillsheet.service.SkillSheetService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -23,10 +25,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SkillSheetController {
     private final SkillSheetService service;
+    private final SaveRateLimiter saveRateLimiter;
 
     // POST /api/sheets → 保存
     @PostMapping
-    public ResponseEntity<SaveSheetResponse> save(@RequestBody @Valid SaveSheetRequest req) {
+    public ResponseEntity<SaveSheetResponse> save(@RequestBody @Valid SaveSheetRequest req,
+            HttpServletRequest request) {
+        saveRateLimiter.checkAndRecord(resolveClientIp(request));
         UUID id = service.save(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(new SaveSheetResponse(id));
     }
@@ -37,4 +42,13 @@ public class SkillSheetController {
         return ResponseEntity.ok(service.findById(id));
     }
 
+    // Railway等のリバースプロキシ経由ではgetRemoteAddr()がプロキシのIPを返すため、
+    // X-Forwarded-Forが存在すればそちらの先頭（＝実際のクライアント）を優先する
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
 }

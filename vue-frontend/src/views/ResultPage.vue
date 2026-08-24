@@ -3,9 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import EditableNameHeading from '@/components/EditableNameHeading.vue'
 import ShareButton from '@/components/ShareButton.vue'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
-import { useNameCommit } from '@/composables/useNameCommit'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
 import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
@@ -14,8 +14,6 @@ import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 const router = useRouter()
 const store = useSurveyStore()
 const { mergedCategories } = useMergedSurvey()
-
-const NAME_MAX_LENGTH = 20
 
 const goToTop = () => router.push(ROUTES.TOP)
 const goBack = () => router.push(ROUTES.SURVEY)
@@ -58,6 +56,19 @@ onMounted(async () => {
   pageStatus.value = { type: 'ready', isSharedView: false }
 })
 
+const handleNameCommitted = async (name: string): Promise<void> => {
+  store.setUserName(name)
+  if (!isBackendEnabled()) return
+  try {
+    await store.getSavedIdOrSave()
+  } catch (error) {
+    console.error('プリフェッチ用の保存に失敗しました', error)
+  }
+}
+
+const displayName = computed(() => store.userName || 'ゲスト')
+const isGuest = computed(() => !store.userName.trim())
+
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
 const displayCategories = computed(() =>
@@ -86,7 +97,19 @@ const displayCategories = computed(() =>
           <div class="header-icon">
             <font-awesome-icon icon="fa-regular fa-clipboard" />
           </div>
-          <h2 class="page-title">{{ store.userName }} 様のスキルシート</h2>
+
+          <h2
+            v-if="pageStatus.isSharedView"
+            class="page-title"
+          >
+            {{ displayName }} 様のスキルシート
+          </h2>
+          <EditableNameHeading
+            v-else
+            :initial-name="store.userName"
+            :display-name="displayName"
+            @commit="handleNameCommitted"
+          />
         </div>
         <div class="description-group">
           <div class="image">
@@ -157,15 +180,23 @@ const displayCategories = computed(() =>
             @click="goBack"
           />
 
-          <AnimatedIconButton
-            animationType="bounce"
-            icon="fa-solid fa-print"
-            label="印刷する"
-            variant="secondary"
-            @click="handlePrint"
-          />
+          <template v-if="!isGuest">
+            <AnimatedIconButton
+              animationType="bounce"
+              icon="fa-solid fa-print"
+              label="印刷する"
+              variant="secondary"
+              @click="handlePrint"
+            />
 
-          <ShareButton />
+            <ShareButton />
+          </template>
+          <p
+            v-else
+            class="guest-hint"
+          >
+            お名前を入力すると、印刷・共有機能が利用できます
+          </p>
 
           <AnimatedIconButton
             animationType="beat"
@@ -279,6 +310,13 @@ const displayCategories = computed(() =>
   margin: 0;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
+}
+
+.guest-hint {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0;
+  align-self: center;
 }
 
 .content-wrapper {

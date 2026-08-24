@@ -1,8 +1,11 @@
 package com.skillsheet.controller;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,6 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.skillsheet.dto.request.SaveSheetRequest;
+import com.skillsheet.exception.TooManyRequestsException;
+import com.skillsheet.service.SaveRateLimiter;
 import com.skillsheet.service.SkillSheetService;
 
 import tools.jackson.databind.json.JsonMapper;
@@ -34,6 +39,9 @@ class SkillSheetControllerTest {
 
   @MockitoBean
   private SkillSheetService service;
+
+  @MockitoBean
+  private SaveRateLimiter saveRateLimiter;
 
   @Test
   @DisplayName("POST /api/sheets - スキルシートが正常に保存され、211 CreatedとIDが返ること")
@@ -52,6 +60,23 @@ class SkillSheetControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(expectedId.toString()));
     // jsonPathを使うと、レスポンスJSONの特定のフィールドを検証できます
+  }
+
+  @Test
+  @DisplayName("POST /api/sheets - スロットリング上限に達している場合は429 Too Many Requestsが返ること")
+  void save_RateLimited_Returns429() throws Exception {
+    // GIVEN: レートリミッターが上限超過として例外を投げるよう設定
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎", List.of());
+    doThrow(new TooManyRequestsException("スキルシートの作成リクエストが上限に達しました。しばらく時間をおいて再度お試しください", 60))
+        .when(saveRateLimiter).checkAndRecord(anyString());
+
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isTooManyRequests())
+        .andExpect(header().string("Retry-After", "60"))
+        .andExpect(jsonPath("$.retryAfterSeconds").value(60));
   }
 
   @Test
