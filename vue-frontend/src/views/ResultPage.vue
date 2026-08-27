@@ -19,6 +19,11 @@ const goToTop = () => router.push(ROUTES.TOP)
 const goBack = () => router.push(ROUTES.SURVEY)
 const handlePrint = () => window.print()
 
+const startOwnSheet = (): void => {
+  store.reset()
+  router.push(ROUTES.TOP)
+}
+
 type PageStatus =
   | { type: 'loading' }
   | { type: 'ready'; isSharedView: boolean }
@@ -66,7 +71,7 @@ const handleNameCommitted = async (name: string): Promise<void> => {
   }
 }
 
-const displayName = computed(() => store.userName || 'ゲスト')
+const displayName = computed(() => store.userName || 'Guest')
 const isGuest = computed(() => !store.userName.trim())
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
@@ -211,7 +216,7 @@ const displayCategories = computed(() =>
           <AnimatedIconButton
             icon="fa-solid fa-pen"
             label="自分のスキルシートを作成"
-            @click="goToTop"
+            @click="startOwnSheet"
           />
         </template>
       </div>

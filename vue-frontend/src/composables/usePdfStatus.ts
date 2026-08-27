@@ -26,7 +26,6 @@ export const usePdfStatus = (sheetId: Ref<string | null>) => {
   }
 
   const poll = async (id: string) => {
-    if (id !== sheetId.value) return
     try {
       const result = await fetchPdfStatus(id)
 

@@ -60,6 +60,79 @@ describe('useSurveyStore', () => {
       store.setCategoryChecked(999, true)
       expect(JSON.stringify(store.selections)).toBe(before)
     })
+
+    it('チェックを外すと、そのカテゴリの回答（isChecked/value）がリセットされる', () => {
+      const store = useSurveyStore()
+      store.setAnswerSelection(1, 1, 1, { isChecked: true, value: 4 })
+
+      store.setCategoryChecked(1, false)
+
+      const answer = store.selections
+        .find((s) => s.categoryId === 1)!
+        .questions.find((q) => q.questionId === 1)!
+        .answers.find((a) => a.answerId === 1)!
+      expect(answer.isChecked).toBe(false)
+      expect(answer.value).toBeUndefined()
+    })
+
+    it('あるカテゴリのチェックを外しても、他カテゴリの回答は影響を受けない', () => {
+      const store = useSurveyStore()
+      store.setCategoryChecked(2, true)
+      store.setAnswerSelection(1, 1, 1, { isChecked: true, value: 5 })
+
+      store.setCategoryChecked(2, false)
+
+      const answer = store.selections
+        .find((s) => s.categoryId === 1)!
+        .questions.find((q) => q.questionId === 1)!
+        .answers.find((a) => a.answerId === 1)!
+      expect(answer.isChecked).toBe(true)
+      expect(answer.value).toBe(5)
+    })
+  })
+
+  // ─── hasAnswers ────────────────────────────────────────────
+
+  describe('hasAnswers', () => {
+    it('初期状態では false', () => {
+      const store = useSurveyStore()
+      expect(store.hasAnswers).toBe(false)
+    })
+
+    it('isChecked なカテゴリに回答があれば true', () => {
+      const store = useSurveyStore()
+      store.setAnswerSelection(1, 1, 1, { isChecked: true })
+      expect(store.hasAnswers).toBe(true)
+    })
+
+    it('（不整合データ対策）isChecked: false のカテゴリに isChecked な回答が残っていても false', () => {
+      const store = useSurveyStore()
+      const target = store.selections.find((s) => s.categoryId === 2)!
+      target.isChecked = false
+      target.questions.forEach((q) => {
+        q.answers.forEach((a) => {
+          a.isChecked = true
+        })
+      })
+
+      expect(store.hasAnswers).toBe(false)
+    })
+
+    it('loadFromSharedState 経由で isChecked: false のカテゴリに回答が入っていても無視される', () => {
+      const store = useSurveyStore()
+      store.loadFromSharedState({
+        userName: '山田太郎',
+        selections: [
+          {
+            categoryId: 1,
+            isChecked: false,
+            questions: [{ questionId: 1, answers: [{ answerId: 1, isChecked: true, value: 3 }] }],
+          },
+        ],
+      })
+
+      expect(store.hasAnswers).toBe(false)
+    })
   })
 
   // ─── setAnswerSelection ────────────────────────────────────
@@ -150,6 +223,36 @@ describe('useSurveyStore', () => {
         .answers.find((a) => a.answerId === 1)!
       expect(answer.isChecked).toBe(false)
       expect(answer.value).toBeUndefined()
+    })
+
+    it('受け取ったデータに存在しない questionId が含まれていても無視される', () => {
+      const store = useSurveyStore()
+      expect(() =>
+        store.loadFromSharedState({
+          userName: '山田太郎',
+          selections: [
+            { categoryId: 1, isChecked: true, questions: [{ questionId: 999, answers: [] }] },
+          ],
+        }),
+      ).not.toThrow()
+    })
+
+    it('受け取ったデータに存在しない answerId が含まれていても無視される', () => {
+      const store = useSurveyStore()
+      expect(() =>
+        store.loadFromSharedState({
+          userName: '山田太郎',
+          selections: [
+            {
+              categoryId: 1,
+              isChecked: true,
+              questions: [
+                { questionId: 1, answers: [{ answerId: 999, isChecked: true, value: 3 }] },
+              ],
+            },
+          ],
+        }),
+      ).not.toThrow()
     })
   })
 

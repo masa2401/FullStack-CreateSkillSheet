@@ -6,22 +6,22 @@ export type NameCommitPhase = 'editing' | 'confirming' | 'committed' | 'locked'
 
 export interface UseNameCommitOptions {
   confirmDelayMs?: number
-  correctionWindowMs?: number
+  editableWindowMs?: number
   onCommit: (name: string) => void
 }
 
 export const useNameCommit = (initialName: string, options: UseNameCommitOptions) => {
-  const { confirmDelayMs = 2000, correctionWindowMs = 10000, onCommit } = options
+  const { confirmDelayMs = 2000, editableWindowMs = 10000, onCommit } = options
 
   const phase = ref<NameCommitPhase>(initialName.trim() ? 'locked' : 'editing')
   const draft = ref<string>(initialName)
-  const correctionUsed = ref<boolean>(false)
+  const editUsed = ref<boolean>(false)
 
-  const correctionTimeout = useTimeoutFn(
+  const editTimeout = useTimeoutFn(
     () => {
       phase.value = 'locked'
     },
-    correctionWindowMs,
+    editableWindowMs,
     { immediate: false },
   )
 
@@ -29,13 +29,13 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
     const trimmed = draft.value.trim()
     onCommit(trimmed)
 
-    if (correctionUsed.value) {
+    if (editUsed.value) {
       phase.value = 'locked'
       return
     }
 
     phase.value = 'committed'
-    correctionTimeout.start()
+    editTimeout.start()
   }
 
   const confirmTimeout = useTimeoutFn(finalizeCommit, confirmDelayMs, { immediate: false })
@@ -54,10 +54,10 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
     phase.value = 'editing'
   }
 
-  const startCorrection = (): void => {
-    if (phase.value !== 'committed' || correctionUsed.value) return
-    correctionTimeout.stop()
-    correctionUsed.value = true
+  const startEdit = (): void => {
+    if (phase.value !== 'committed' || editUsed.value) return
+    editTimeout.stop()
+    editUsed.value = true
     phase.value = 'editing'
   }
 
@@ -69,16 +69,16 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
 
   const isEditable = computed(() => phase.value === 'editing')
   const isLocked = computed(() => phase.value === 'locked')
-  const showCorrectionLink = computed(() => phase.value === 'committed')
+  const showEditButton = computed(() => phase.value === 'committed')
 
   return {
     phase,
     draft,
     isEditable,
     isLocked,
-    showCorrectionLink,
+    showEditButton,
     requestCommit,
     cancelPendingCommit,
-    startCorrection,
+    startEdit,
   }
 }

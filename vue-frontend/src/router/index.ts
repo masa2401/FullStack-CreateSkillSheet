@@ -1,7 +1,8 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { type NavigationGuard, createRouter, createWebHashHistory } from 'vue-router'
 
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
+import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 import TopPage from '@/views/TopPage.vue'
 
 const router = createRouter({
@@ -39,11 +40,9 @@ const router = createRouter({
 })
 
 // ─── ナビゲーションガードの設定 ──────────────────────────────────────────
-router.beforeEach((to, _from, next) => {
+export const requiresAnswersGuard: NavigationGuard = (to, _from, next) => {
   if (to.meta.requiresAnswers) {
-    const hash = window.location.hash
-    const hasSharedData = hash.includes('data=') || hash.includes('id=')
-    if (hasSharedData) {
+    if (getIdFromUrl() || getDataFromUrl()) {
       next()
       return
     }
@@ -54,6 +53,7 @@ router.beforeEach((to, _from, next) => {
     }
   }
   next()
-})
+}
+router.beforeEach(requiresAnswersGuard)
 
 export default router

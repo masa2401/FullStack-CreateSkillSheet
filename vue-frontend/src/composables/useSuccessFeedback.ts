@@ -1,20 +1,23 @@
-import { onUnmounted, ref } from 'vue'
+import { ref } from 'vue'
+
+import { useTimeoutFn } from '@vueuse/core'
 
 export const useSuccessFeedback = (done: () => void, deley = 2000) => {
   const success = ref(false)
-  let timer: ReturnType<typeof setTimeout> | undefined
+
+  const { start } = useTimeoutFn(
+    () => {
+      success.value = false
+      done()
+    },
+    deley,
+    { immediate: false },
+  )
 
   const trigger = () => {
     success.value = true
-    timer = setTimeout(() => {
-      success.value = false
-      done()
-    }, deley)
+    start()
   }
-
-  onUnmounted(() => {
-    if (timer) clearTimeout(timer)
-  })
 
   return { success, trigger }
 }

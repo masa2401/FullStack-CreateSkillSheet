@@ -3,7 +3,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useSurveyStore } from '@/stores/useSurveyStore.ts'
 import { ROUTES } from '@/utils/constants.ts'
@@ -98,11 +98,6 @@ describe('SurveyPage', () => {
 
   // ─── 表示 ────────────────────────────────────────────────────
 
-  it('store のユーザー名が表示される', () => {
-    const wrapper = createWrapper()
-    expect(wrapper.find('.user-greeting').text()).toContain('テストユーザー')
-  })
-
   it('isChecked = true のカテゴリセクションが表示される', () => {
     const wrapper = createWrapper()
     expect(wrapper.find('.category-section').exists()).toBe(true)
@@ -133,11 +128,12 @@ describe('SurveyPage', () => {
 
   // ─── バリデーション ───────────────────────────────────────────────
 
-  it('チェックなし回答のみの場合はエラーなしで遷移できる', async () => {
+  it('回答が1件も無い場合は遷移できず、回答無しエラーが表示される', async () => {
     const wrapper = createWrapper()
     await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
     await flushPromises()
-    expect(router.currentRoute.value.path).toBe(ROUTES.RESULT)
+    expect(wrapper.find('#no-answers-message').exists()).toBe(true)
+    expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY)
   })
 
   it('チェックあり・習熟度未選択の場合はエラーが表示される', async () => {
@@ -197,5 +193,32 @@ describe('SurveyPage', () => {
     expect(
       (wrapper.findComponent({ name: 'AnimatedIconButton' }).element as HTMLButtonElement).disabled,
     ).toBe(false)
+  })
+
+  it('回答無しエラー表示後にチェックを入れると、回答無しエラーが消えて通常のバリデーションエラーに切り替わる', async () => {
+    const wrapper = createWrapper()
+    const store = useSurveyStore()
+
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
+    await flushPromises()
+    expect(wrapper.find('#no-answers-message').exists()).toBe(true)
+
+    store.setAnswerSelection(1, 1, 1, { isChecked: true })
+    await nextTick()
+
+    expect(wrapper.find('#no-answers-message').exists()).toBe(false)
+    expect(wrapper.find('#error-message').exists()).toBe(true)
+  })
+
+  it('QuestionCard から update:answer が発火すると setAnswerSelection が呼ばれる', () => {
+    const wrapper = createWrapper()
+    const store = useSurveyStore()
+    const spy = vi.spyOn(store, 'setAnswerSelection')
+
+    wrapper
+      .findComponent({ name: 'QuestionCard' })
+      .vm.$emit('update:answer', { answerId: 1, patch: { isChecked: true } })
+
+    expect(spy).toHaveBeenCalledWith(1, 1, 1, { isChecked: true })
   })
 })

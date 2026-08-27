@@ -7,9 +7,16 @@ import type { ValidationError } from '@/types'
 
 interface Props {
   errors: ValidationError[]
+  messageId?: string
+  show?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  messageId: 'error-message',
+  show: undefined,
+})
+
+const isVisible = computed(() => props.show ?? props.errors.length > 0)
 
 // ─── 内部型 ──────────────────────────────────────────────────────────────────
 
@@ -47,9 +54,9 @@ const getTextPreview = (text: string) =>
 <template>
   <transition name="fade">
     <div
-      v-if="errors.length > 0"
+      v-if="isVisible"
       class="error-message"
-      id="error-message"
+      :id="messageId"
       role="alert"
       aria-live="assertive"
       tabindex="-1"

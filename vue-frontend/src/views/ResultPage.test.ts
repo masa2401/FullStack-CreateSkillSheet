@@ -4,6 +4,8 @@ import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import EditableNameHeading from '@/components/EditableNameHeading.vue'
+import { useSurveyStore } from '@/stores/useSurveyStore.ts'
 import type { CategorySelection, SurveyState } from '@/types/state.ts'
 import * as apiUtils from '@/utils/api.ts'
 import { ROUTES } from '@/utils/constants'
@@ -90,7 +92,7 @@ describe('ResultPage', () => {
   it('store のデータからユーザー名が表示される', async () => {
     const wrapper = createWrapper()
     await flushPromises()
-    expect(wrapper.find('.page-title').text()).toContain('テストユーザー')
+    expect(wrapper.find('.user-name-heading').text()).toContain('テストユーザー')
   })
 
   it('URL データがある場合は URL データが優先して表示される', async () => {
@@ -211,7 +213,7 @@ describe('ResultPage', () => {
 
     const wrapper = createWrapper()
     await flushPromises()
-    expect(wrapper.find('.page-title').text()).toContain('テストユーザー')
+    expect(wrapper.find('.user-name-heading').text()).toContain('テストユーザー')
   })
 
   // ─── ナビゲーション ────────────────────────────────────────────
@@ -252,5 +254,58 @@ describe('ResultPage', () => {
     await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
+  })
+
+  it('共有ビューで「自分のスキルシートを作成」をクリックすると store がリセットされてから TopPage へ遷移する', async () => {
+    vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(urlSurveyState)
+    const wrapper = createWrapper()
+    await flushPromises()
+    const store = useSurveyStore()
+
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
+    await flushPromises()
+
+    expect(store.userName).toBe('')
+    expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
+  })
+
+  it('名前を確定すると setUserName が呼ばれ、バックエンド無効時は保存されない', async () => {
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false)
+    const wrapper = createWrapper()
+    await flushPromises()
+    const store = useSurveyStore()
+    const saveSpy = vi.spyOn(store, 'getSavedIdOrSave')
+
+    wrapper.findComponent(EditableNameHeading).vm.$emit('commit', '山田太郎')
+    await flushPromises()
+
+    expect(store.userName).toBe('山田太郎')
+    expect(saveSpy).not.toHaveBeenCalled()
+  })
+
+  it('名前を確定するとバックエンド有効時は保存される', async () => {
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+    vi.spyOn(apiUtils, 'saveSheet').mockResolvedValue('new-id')
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    wrapper.findComponent(EditableNameHeading).vm.$emit('commit', '山田太郎')
+    await flushPromises()
+
+    expect(apiUtils.saveSheet).toHaveBeenCalledOnce()
+  })
+
+  it('保存に失敗してもエラーが外に伝播しない', async () => {
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+    vi.spyOn(apiUtils, 'saveSheet').mockRejectedValue(new Error('failed'))
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    wrapper.findComponent(EditableNameHeading).vm.$emit('commit', '山田太郎')
+    await flushPromises()
+
+    expect(consoleErrorSpy).toHaveBeenCalled()
+    consoleErrorSpy.mockRestore()
   })
 })

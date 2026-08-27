@@ -22,10 +22,10 @@ const {
   draft: nameDraft,
   isEditable: isNameEditable,
   isLocked: isNameLocked,
-  showCorrectionLink,
+  showEditButton,
   requestCommit: commitNameDraft,
   cancelPendingCommit: cancelNameCommit,
-  startCorrection: correctName,
+  startEdit: startNameEdit,
 } = useNameCommit(props.initialName, {
   onCommit: (name) => emit('commit', name),
 })
@@ -46,7 +46,7 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
 </script>
 <template>
   <h2
-    class="visually-hidden"
+    class="user-name-heading"
     aria-live="polite"
   >
     {{ displayName }} 様のスキルシート
@@ -72,17 +72,17 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
       >様のスキルシート</span
     >
     <button
-      v-if="showCorrectionLink"
+      v-if="showEditButton"
       type="button"
-      class="correction-link"
-      @click="correctName"
+      class="edit-name-button"
+      @click="startNameEdit"
     >
-      名前を訂正する
+      名前を編集する
     </button>
   </div>
 </template>
 <style scoped>
-.visually-hidden {
+.user-name-heading {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -143,7 +143,7 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
 }
 
-.correction-link {
+.edit-name-button {
   display: block;
   width: 100%;
   text-align: center;
@@ -156,8 +156,8 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   padding: var(--p-4, 0.5rem) 0 0;
 }
 
-.correction-link:hover,
-.correction-link:focus-visible {
+.edit-name-button:hover,
+.edit-name-button:focus-visible {
   color: #483c32;
 }
 
@@ -180,7 +180,7 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
     border: none !important;
   }
 
-  .correction-link {
+  .edit-name-button {
     display: none !important;
   }
 }

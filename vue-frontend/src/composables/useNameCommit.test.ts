@@ -92,7 +92,7 @@ describe('useNameCommit', () => {
     const { phase, draft, requestCommit } = useNameCommit('', {
       onCommit,
       confirmDelayMs: 100,
-      correctionWindowMs: 500,
+      editableWindowMs: 500,
     })
     draft.value = '田中太郎'
     requestCommit()
@@ -105,17 +105,17 @@ describe('useNameCommit', () => {
 
   it('committed中にstartCorrectionを使うとeditingに戻れるが、次の確定では訂正リンクを経ずlockedに進む', () => {
     const onCommit = vi.fn()
-    const { phase, draft, requestCommit, startCorrection } = useNameCommit('', {
+    const { phase, draft, requestCommit, startEdit } = useNameCommit('', {
       onCommit,
       confirmDelayMs: 100,
-      correctionWindowMs: 500,
+      editableWindowMs: 500,
     })
     draft.value = '田中太郎'
     requestCommit()
     vi.advanceTimersByTime(100)
     expect(phase.value).toBe('committed')
 
-    startCorrection()
+    startEdit()
     expect(phase.value).toBe('editing')
 
     draft.value = '田中次郎'
@@ -139,7 +139,7 @@ describe('useNameCommit', () => {
 
   it('committed状態でstartCorrectionを二重に使うことはできない', () => {
     const onCommit = vi.fn()
-    const { phase, draft, requestCommit, startCorrection } = useNameCommit('', {
+    const { phase, draft, requestCommit, startEdit } = useNameCommit('', {
       onCommit,
       confirmDelayMs: 100,
     })
@@ -148,11 +148,10 @@ describe('useNameCommit', () => {
     vi.advanceTimersByTime(100)
     expect(phase.value).toBe('committed')
 
-    startCorrection()
+    startEdit()
     expect(phase.value).toBe('editing')
 
-    // すでにeditingに戻っているのでstartCorrectionはガードされ何も起きない
-    startCorrection()
+    startEdit()
     expect(phase.value).toBe('editing')
   })
 })
