@@ -2,7 +2,7 @@ import { ref } from 'vue'
 
 import { useTimeoutFn } from '@vueuse/core'
 
-export const useSuccessFeedback = (done: () => void, deley = 2000) => {
+export const useSuccessFeedback = (done: () => void, delay = 2000) => {
   const success = ref(false)
 
   const { start } = useTimeoutFn(
@@ -10,7 +10,7 @@ export const useSuccessFeedback = (done: () => void, deley = 2000) => {
       success.value = false
       done()
     },
-    deley,
+    delay,
     { immediate: false },
   )
 

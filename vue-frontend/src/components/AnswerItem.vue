@@ -59,7 +59,6 @@ const handleLevelChange = (level: StarLevel) => {
             v-for="level in LEVEL_LABELS.length"
             :key="level"
             class="level-button"
-            :class="{ active: value === level }"
             :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`"
           >
             <input

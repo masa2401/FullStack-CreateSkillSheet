@@ -310,14 +310,6 @@ const goToSurvey = (): void => {
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .emoji {
-    font-size: 2.5rem;
-  }
-
   .category-cards {
     grid-template-columns: 1fr;
   }

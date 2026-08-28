@@ -11,12 +11,9 @@ interface Props {
   show?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  messageId: 'error-message',
-  show: undefined,
-})
+const { errors, messageId = 'error-message', show = undefined } = defineProps<Props>()
 
-const isVisible = computed(() => props.show ?? props.errors.length > 0)
+const isVisible = computed(() => show ?? errors.length > 0)
 
 // ─── 内部型 ──────────────────────────────────────────────────────────────────
 
@@ -30,7 +27,7 @@ interface GroupedError extends ValidationError {
 const groupedErrors = computed<GroupedError[]>(() => {
   const groups: Record<string, GroupedError> = {}
 
-  props.errors.forEach((error) => {
+  errors.forEach((error) => {
     const key = `${error.category}|${error.text ?? ''}`
     if (!groups[key]) {
       groups[key] = {

@@ -31,7 +31,7 @@ const handleAnswerUpdate = (
   store.setAnswerSelection(categoryId, questionId, answerId, patch)
 }
 
-const onSubmit = async (): Promise<void> => {
+const handleSubmit = async (): Promise<void> => {
   const isValid = validate()
 
   if (!store.hasAnswers) {
@@ -143,7 +143,7 @@ const onSubmit = async (): Promise<void> => {
           animation-type="bounce"
           icon="fa-solid fa-arrow-right"
           label="次へ進む"
-          @click="onSubmit"
+          @click="handleSubmit"
           :disabled="isSubmitDisabled"
         />
       </div>

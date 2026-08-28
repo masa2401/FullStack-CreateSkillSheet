@@ -51,7 +51,7 @@ export const usePdfStatus = (sheetId: Ref<string | null>) => {
     } catch (error) {
       if (id !== sheetId.value) return
 
-      console.error('PDF状態の取得中にエラーが発生しました:', error)
+      console.error('PDF状態取得エラー:', error)
       state.value = 'error'
       stopPolling()
     }
@@ -83,7 +83,7 @@ export const usePdfStatus = (sheetId: Ref<string | null>) => {
       startPolling(currentId)
     } catch (error) {
       if (currentId !== sheetId.value) return
-      console.error('PDFの再生成に失敗しました:', error)
+      console.error('PDF再生成エラー:', error)
       state.value = 'error'
     }
   }

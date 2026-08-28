@@ -4,9 +4,9 @@ import { ref } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-import { GUEST_HINT_MESSAGE, useGuestGate } from '@/composables/useGuestGate.ts'
-import { useSurveyStore } from '@/stores/useSurveyStore.ts'
-import { isBackendEnabled } from '@/utils/api.ts'
+import { GUEST_HINT_MESSAGE, useGuestGate } from '@/composables/useGuestGate'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import { isBackendEnabled } from '@/utils/api'
 
 import CsvButton from './CsvButton.vue'
 import MenuItemButton from './MenuItemButton.vue'
@@ -35,7 +35,7 @@ const toggleMenu = async () => {
     try {
       await store.getSavedIdOrSave()
     } catch (error) {
-      console.error('シート保存エラー', error)
+      console.error('シート保存エラー:', error)
     }
   }
 }
@@ -212,11 +212,6 @@ const handlePrintAndClose = (): void => {
 }
 
 @media (max-width: 768px) {
-  .share-button {
-    width: 100%;
-    justify-content: center;
-  }
-
   .share-menu {
     left: 0;
     right: 0;

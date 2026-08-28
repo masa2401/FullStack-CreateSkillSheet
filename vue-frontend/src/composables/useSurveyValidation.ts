@@ -1,5 +1,4 @@
-import type { ComputedRef } from 'vue'
-import { computed, ref, watchEffect } from 'vue'
+import { type ComputedRef, computed, ref, watchEffect } from 'vue'
 
 import type { MergedCategory, ValidationError } from '@/types'
 

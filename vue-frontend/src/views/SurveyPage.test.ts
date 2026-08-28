@@ -5,8 +5,8 @@ import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useSurveyStore } from '@/stores/useSurveyStore.ts'
-import { ROUTES } from '@/utils/constants.ts'
+import { useSurveyStore } from '@/stores/useSurveyStore'
+import { ROUTES } from '@/utils/constants'
 
 import SurveyPage from './SurveyPage.vue'
 

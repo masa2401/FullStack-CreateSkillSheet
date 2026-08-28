@@ -66,7 +66,7 @@ const handleNameCommitted = async (name: string): Promise<void> => {
   try {
     await store.getSavedIdOrSave()
   } catch (error) {
-    console.error('プリフェッチ用の保存に失敗しました', error)
+    console.error('プリフェッチ用の保存エラー:', error)
   }
 }
 
