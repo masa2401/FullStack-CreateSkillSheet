@@ -85,7 +85,8 @@ const displayCategories = computed(() =>
           answers: q.answers.filter((a) => a.isChecked),
         }))
         .filter((q) => q.answers.length > 0),
-    })),
+    }))
+    .filter((cat) => cat.questions.length > 0),
 )
 </script>
 
@@ -133,7 +134,6 @@ const displayCategories = computed(() =>
       <div
         v-for="category in displayCategories"
         :key="category.id"
-        v-show="category.isChecked"
         class="category-section"
       >
         <div class="category-header">
