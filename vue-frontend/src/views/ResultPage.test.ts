@@ -226,15 +226,6 @@ describe('ResultPage', () => {
     expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY)
   })
 
-  it('印刷するボタンをクリックすると window.print が呼ばれる', async () => {
-    window.print = () => {}
-    const printMock = vi.spyOn(window, 'print')
-    const wrapper = createWrapper()
-    await flushPromises()
-    await wrapper.findAllComponents({ name: 'AnimatedIconButton' })[1]!.trigger('click')
-    expect(printMock).toHaveBeenCalledOnce()
-  })
-
   it('トップへ戻るボタンをクリックすると TopPage へ遷移する', async () => {
     const wrapper = createWrapper()
     await flushPromises()

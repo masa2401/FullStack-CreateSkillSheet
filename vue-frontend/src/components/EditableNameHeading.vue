@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { useNameCommit } from '@/composables/useNameCommit'
 
@@ -23,6 +23,7 @@ const {
   isEditable: isNameEditable,
   isLocked: isNameLocked,
   showEditButton,
+  editableWindowMs,
   requestCommit: commitNameDraft,
   cancelPendingCommit: cancelNameCommit,
   startEdit: startNameEdit,
@@ -43,6 +44,21 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   event.preventDefault()
   ;(event.target as HTMLInputElement).blur()
 }
+
+// ─── 編集可能期間の残量プログレスバー ──────────────────────────────
+// committedフェーズ開始時に100%で描画したのち、次フレーム以降に0%へ切り替えることで
+// CSS transitionによる幅アニメーションを発火させる（毎フレームのJS更新は行わない）
+const isEditProgressCollapsed = ref<boolean>(false)
+
+watch(showEditButton, (visible) => {
+  if (!visible) return
+  isEditProgressCollapsed.value = false
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      isEditProgressCollapsed.value = true
+    })
+  })
+})
 </script>
 <template>
   <h2
@@ -51,34 +67,50 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   >
     {{ displayName }} 様のスキルシート
   </h2>
-  <div class="name-input-wrapper">
-    <input
-      v-model="nameDraft"
-      type="text"
-      class="page-title-input"
-      :class="{ 'is-locked': isNameLocked }"
-      :readonly="!isNameEditable"
-      :maxlength="NAME_MAX_LENGTH"
-      :size="nameInputSize"
-      :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
-      placeholder="お名前を入力"
-      @focus="handleNameFocus"
-      @blur="handleNameBlur"
-      @keydown="handleNameKeydown"
-    />
-    <span
-      class="title-suffix"
-      aria-hidden="true"
-      >様のスキルシート</span
-    >
-    <button
+  <div class="name-editor">
+    <div class="name-input-wrapper">
+      <input
+        v-model="nameDraft"
+        type="text"
+        class="page-title-input"
+        :class="{ 'is-locked': isNameLocked, 'is-editable-hint': isNameEditable }"
+        :readonly="!isNameEditable"
+        :maxlength="NAME_MAX_LENGTH"
+        :size="nameInputSize"
+        :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
+        placeholder="お名前を入力"
+        @focus="handleNameFocus"
+        @blur="handleNameBlur"
+        @keydown="handleNameKeydown"
+      />
+      <span
+        class="title-suffix"
+        aria-hidden="true"
+        >様のスキルシート</span
+      >
+    </div>
+    <div
       v-if="showEditButton"
-      type="button"
-      class="edit-name-button"
-      @click="startNameEdit"
+      class="edit-controls"
     >
-      名前を編集する
-    </button>
+      <button
+        type="button"
+        class="edit-name-button"
+        @click="startNameEdit"
+      >
+        名前を編集する
+      </button>
+      <div
+        class="edit-progress-track"
+        aria-hidden="true"
+      >
+        <div
+          class="edit-progress-fill"
+          :class="{ 'is-collapsed': isEditProgressCollapsed }"
+          :style="{ transitionDuration: `${editableWindowMs}ms` }"
+        ></div>
+      </div>
+    </div>
   </div>
 </template>
 <style scoped>
@@ -94,6 +126,14 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   border: 0;
 }
 
+.name-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-4, 0.5rem);
+  min-width: 0;
+}
+
 .name-input-wrapper {
   display: flex;
   align-items: baseline;
@@ -101,7 +141,7 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   flex-wrap: wrap;
   gap: 0.25rem;
   position: relative;
-  width: 100%;
+  min-width: 0;
 }
 
 .page-title-input {
@@ -115,8 +155,15 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   border: none;
   border-bottom: 2px dashed transparent;
   padding: 0 var(--p-4, 0.5rem);
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background-color 0.3s ease;
+  border-radius: 8px;
   min-width: 0;
+}
+
+.page-title-input.is-editable-hint {
+  background-color: rgba(211, 198, 166, 0.35);
 }
 
 .page-title-input:not(.is-locked):hover,
@@ -143,9 +190,15 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
 }
 
+.edit-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-4, 0.5rem);
+}
+
 .edit-name-button {
-  display: block;
-  width: 100%;
+  display: inline-block;
   text-align: center;
   background: none;
   border: none;
@@ -153,12 +206,39 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   font-size: 0.9rem;
   text-decoration: underline;
   cursor: pointer;
-  padding: var(--p-4, 0.5rem) 0 0;
+  padding: 0;
 }
 
 .edit-name-button:hover,
 .edit-name-button:focus-visible {
   color: #483c32;
+}
+
+.edit-progress-track {
+  width: 80px;
+  height: 4px;
+  background: rgba(72, 60, 50, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.edit-progress-fill {
+  width: 100%;
+  height: 100%;
+  background: #483c32;
+  transition-property: width;
+  transition-timing-function: linear;
+}
+
+.edit-progress-fill.is-collapsed {
+  width: 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edit-progress-fill {
+    transition: none;
+  }
 }
 
 @media (max-width: 768px) {
@@ -180,7 +260,7 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
     border: none !important;
   }
 
-  .edit-name-button {
+  .edit-controls {
     display: none !important;
   }
 }

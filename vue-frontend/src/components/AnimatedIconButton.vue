@@ -109,7 +109,8 @@ const handleClick = () => {
   animation-name: fa-spin;
 }
 
-.action-button:disabled {
+.action-button:disabled,
+.action-button[aria-disabled='true'] {
   animation-name: none;
   background: #94a3b8;
   color: #ffffff;
@@ -117,6 +118,16 @@ const handleClick = () => {
   box-shadow: none;
   opacity: 0.6;
   transform: none !important;
+}
+
+.action-button[aria-disabled='true']:hover {
+  background: #94a3b8;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.action-button[aria-disabled='true']:hover .button-icon :deep(svg) {
+  animation-name: none;
 }
 
 @media (max-width: 768px) {

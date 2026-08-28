@@ -17,7 +17,6 @@ const { mergedCategories } = useMergedSurvey()
 
 const goToTop = () => router.push(ROUTES.TOP)
 const goBack = () => router.push(ROUTES.SURVEY)
-const handlePrint = () => window.print()
 
 const startOwnSheet = (): void => {
   store.reset()
@@ -72,7 +71,6 @@ const handleNameCommitted = async (name: string): Promise<void> => {
 }
 
 const displayName = computed(() => store.userName || 'Guest')
-const isGuest = computed(() => !store.userName.trim())
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
@@ -99,10 +97,6 @@ const displayCategories = computed(() =>
     <div class="content-wrapper">
       <div class="header-section">
         <div class="result-header">
-          <div class="header-icon">
-            <font-awesome-icon icon="fa-regular fa-clipboard" />
-          </div>
-
           <h2
             v-if="pageStatus.isSharedView"
             class="page-title"
@@ -185,23 +179,7 @@ const displayCategories = computed(() =>
             @click="goBack"
           />
 
-          <template v-if="!isGuest">
-            <AnimatedIconButton
-              animationType="bounce"
-              icon="fa-solid fa-print"
-              label="印刷する"
-              variant="secondary"
-              @click="handlePrint"
-            />
-
-            <ShareButton />
-          </template>
-          <p
-            v-else
-            class="guest-hint"
-          >
-            お名前を入力すると、印刷・共有機能が利用できます
-          </p>
+          <ShareButton />
 
           <AnimatedIconButton
             animationType="beat"
@@ -305,23 +283,12 @@ const displayCategories = computed(() =>
   width: fit-content;
 }
 
-.header-icon {
-  font-size: 2.4rem;
-}
-
 .page-title {
   font-size: 2.5rem;
   color: #483c32;
   margin: 0;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-}
-
-.guest-hint {
-  color: #666;
-  font-size: 0.95rem;
-  margin: 0;
-  align-self: center;
 }
 
 .content-wrapper {
@@ -547,11 +514,6 @@ const displayCategories = computed(() =>
     padding: 0 0 var(--p-8, 1rem) 0;
     border: 1px solid #e5e7eb;
     border-radius: var(--radius, 12px);
-  }
-
-  .header-icon {
-    font-size: 2.5rem;
-    margin-bottom: var(--p-4, 0.5rem);
   }
 
   .page-title {

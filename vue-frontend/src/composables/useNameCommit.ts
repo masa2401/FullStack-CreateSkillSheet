@@ -77,6 +77,7 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
     isEditable,
     isLocked,
     showEditButton,
+    editableWindowMs,
     requestCommit,
     cancelPendingCommit,
     startEdit,
