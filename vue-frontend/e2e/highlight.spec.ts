@@ -30,7 +30,6 @@ test.describe('選択状態の見た目', () => {
     surveyPage,
   }) => {
     await topPage.goto()
-    await topPage.fillName('山田太郎')
     await topPage.submit()
 
     await surveyPage.checkAnswer('Slack')

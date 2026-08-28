@@ -139,3 +139,42 @@ test.describe('PDF生成', () => {
     })
   })
 })
+
+test.describe('ゲストゲート', () => {
+  test('名前未入力のままResultPageに到達すると、共有・印刷ボタンはメニューを開かずツールチップでブロックされる', async ({
+    topPage,
+    surveyPage,
+    resultPage,
+  }) => {
+    await topPage.goto()
+    await topPage.submit()
+    await surveyPage.checkAnswer('Slack')
+    await surveyPage.selectLevel(3)
+    await surveyPage.submit()
+
+    await resultPage.shareButton.dispatchEvent('click')
+
+    await expect(resultPage.page.getByRole('tooltip')).toBeVisible()
+    await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
+  })
+
+  test('ツールチップから名前を入力すると、以降は共有・印刷メニューが開けるようになる', async ({
+    topPage,
+    surveyPage,
+    resultPage,
+  }) => {
+    await topPage.goto()
+    await topPage.submit()
+    await surveyPage.checkAnswer('Slack')
+    await surveyPage.selectLevel(3)
+    await surveyPage.submit()
+
+    await resultPage.shareButton.dispatchEvent('click')
+    await resultPage.page.getByRole('button', { name: 'お名前を入力する' }).click()
+
+    await resultPage.fillName('山田太郎')
+
+    await resultPage.openShareMenu()
+    await expect(resultPage.page.getByRole('menu')).toBeVisible()
+  })
+})
