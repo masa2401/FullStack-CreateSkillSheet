@@ -7,11 +7,13 @@ test.describe('ページ遷移フロー', () => {
     resultPage,
   }) => {
     await topPage.goto()
-    await topPage.fillName('山田太郎')
     await topPage.submit()
-    await expect(surveyPage.userGreeting).toContainText('山田太郎')
 
+    await surveyPage.checkAnswer('Slack')
+    await surveyPage.selectLevel(3)
     await surveyPage.submit()
+
+    await resultPage.fillName('山田太郎')
     await expect(resultPage.heading).toContainText('山田太郎')
   })
 
@@ -21,7 +23,6 @@ test.describe('ページ遷移フロー', () => {
     resultPage,
   }) => {
     await topPage.goto()
-    await topPage.fillName('山田太郎')
     await topPage.selectCategory('プログラマ / ITエンジニア')
     await topPage.submit()
 
@@ -29,16 +30,9 @@ test.describe('ページ遷移フロー', () => {
     await surveyPage.selectLevel(4)
     await surveyPage.submit()
 
+    await resultPage.fillName('山田太郎')
     await expect(resultPage.heading).toContainText('山田太郎')
     await expect(resultPage.page.getByText('HTML')).toBeVisible()
-  })
-
-  test('名前未入力の場合はエラーが表示され、次へ進めない', async ({ topPage, page }) => {
-    await topPage.goto()
-    await topPage.submit()
-
-    await expect(topPage.errorMessage).toBeVisible()
-    await expect(page).toHaveURL(/#\/$|#$/)
   })
 
   test('チェックはしたが習熟度未選択の場合はエラーが表示され進めない', async ({
@@ -47,7 +41,6 @@ test.describe('ページ遷移フロー', () => {
     page,
   }) => {
     await topPage.goto()
-    await topPage.fillName('山田太郎')
     await topPage.selectCategory('プログラマ / ITエンジニア')
     await topPage.submit()
 
@@ -56,5 +49,34 @@ test.describe('ページ遷移フロー', () => {
 
     await expect(surveyPage.errorMessage).toBeVisible()
     await expect(page).toHaveURL(/#\/survey/)
+  })
+})
+
+test.describe('名前の再編集', () => {
+  test('確定した名前は「名前を編集する」から再編集でき、2回目の確定は編集ボタンを経由せず即ロックされる', async ({
+    topPage,
+    surveyPage,
+    resultPage,
+  }) => {
+    await topPage.goto()
+    await topPage.submit()
+    await surveyPage.checkAnswer('Slack')
+    await surveyPage.selectLevel(3)
+    await surveyPage.submit()
+
+    await resultPage.fillName('山田太郎')
+    await expect(resultPage.heading).toContainText('山田太郎')
+
+    await resultPage.startNameEdit()
+    await expect(resultPage.nameInput).toBeEditable()
+
+    await resultPage.nameInput.fill('田中次郎')
+    await resultPage.nameInput.blur()
+
+    // 確定を待つ（useNameCommitのconfirmDelayMs経過後）
+    await expect(resultPage.heading).toContainText('田中次郎')
+    // 1回目と異なり、確定直後に「名前を編集する」ボタンは再表示されない
+    // （editUsedフラグにより committed フェーズを経由せず locked へ直行するため）
+    await expect(resultPage.page.getByRole('button', { name: '名前を編集する' })).toBeHidden()
   })
 })

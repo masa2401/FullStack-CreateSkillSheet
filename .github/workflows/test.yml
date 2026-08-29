@@ -10,8 +10,39 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      lambda: ${{ steps.filter.outputs.lambda }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            frontend:
+              - 'vue-frontend/**'
+            backend:
+              - 'spring-backend/**'
+            lambda:
+              - 'aws-lambda/**'
+
   frontend-test:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,7 +72,14 @@ jobs:
         working-directory: ./vue-frontend
 
   e2e-test:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # PRイベント時はchromiumのみ、main pushや手動実行時は3ブラウザ全部を並列実行
+        project: ${{ fromJSON(github.event_name == 'pull_request' && '["chromium"]' || '["chromium","firefox","webkit"]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,35 +113,22 @@ jobs:
         working-directory: ./vue-frontend
 
       - name: Run Playwright E2E tests
-        run: npx playwright test
+        run: npx playwright test --project=${{ matrix.project }}
         working-directory: ./vue-frontend
 
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: ./vue-frontend/playwright-report/
           retention-days: 7
 
   backend-test:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
-    # 1. サービスコンテナとしてPostgreSQLを起動
-    services:
-      postgres:
-        image: postgres:18.3
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,38 +141,16 @@ jobs:
           cache: 'maven'
 
       - name: Run Backend tests (Maven)
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
-          SPRING_DATASOURCE_USERNAME: testuser
-          SPRING_DATASOURCE_PASSWORD: testpassword
         run: mvn test
         working-directory: ./spring-backend
 
-  detect-lambda-changes:
+  lambda-changed-flag:
+    needs: changes
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for aws-lambda changes
-        id: filter
-        run: |
-          BEFORE_SHA="${{ github.event.before }}"
-          AFTER_SHA="${{ github.event.after }}"
-
-          if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          elif git diff --quiet "$BEFORE_SHA" "$AFTER_SHA" -- aws-lambda/; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Save flag to file
-        run: echo "${{ steps.filter.outputs.changed }}" > lambda-changed.txt
+        run: echo "${{ needs.changes.outputs.lambda }}" > lambda-changed.txt
 
       - name: Upload flag as artifact
         uses: actions/upload-artifact@v4

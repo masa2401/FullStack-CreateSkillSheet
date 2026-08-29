@@ -82,7 +82,7 @@ export const getDataFromUrl = (): SurveyState | null => {
     console.info('URLからデータを正常に取得しました')
     return decoded
   } catch (error) {
-    console.error('URLからのデータ取得中に予期しないエラーが発生しました:', error)
+    console.error('URLからのデータ取得エラー:', error)
     return null
   }
 }
@@ -98,7 +98,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     return true
   } catch (error) {
     if (error instanceof Error) {
-      console.error('クリップボードコピーエラー:', error.message)
+      console.error('クリップボードコピーエラー:', error)
     }
     return false
   }

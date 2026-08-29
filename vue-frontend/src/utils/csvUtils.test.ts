@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { CATEGORY_MASTER_BY_ID } from '@/data/questions'
 import type { CategorySelection } from '@/types'
 
 import { convertToCSV, downloadCSV } from './csvUtils'
@@ -108,6 +109,74 @@ describe('convertToCSV', () => {
       'CSVへの変換に失敗しました',
     )
   })
+
+  it('マスターデータに存在しない categoryId は無視される', () => {
+    const csv = convertToCSV('山田太郎', [{ categoryId: 999, isChecked: true, questions: [] }])
+    expect(csv).not.toContain('undefined')
+  })
+
+  it('マスターデータに存在しない questionId は無視される', () => {
+    const csv = convertToCSV('山田太郎', [
+      { categoryId: 1, isChecked: true, questions: [{ questionId: 999, answers: [] }] },
+    ])
+    expect(csv).not.toContain('undefined')
+  })
+
+  it('マスターデータに存在しない answerId は無視される', () => {
+    const csv = convertToCSV('山田太郎', [
+      {
+        categoryId: 1,
+        isChecked: true,
+        questions: [{ questionId: 1, answers: [{ answerId: 999, isChecked: true, value: 3 }] }],
+      },
+    ])
+    expect(csv).not.toContain('undefined')
+  })
+
+  it('チェック済みの回答が無い質問は出力対象から除外される', () => {
+    const csv = convertToCSV('山田太郎', [
+      {
+        categoryId: 1,
+        isChecked: true,
+        questions: [{ questionId: 1, answers: [{ answerId: 1, isChecked: false }] }],
+      },
+    ])
+    const lines = csv.split('\r\n')
+    expect(lines[lines.length - 1]).toBe('"カテゴリ","質問項目","スキル・技術要素","習熟度"')
+  })
+
+  it('習熟度（value）が未設定の場合、星の列は空文字になる', () => {
+    const categoryMaster = CATEGORY_MASTER_BY_ID.get(1)!
+    const questionDef = categoryMaster.questions[0]!
+    const answerDef = questionDef.answers[0]!
+
+    const csv = convertToCSV('山田太郎', [
+      {
+        categoryId: 1,
+        isChecked: true,
+        questions: [
+          {
+            questionId: questionDef.id,
+            answers: [{ answerId: answerDef.id, isChecked: true, value: undefined }],
+          },
+        ],
+      },
+    ])
+    const lines = csv.split('\r\n')
+    expect(lines[lines.length - 1]).toBe(
+      `"${categoryMaster.label}","${questionDef.questionText}","${answerDef.label}",""`,
+    )
+  })
+
+  it('内部で例外が発生すると変換失敗のエラーを throw する', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const broken = [
+      { categoryId: 1, isChecked: true, questions: null },
+    ] as unknown as CategorySelection[]
+
+    expect(() => convertToCSV('山田太郎', broken)).toThrow('CSVへの変換に失敗しました')
+    consoleErrorSpy.mockRestore()
+  })
 })
 
 describe('downloadCSV', () => {
@@ -135,5 +204,23 @@ describe('downloadCSV', () => {
     const result = downloadCSV('テストユーザー', mockSelections)
     expect(result).toBe(false)
     createObjectURLSpy.mockRestore()
+  })
+
+  it('userName が空の場合は false を返す', () => {
+    expect(downloadCSV('', [{ categoryId: 1, isChecked: true, questions: [] }])).toBe(false)
+  })
+
+  it('selections が空配列の場合は false を返す', () => {
+    expect(downloadCSV('山田太郎', [])).toBe(false)
+  })
+
+  it('CSV変換中に例外が発生した場合は false を返す', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const broken = [
+      { categoryId: 1, isChecked: true, questions: null },
+    ] as unknown as CategorySelection[]
+
+    expect(downloadCSV('山田太郎', broken)).toBe(false)
+    consoleErrorSpy.mockRestore()
   })
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { useSuccessFeedback } from '@/composables/useSuccessFeedback.ts'
+import { useSuccessFeedback } from '@/composables/useSuccessFeedback'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { downloadCSV } from '@/utils/csvUtils'
 

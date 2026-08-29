@@ -20,23 +20,28 @@ export const useSurveyStore = defineStore(
 
     // ─── 初期状態の構築 ────────────────────────────────────────────
 
+    function buildQuestionsForCategory(categoryId: number): QuestionSelection[] {
+      const master = CATEGORY_MASTERS.find((m) => m.id === categoryId)!
+      return master.questions.map(
+        (q): QuestionSelection => ({
+          questionId: q.id,
+          answers: q.answers.map(
+            (a): AnswerSelection => ({
+              answerId: a.id,
+              isChecked: false,
+              value: undefined,
+            }),
+          ),
+        }),
+      )
+    }
+
     function buildInitialSelections(): CategorySelection[] {
       return CATEGORY_MASTERS.map(
         (master): CategorySelection => ({
           categoryId: master.id,
           isChecked: master.isCheckedByDefault,
-          questions: master.questions.map(
-            (q): QuestionSelection => ({
-              questionId: q.id,
-              answers: q.answers.map(
-                (a): AnswerSelection => ({
-                  answerId: a.id,
-                  isChecked: false,
-                  value: undefined,
-                }),
-              ),
-            }),
-          ),
+          questions: buildQuestionsForCategory(master.id),
         }),
       )
     }
@@ -48,6 +53,12 @@ export const useSurveyStore = defineStore(
       selections: selections.value,
     }))
 
+    const hasAnswers = computed<boolean>(() =>
+      selections.value
+        .filter((cat) => cat.isChecked)
+        .some((cat) => cat.questions.some((q) => q.answers.some((a) => a.isChecked))),
+    )
+
     // ─── Actions ───────────────────────────────────────────────────
 
     const setUserName = (name: string): void => {
@@ -56,7 +67,11 @@ export const useSurveyStore = defineStore(
 
     const setCategoryChecked = (categoryId: number, checked: boolean): void => {
       const sel = selections.value.find((s) => s.categoryId === categoryId)
-      if (sel) sel.isChecked = checked
+      if (!sel) return
+      sel.isChecked = checked
+      if (!checked) {
+        sel.questions = buildQuestionsForCategory(categoryId)
+      }
     }
 
     const setAnswerSelection = (
@@ -131,6 +146,7 @@ export const useSurveyStore = defineStore(
       userName,
       selections,
       surveyState,
+      hasAnswers,
       savedSheetId,
       savedDataSnapshot,
       setUserName,

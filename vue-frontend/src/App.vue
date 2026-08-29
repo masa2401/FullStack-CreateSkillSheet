@@ -19,7 +19,7 @@ import TheHeader from '@/components/TheHeader.vue'
 </template>
 
 <style>
-.app {
+.main {
   min-height: 100vh;
   display: flex;
   flex-direction: column;

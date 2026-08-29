@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { nextTick } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
@@ -15,7 +15,10 @@ const router = useRouter()
 const store = useSurveyStore()
 
 const { mergedCategories } = useMergedSurvey()
-const { validationErrors, validate, isSubmitDisabled } = useSurveyValidation(mergedCategories)
+const { validationErrors, validate, isSubmitDisabled, hasAttemptedSubmit } =
+  useSurveyValidation(mergedCategories)
+
+const noAnswersError = computed(() => hasAttemptedSubmit.value && !store.hasAnswers)
 
 // ─── イベントハンドラ ────────────────────────────────────────────────────────
 
@@ -28,8 +31,18 @@ const handleAnswerUpdate = (
   store.setAnswerSelection(categoryId, questionId, answerId, patch)
 }
 
-const onSubmit = async (): Promise<void> => {
-  if (!validate()) {
+const handleSubmit = async (): Promise<void> => {
+  const isValid = validate()
+
+  if (!store.hasAnswers) {
+    await nextTick()
+    const target = document.getElementById('no-answers-message')
+    target?.scrollIntoView({ behavior: 'smooth' })
+    target?.focus()
+    return
+  }
+
+  if (!isValid) {
     await nextTick()
     const target = document.getElementById('error-message')
     target?.scrollIntoView({ behavior: 'smooth' })
@@ -44,9 +57,6 @@ const onSubmit = async (): Promise<void> => {
   <div class="page-container">
     <div class="header-section">
       <div class="inner">
-        <div class="name-card">
-          <h2 class="user-greeting">{{ store.userName }} 様</h2>
-        </div>
         <div class="instruction-card">
           <p class="instruction-text">
             <font-awesome-icon icon="fa-solid fa-check" />
@@ -107,6 +117,17 @@ const onSubmit = async (): Promise<void> => {
         </template>
       </ValidationError>
 
+      <!-- 回答0件エラー表示 -->
+      <ValidationError
+        :errors="[]"
+        :show="noAnswersError"
+        message-id="no-answers-message"
+      >
+        <template #description>
+          <p class="error-description">1つ以上の項目に回答してから次へ進んでください</p>
+        </template>
+      </ValidationError>
+
       <div class="submit-section">
         <p
           v-if="isSubmitDisabled"
@@ -122,7 +143,7 @@ const onSubmit = async (): Promise<void> => {
           animation-type="bounce"
           icon="fa-solid fa-arrow-right"
           label="次へ進む"
-          @click="onSubmit"
+          @click="handleSubmit"
           :disabled="isSubmitDisabled"
         />
       </div>
@@ -155,15 +176,6 @@ const onSubmit = async (): Promise<void> => {
   align-items: center;
   box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
   border: 1px solid rgba(72, 60, 50, 0.1);
-}
-
-.name-card {
-  margin-bottom: var(--p-12, 1.5rem);
-}
-
-.user-greeting {
-  font-size: 1.8rem;
-  font-weight: 700;
 }
 
 .instruction-text {
@@ -250,10 +262,6 @@ const onSubmit = async (): Promise<void> => {
 @media (max-width: 768px) {
   .page-container {
     padding: var(--p-8, 1rem);
-  }
-
-  .user-greeting {
-    font-size: 1.4rem;
   }
 
   .stars-description {

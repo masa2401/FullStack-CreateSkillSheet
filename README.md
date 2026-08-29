@@ -32,6 +32,7 @@
 ![Vitest](https://img.shields.io/badge/Vitest-7EA93D?style=for-the-badge&logo=vitest&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
 ![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
 
 ### バックエンド
 
@@ -138,8 +139,8 @@ graph TD
 - #### ステータスコード（410/404）によるエラーハンドリング
 
   課題：期限切れ直後とDB削除後で、フロント側の表示が区別できない  
-  解決：バックエンドでLocalDateTime.now()と比較し、期限切れ直後は410、DB削除後は404を返却  
-  結果：データの状態に応じた適切なエラーメッセージをUI側で出し分け可能に
+  解決：バックエンドで`LocalDateTime.now()`と比較し、期限切れ直後は410、DB削除後は404を返却  
+  結果：データの状態に応じた適切なエラーメッセージをUI側で切り分け可能に
 
 - #### @Scheduledによる自動クリーンアップ
 
@@ -188,5 +189,19 @@ graph TD
 - #### カバレッジを指標にした網羅的なテスト
 
   課題：正常系だけのテストでは、非同期処理の競合状態やエラー分岐の不具合を見逃しやすい  
-  対策：`@vitest/coverage-v8`でカバレッジを可視化し、95%以上を維持しながら、ネットワークエラー・ID切り替え時の競合状態などの分岐を重点的に検証  
+  対策：`vitest`でカバレッジを可視化し、95%以上を維持しながら、ネットワークエラー・ID切り替え時の競合状態などの分岐を重点的に検証  
   結果：カバレッジ改善の過程で実装側の潜在バグ（非activeな分岐の未処理等）を複数発見・修正
+
+- #### テストフレームワークの使い分け（Vitest / Playwright）
+
+  課題：全てのテストをVitest（happy-dom）で書くと、CSSの`:has()`セレクタ・Clipboard API・`localStorage`永続化・印刷用スタイルなど、実ブラウザでしか発生しない挙動を検証できない  
+  検討：全テストをPlaywrightへ寄せる案もあったが、多分岐のロジック検証や値レベルの検証（emitされたペイロードの正しさ等）はE2Eでは特定が難しく、実行コストも増大する  
+  採用：「実ブラウザ環境・実APIに依存するか」を基準に、ロジック検証はVitest、実描画・永続化・複数ページ遷移が絡む検証はPlaywrightへ切り分け  
+  結果：それぞれのツールが得意な領域に責務を絞り、重複のない実行コストの低いテスト構成を実現
+
+- #### 状態の直接注入によるE2E実行コストの最適化
+
+  課題：CSVダウンロードや印刷スタイルなど「特定の画面状態」だけを検証したいテストでも、毎回トップ画面からのクリック操作で状態を作る必要があり、テストの実行時間と可読性を損なっていた  
+  検討：全テストを一貫してUI操作で統一する案もあったが、遷移そのものを検証する意図のないテストにまでUI操作を強制する必要性は薄いと判断  
+  採用：`pinia-plugin-persistedstate`の永続化構造を直接調査し、`localStorage`へ状態を注入した上で対象ページへ直接遷移する仕組みを導入。ページ遷移そのものを検証する専用テストのみ、実際のUI操作を維持  
+  結果：検証したい対象に応じてテストの前提構築コストを最小化し、実行時間と可読性を両立

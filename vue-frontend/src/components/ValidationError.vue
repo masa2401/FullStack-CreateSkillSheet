@@ -7,9 +7,13 @@ import type { ValidationError } from '@/types'
 
 interface Props {
   errors: ValidationError[]
+  messageId?: string
+  show?: boolean
 }
 
-const props = defineProps<Props>()
+const { errors, messageId = 'error-message', show = undefined } = defineProps<Props>()
+
+const isVisible = computed(() => show ?? errors.length > 0)
 
 // ─── 内部型 ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +27,7 @@ interface GroupedError extends ValidationError {
 const groupedErrors = computed<GroupedError[]>(() => {
   const groups: Record<string, GroupedError> = {}
 
-  props.errors.forEach((error) => {
+  errors.forEach((error) => {
     const key = `${error.category}|${error.text ?? ''}`
     if (!groups[key]) {
       groups[key] = {
@@ -47,9 +51,9 @@ const getTextPreview = (text: string) =>
 <template>
   <transition name="fade">
     <div
-      v-if="errors.length > 0"
+      v-if="isVisible"
       class="error-message"
-      id="error-message"
+      :id="messageId"
       role="alert"
       aria-live="assertive"
       tabindex="-1"

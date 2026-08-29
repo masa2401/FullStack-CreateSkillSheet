@@ -18,7 +18,6 @@ test.describe('レスポンシブ表示', () => {
 
   test('SurveyPageでモバイル幅の横スクロールが発生しない', async ({ topPage, page }) => {
     await topPage.goto()
-    await topPage.fillName('山田太郎')
     await topPage.submit()
     await expectNoHorizontalScroll(page)
   })
@@ -40,7 +39,6 @@ test.describe('レスポンシブ表示', () => {
 
   test('SurveyPageで説明用画像が非表示になる', async ({ topPage, page }) => {
     await topPage.goto()
-    await topPage.fillName('山田太郎')
     await topPage.submit()
 
     await expect(page.locator('.image')).toBeHidden()

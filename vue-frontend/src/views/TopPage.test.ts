@@ -52,43 +52,6 @@ describe('TopPage', () => {
       },
     })
 
-  // ─── 初期表示 ──────────────────────────────────────────────────
-
-  it('名前入力欄が空の状態で表示される', () => {
-    const wrapper = createWrapper()
-    expect((wrapper.find('#name-input').element as HTMLInputElement).value).toBe('')
-  })
-
-  it('store に保存済みのユーザー名が入力欄に反映される', () => {
-    const wrapper = createWrapper({ userName: '山田太郎' })
-    expect((wrapper.find('#name-input').element as HTMLInputElement).value).toBe('山田太郎')
-  })
-
-  // ─── バリデーション ───────────────────────────────────────────────
-
-  it('名前未入力でボタンをクリックするとエラーが表示される', async () => {
-    const wrapper = createWrapper()
-    await wrapper.find('.action-button').trigger('click')
-    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
-  })
-
-  it('スペースのみの入力はエラーになる', async () => {
-    const wrapper = createWrapper()
-    await wrapper.find('#name-input').setValue(' ')
-    await wrapper.find('.action-button').trigger('click')
-    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
-  })
-
-  it('送信試行後に名前を入力するとエラーがリアルタイムで消える', async () => {
-    const wrapper = createWrapper()
-    await wrapper.find('.action-button').trigger('click')
-    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
-
-    await wrapper.find('#name-input').setValue('山田太郎')
-    await wrapper.find('#name-input').trigger('input')
-    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
-  })
-
   // ─── カテゴリ選択 ────────────────────────────────────────────────
 
   it('エンジニアカードにチェックを入れると選択状態になる', async () => {
@@ -131,38 +94,12 @@ describe('TopPage', () => {
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
   })
 
-  // ─── 画面遷移・ストア更新 ────────────────────────────────────────────
+  // ─── ページ遷移 ────────────────────────────────────────────────
 
-  it('有効な名前でボタンをクリックすると SurveyPage へ遷移する', async () => {
+  it('「アンケートを開始」ボタンをクリックすると /survey へ遷移する', async () => {
     const wrapper = createWrapper()
-    await wrapper.find('#name-input').setValue('山田太郎')
-    await wrapper.find('.action-button').trigger('click')
+    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY)
-  })
-
-  it('遷移時に store.userName が更新される', async () => {
-    const wrapper = createWrapper()
-    const store = useSurveyStore()
-    await wrapper.find('#name-input').setValue('山田太郎')
-    await wrapper.find('.action-button').trigger('click')
-    await flushPromises()
-    expect(store.userName).toBe('山田太郎')
-  })
-
-  it('名前の前後スペースはトリミングされて保存される', async () => {
-    const wrapper = createWrapper()
-    const store = useSurveyStore()
-    await wrapper.find('#name-input').setValue('　山田太郎　')
-    await wrapper.find('.action-button').trigger('click')
-    await flushPromises()
-    expect(store.userName).toBe('山田太郎')
-  })
-
-  it('バリデーションエラー時は遷移しない', async () => {
-    const wrapper = createWrapper()
-    await wrapper.find('.action-button').trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
   })
 })

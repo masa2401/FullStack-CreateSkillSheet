@@ -1,7 +1,8 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { type NavigationGuard, createRouter, createWebHashHistory } from 'vue-router'
 
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
+import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 import TopPage from '@/views/TopPage.vue'
 
 const router = createRouter({
@@ -16,13 +17,12 @@ const router = createRouter({
       path: ROUTES.SURVEY,
       name: 'survey',
       component: () => import('@/views/SurveyPage.vue'),
-      meta: { requiresName: true },
     },
     {
       path: ROUTES.RESULT,
       name: 'result',
       component: () => import('@/views/ResultPage.vue'),
-      meta: { requiresName: true },
+      meta: { requiresAnswers: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -40,21 +40,20 @@ const router = createRouter({
 })
 
 // ─── ナビゲーションガードの設定 ──────────────────────────────────────────
-router.beforeEach((to, _from, next) => {
-  if (to.meta.requiresName) {
-    const hash = window.location.hash
-    const hasSharedData = hash.includes('data=') || hash.includes('id=')
-    if (hasSharedData) {
+export const requiresAnswersGuard: NavigationGuard = (to, _from, next) => {
+  if (to.meta.requiresAnswers) {
+    if (getIdFromUrl() || getDataFromUrl()) {
       next()
       return
     }
     const store = useSurveyStore()
-    if (!store.userName || store.userName.trim() === '') {
+    if (!store.hasAnswers) {
       next(ROUTES.TOP)
       return
     }
   }
   next()
-})
+}
+router.beforeEach(requiresAnswersGuard)
 
 export default router

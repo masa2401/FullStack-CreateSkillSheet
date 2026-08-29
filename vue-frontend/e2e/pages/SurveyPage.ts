@@ -4,15 +4,15 @@ import type { StarLevel } from '@/types'
 
 export class SurveyPage {
   readonly page: Page
-  readonly userGreeting: Locator
   readonly submitButton: Locator
   readonly errorMessage: Locator
+  readonly noAnswersMessage: Locator
 
   constructor(page: Page) {
     this.page = page
-    this.userGreeting = page.locator('.user-greeting')
     this.submitButton = page.getByRole('button', { name: '次へ進む' })
     this.errorMessage = page.locator('#error-message')
+    this.noAnswersMessage = page.locator('#no-answers-message')
   }
 
   answerCheckbox(label: string): Locator {

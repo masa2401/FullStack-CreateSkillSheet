@@ -146,6 +146,16 @@ describe('usePdfStatus', () => {
   })
 
   describe('retry', () => {
+    it('retry: sheetId が null の場合は何もしない', async () => {
+      const regenerateSpy = vi.spyOn(apiUtils, 'regeneratePdf')
+      const sheetId = ref<string | null>(null)
+      const { retry, state } = usePdfStatus(sheetId)
+
+      await retry()
+
+      expect(regenerateSpy).not.toHaveBeenCalled()
+      expect(state.value).toBe('waiting')
+    })
     it('regenerate 成功時はポーリングを再開する', async () => {
       vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
       vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue(true)

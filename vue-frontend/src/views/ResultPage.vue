@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import EditableNameHeading from '@/components/EditableNameHeading.vue'
 import ShareButton from '@/components/ShareButton.vue'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -16,7 +17,11 @@ const { mergedCategories } = useMergedSurvey()
 
 const goToTop = () => router.push(ROUTES.TOP)
 const goBack = () => router.push(ROUTES.SURVEY)
-const handlePrint = () => window.print()
+
+const startOwnSheet = (): void => {
+  store.reset()
+  router.push(ROUTES.TOP)
+}
 
 type PageStatus =
   | { type: 'loading' }
@@ -55,6 +60,18 @@ onMounted(async () => {
   pageStatus.value = { type: 'ready', isSharedView: false }
 })
 
+const handleNameCommitted = async (name: string): Promise<void> => {
+  store.setUserName(name)
+  if (!isBackendEnabled()) return
+  try {
+    await store.getSavedIdOrSave()
+  } catch (error) {
+    console.error('プリフェッチ用の保存エラー:', error)
+  }
+}
+
+const displayName = computed(() => store.userName || 'Guest')
+
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
 const displayCategories = computed(() =>
@@ -68,7 +85,8 @@ const displayCategories = computed(() =>
           answers: q.answers.filter((a) => a.isChecked),
         }))
         .filter((q) => q.answers.length > 0),
-    })),
+    }))
+    .filter((cat) => cat.questions.length > 0),
 )
 </script>
 
@@ -80,10 +98,18 @@ const displayCategories = computed(() =>
     <div class="content-wrapper">
       <div class="header-section">
         <div class="result-header">
-          <div class="header-icon">
-            <font-awesome-icon icon="fa-regular fa-clipboard" />
-          </div>
-          <h2 class="page-title">{{ store.userName }} 様のスキルシート</h2>
+          <h2
+            v-if="pageStatus.isSharedView"
+            class="page-title"
+          >
+            {{ displayName }} 様のスキルシート
+          </h2>
+          <EditableNameHeading
+            v-else
+            :initial-name="store.userName"
+            :display-name="displayName"
+            @commit="handleNameCommitted"
+          />
         </div>
         <div class="description-group">
           <div class="image">
@@ -108,7 +134,6 @@ const displayCategories = computed(() =>
       <div
         v-for="category in displayCategories"
         :key="category.id"
-        v-show="category.isChecked"
         class="category-section"
       >
         <div class="category-header">
@@ -154,14 +179,6 @@ const displayCategories = computed(() =>
             @click="goBack"
           />
 
-          <AnimatedIconButton
-            animationType="bounce"
-            icon="fa-solid fa-print"
-            label="印刷する"
-            variant="secondary"
-            @click="handlePrint"
-          />
-
           <ShareButton />
 
           <AnimatedIconButton
@@ -177,7 +194,7 @@ const displayCategories = computed(() =>
           <AnimatedIconButton
             icon="fa-solid fa-pen"
             label="自分のスキルシートを作成"
-            @click="goToTop"
+            @click="startOwnSheet"
           />
         </template>
       </div>
@@ -264,10 +281,6 @@ const displayCategories = computed(() =>
   display: flex;
   flex-direction: column;
   width: fit-content;
-}
-
-.header-icon {
-  font-size: 2.4rem;
 }
 
 .page-title {
@@ -501,11 +514,6 @@ const displayCategories = computed(() =>
     padding: 0 0 var(--p-8, 1rem) 0;
     border: 1px solid #e5e7eb;
     border-radius: var(--radius, 12px);
-  }
-
-  .header-icon {
-    font-size: 2.5rem;
-    margin-bottom: var(--p-4, 0.5rem);
   }
 
   .page-title {

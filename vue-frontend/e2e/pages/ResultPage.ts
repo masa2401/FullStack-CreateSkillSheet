@@ -7,17 +7,19 @@ const STORAGE_KEY = 'survey'
 export class ResultPage {
   readonly page: Page
   readonly heading: Locator
+  readonly nameInput: Locator
   readonly shareButton: Locator
   readonly buttonGroup: Locator
-  readonly printButton: Locator
   readonly errorHeading: Locator
 
   constructor(page: Page) {
     this.page = page
-    this.heading = page.locator('.page-title')
-    this.shareButton = page.getByRole('button', { name: '結果を共有' })
+    // 共有ビューでは.page-title、通常ビューではEditableNameHeading内の
+    // 視覚上非表示な.user-name-heading（h2）が使われる。両者は排他的に描画される。
+    this.heading = page.locator('.page-title, .user-name-heading')
+    this.nameInput = page.locator('.page-title-input')
+    this.shareButton = page.getByRole('button', { name: '結果を印刷/共有' })
     this.buttonGroup = page.locator('.button-group')
-    this.printButton = page.getByRole('button', { name: '印刷する' })
     this.errorHeading = page.locator('.error-title')
   }
 
@@ -54,6 +56,16 @@ export class ResultPage {
     await this.page.goto('/#/result')
   }
 
+  /**
+   * 名前入力→blur後、useNameCommitのconfirmDelayMs（既定2000ms）経過を待って確定させる。
+   * 「名前を編集する」ボタンの出現（phase: committed）を確定の合図として待つ。
+   */
+  async fillName(name: string): Promise<void> {
+    await this.nameInput.fill(name)
+    await this.nameInput.blur()
+    await this.page.getByRole('button', { name: '名前を編集する' }).waitFor({ state: 'visible' })
+  }
+
   async openShareMenu(): Promise<void> {
     await this.shareButton.click()
     await this.page.getByRole('menu').waitFor({ state: 'visible' })
@@ -70,10 +82,16 @@ export class ResultPage {
   }
 
   async print(): Promise<void> {
-    await this.printButton.click()
+    await this.openShareMenu()
+    await this.page.getByRole('button', { name: '印刷する' }).click()
   }
 
   skillCard(index = 0): Locator {
     return this.page.locator('.skill-card').nth(index)
+  }
+
+  /** 「名前を編集する」ボタンから再編集を開始する（committedフェーズ中のみ有効） */
+  async startNameEdit(): Promise<void> {
+    await this.page.getByRole('button', { name: '名前を編集する' }).click()
   }
 }

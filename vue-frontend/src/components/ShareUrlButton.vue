@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import { useSuccessFeedback } from '@/composables/useSuccessFeedback.ts'
+import { useSuccessFeedback } from '@/composables/useSuccessFeedback'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { isBackendEnabled } from '@/utils/api'
 import { copyToClipboard, createShareUrl } from '@/utils/shareUtils'
@@ -31,7 +31,7 @@ const handleCopy = async () => {
       : createShareUrl(store.surveyState)
     await copyAndNotify(url)
   } catch (error) {
-    console.error('URL生成エラー', error)
+    console.error('URL生成エラー:', error)
     await copyAndNotify(createShareUrl(store.surveyState))
   } finally {
     isSaving.value = false
