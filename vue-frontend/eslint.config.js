@@ -1,10 +1,11 @@
-import js from '@eslint/js';
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting';
-import pluginVue from 'eslint-plugin-vue';
-import { defineConfig, globalIgnores } from 'eslint/config';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import vueParser from 'vue-eslint-parser';
+import vueParser from 'vue-eslint-parser'
+
+import js from '@eslint/js'
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+import pluginVue from 'eslint-plugin-vue'
+import { defineConfig, globalIgnores } from 'eslint/config'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 export default defineConfig([
   globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', 'node_modules/**']),
@@ -34,4 +35,4 @@ export default defineConfig([
     ...tseslint.configs.disableTypeChecked,
   },
   skipFormatting,
-]);
+])

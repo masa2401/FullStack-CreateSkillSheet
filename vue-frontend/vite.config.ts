@@ -1,7 +1,7 @@
-import vue from '@vitejs/plugin-vue';
-import { fileURLToPath, URL } from 'node:url';
-import vueDevTools from 'vite-plugin-vue-devtools';
-import { configDefaults, defineConfig } from 'vitest/config';
+import vue from '@vitejs/plugin-vue'
+import { URL, fileURLToPath } from 'node:url'
+import vueDevTools from 'vite-plugin-vue-devtools'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,10 +12,13 @@ export default defineConfig({
     globals: true,
     restoreMocks: true,
     exclude: [...configDefaults.exclude, '**/e2e/**'],
+    coverage: {
+      exclude: [...(configDefaults.coverage?.exclude ?? []), 'src/views/NotFound.vue'],
+    },
   },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-});
+})
