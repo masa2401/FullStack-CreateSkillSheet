@@ -19,7 +19,8 @@ export const useMergedSurvey = () => {
           const questionDef = master.questions.find((q) => q.id === qSel.questionId)!
           return {
             id: questionDef.id,
-            questionText: questionDef.questionText,
+            title: questionDef.title,
+            prompt: questionDef.prompt,
             answers: qSel.answers.map((aSel) => {
               const answerDef = questionDef.answers.find((a) => a.id === aSel.answerId)!
               return {

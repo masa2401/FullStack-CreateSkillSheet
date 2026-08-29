@@ -35,7 +35,7 @@ export const convertToCSV = (userName: string, selections: CategorySelection[]):
             const level = aSel.value ? LEVEL_LABELS[aSel.value - 1] : undefined
             const row = [
               !categoryShown ? categoryMaster.label : '',
-              !questionShown ? questionDef.questionText : '',
+              !questionShown ? questionDef.title : '',
               answerDef.label,
               level ? level.stars : '',
             ]

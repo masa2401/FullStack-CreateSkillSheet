@@ -3,7 +3,8 @@ import type { Question } from '@/types'
 export const commonQuestions: Question[] = [
   {
     id: 1,
-    questionText: 'Q1. 実務で使用経験のあるオフィスソフトを全て選択してください。',
+    title: 'オフィスソフト',
+    prompt: '実務で使用経験のあるものを選択してください。',
     answers: [
       { id: 1, label: 'Microsoft Word （報告書・議事録作成など）' },
       { id: 2, label: 'Microsoft Excel （関数、ピボットテーブル、グラフ作成など）' },
@@ -13,8 +14,8 @@ export const commonQuestions: Question[] = [
   },
   {
     id: 2,
-    questionText:
-      'Q2. 業務で日常的に使用したことのあるコミュニケーションツールを全て選択してください。',
+    title: 'コミュニケーションツール',
+    prompt: '業務で日常的に使用したことのあるものを選択してください。',
     answers: [
       { id: 1, label: 'Slack' },
       { id: 2, label: 'Microsoft Teams' },
@@ -24,7 +25,8 @@ export const commonQuestions: Question[] = [
   },
   {
     id: 3,
-    questionText: 'Q3. 以下のIT関連知識・スキルについて、当てはまるものを全て選択してください。',
+    title: 'PC・IT基礎スキル',
+    prompt: '当てはまるものを選択してください。',
     answers: [
       { id: 1, label: 'Windowsの基本操作・設定ができる' },
       { id: 2, label: 'macOSの基本操作・設定ができる' },

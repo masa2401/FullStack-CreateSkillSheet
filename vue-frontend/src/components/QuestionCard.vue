@@ -5,6 +5,7 @@ import AnswerItem from './AnswerItem.vue'
 
 interface Props {
   question: MergedQuestion
+  questionNumber: number
 }
 
 defineProps<Props>()
@@ -18,7 +19,10 @@ const emit = defineEmits<{
 
 <template>
   <div class="question-card">
-    <h4 class="question-text">{{ question.questionText }}</h4>
+    <div class="question-header">
+      <h4 class="question-title">Q{{ questionNumber }}. {{ question.title }}</h4>
+      <p class="question-prompt">{{ question.prompt }}</p>
+    </div>
     <div class="answers-grid">
       <AnswerItem
         v-for="answer in question.answers"
@@ -43,12 +47,23 @@ const emit = defineEmits<{
   margin: 0 auto;
 }
 
-.question-text {
-  font-size: 1.1rem;
+.question-header {
   margin: 0 0 var(--p-8, 1rem) 0;
+}
+
+.question-title {
+  font-size: 1.1rem;
+  margin: 0;
   color: #483c32;
   font-weight: 600;
   line-height: 1.6;
+}
+
+.question-prompt {
+  font-size: 0.9rem;
+  margin: var(--p-4, 0.5rem) 0 0;
+  color: #6b6157;
+  line-height: 1.5;
 }
 
 .answers-grid {

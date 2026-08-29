@@ -13,7 +13,7 @@ export const useSurveyValidation = (mergedCategories: ComputedRef<MergedCategory
       cat.questions.forEach((q) => {
         q.answers.forEach((a) => {
           if (a.isChecked && !a.value) {
-            errors.push({ category: cat.label, text: q.questionText })
+            errors.push({ category: cat.label, text: q.title })
           }
         })
       })

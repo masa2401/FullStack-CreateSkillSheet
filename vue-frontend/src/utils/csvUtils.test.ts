@@ -164,7 +164,7 @@ describe('convertToCSV', () => {
     ])
     const lines = csv.split('\r\n')
     expect(lines[lines.length - 1]).toBe(
-      `"${categoryMaster.label}","${questionDef.questionText}","${answerDef.label}",""`,
+      `"${categoryMaster.label}","${questionDef.title}","${answerDef.label}",""`,
     )
   })
 

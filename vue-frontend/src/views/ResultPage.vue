@@ -144,7 +144,7 @@ const displayCategories = computed(() =>
           :key="question.id"
           class="question-block"
         >
-          <h4 class="question-title">{{ question.questionText }}</h4>
+          <h4 class="question-title">{{ question.title }}</h4>
           <div class="skills-grid">
             <div
               v-for="answer in question.answers"

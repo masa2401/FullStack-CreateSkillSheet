@@ -100,9 +100,10 @@ const handleSubmit = async (): Promise<void> => {
           </div>
 
           <QuestionCard
-            v-for="question in category.questions"
+            v-for="(question, index) in category.questions"
             :key="question.id"
             :question="question"
+            :question-number="index + 1"
             @update:answer="
               handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
             "

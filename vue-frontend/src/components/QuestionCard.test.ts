@@ -8,7 +8,8 @@ import QuestionCard from './QuestionCard.vue'
 
 const mockQuestion = {
   id: 1,
-  questionText: 'Q1. テスト質問',
+  title: 'テスト質問',
+  prompt: '当てはまるものを選択してください。',
   answers: [
     { id: 1, label: '回答A', isChecked: false },
     { id: 2, label: '回答B', isChecked: true, value: 3 as const },
@@ -17,14 +18,24 @@ const mockQuestion = {
 
 const createWrapper = (propsData = {}) =>
   mount(QuestionCard, {
-    props: { question: mockQuestion, ...propsData },
+    props: { question: mockQuestion, questionNumber: 1, ...propsData },
     stubs: { 'font-awesome-icon': true },
   })
 
 describe('QuestionCard', () => {
-  it('質問文が表示される', () => {
+  it('タイトルが Q番号付きで表示される', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.question-text').text()).toBe('Q1. テスト質問')
+    expect(wrapper.find('.question-title').text()).toBe('Q1. テスト質問')
+  })
+
+  it('questionNumber に応じて Q番号が変わる', () => {
+    const wrapper = createWrapper({ questionNumber: 5 })
+    expect(wrapper.find('.question-title').text()).toBe('Q5. テスト質問')
+  })
+
+  it('設問文が表示される', () => {
+    const wrapper = createWrapper()
+    expect(wrapper.find('.question-prompt').text()).toBe('当てはまるものを選択してください。')
   })
 
   it('回答の数だけ AnswerItem が表示される', () => {

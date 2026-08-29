@@ -3,8 +3,8 @@ import type { Question } from '@/types'
 export const designerQuestions: Question[] = [
   {
     id: 1,
-    questionText:
-      'Q1. WebサイトやアプリのUI/UXデザインで使用経験のあるツールを全て選択してください。',
+    title: 'UI/UXデザインツール',
+    prompt: '実務で使用経験のあるものを選択してください。',
     answers: [
       { id: 1, label: 'Figma' },
       { id: 2, label: 'Sketch' },
@@ -14,7 +14,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 2,
-    questionText: 'Q2. イラスト制作を主目的として使用したことのあるツールを全て選択してください。',
+    title: 'イラスト制作ツール',
+    prompt: '主目的として使用したことのあるものを選択してください。',
     answers: [
       { id: 1, label: 'Illustrator' },
       { id: 2, label: 'Photoshop' },
@@ -24,8 +25,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 3,
-    questionText:
-      'Q3. Webデザインの実装（コーディング）において、対応可能なものを全て選択してください。',
+    title: 'Webデザイン実装',
+    prompt: '対応可能なものを選択してください。',
     answers: [
       { id: 1, label: 'HTML/CSSによるコーディング' },
       { id: 2, label: 'レスポンシブデザイン対応' },
@@ -35,7 +36,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 4,
-    questionText: 'Q4. DTP（印刷物）デザインにおいて、経験のある業務を全て選択してください。',
+    title: 'DTP・印刷物デザイン',
+    prompt: '経験のある業務を選択してください。',
     answers: [
       { id: 1, label: '名刺・チラシ・ポスターなどの制作' },
       { id: 2, label: 'パンフレット・冊子などのページレイアウト' },
@@ -45,7 +47,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 5,
-    questionText: 'Q5. 実務で使用経験のある動画編集ソフトを全て選択してください。',
+    title: '動画編集ソフト',
+    prompt: '実務で使用経験のあるものを選択してください。',
     answers: [
       { id: 1, label: 'Adobe Premiere Pro （カット編集、テロップ入れ、整音など標準的な編集）' },
       {
@@ -59,8 +62,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 6,
-    questionText:
-      'Q6. 以下の編集スキル・操作について、自信を持って対応できるものを全て選択してください。',
+    title: '動画編集スキル',
+    prompt: '自信を持って対応できるものを選択してください。',
     answers: [
       { id: 1, label: 'カット編集（ジェットカット、マルチカメラ編集など）' },
       { id: 2, label: 'テロップ・字幕の挿入（見やすいフォント選定、装飾、タイミング調整）' },
@@ -76,8 +79,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 7,
-    questionText:
-      'Q7. 動画制作に関連する知識・周辺スキルについて、当てはまるものを全て選択してください。',
+    title: '動画制作の周辺スキル',
+    prompt: '当てはまるものを選択してください。',
     answers: [
       {
         id: 1,
@@ -99,7 +102,8 @@ export const designerQuestions: Question[] = [
   },
   {
     id: 8,
-    questionText: 'Q8. これまでに制作・編集経験のある動画ジャンルを選択してください。',
+    title: '動画ジャンル',
+    prompt: 'これまでに制作・編集経験のあるものを選択してください。',
     answers: [
       { id: 1, label: 'YouTube動画（エンタメ、ビジネス系、Vlogなど）' },
       { id: 2, label: 'ショート動画（TikTok、Instagram Reels、YouTube Shorts）' },
