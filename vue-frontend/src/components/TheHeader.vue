@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
+import { useAppNavigation } from '@/composables/useAppNavigation'
 import { ROUTES } from '@/utils/constants'
 
-const router = useRouter()
 const route = useRoute()
+const { goToTop } = useAppNavigation()
 
-const goToTop = () => {
+const handleTitleClick = () => {
   if (route.path !== ROUTES.TOP) {
-    router.push(ROUTES.TOP)
+    goToTop()
   }
 }
 </script>
@@ -18,9 +19,9 @@ const goToTop = () => {
     <h1>
       <button
         class="title"
-        @click="goToTop"
-        @keydown.enter="goToTop"
-        @keydown.space.prevent="goToTop"
+        @click="handleTitleClick"
+        @keydown.enter="handleTitleClick"
+        @keydown.space.prevent="handleTitleClick"
         tabindex="0"
         :aria-label="`スキルシート制作ページ（${route.path !== ROUTES.TOP ? 'トップページへ戻る' : 'TOPページ'}）`"
       >

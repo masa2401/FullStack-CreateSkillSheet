@@ -1,32 +1,30 @@
 ﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
-import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
+import { LEVEL_LABELS } from '@/utils/constants'
 import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 
-const router = useRouter()
 const store = useSurveyStore()
 const { mergedCategories } = useMergedSurvey()
 
-const goToTop = () => router.push(ROUTES.TOP)
-const goBack = () => router.push(ROUTES.SURVEY)
+const { goToTop, goToSurvey: goBack } = useAppNavigation()
 
 const startOwnSheet = (): void => {
   store.reset()
-  router.push(ROUTES.TOP)
+  goToTop()
 }
 
 type PageStatus =
   | { type: 'loading' }
   | { type: 'ready'; isSharedView: boolean }
-  | { type: 'error'; reason: 'expired' | 'notfound'; expiryDays?: number }
+  | { type: 'error'; reason: 'expired' | 'notfound' | 'error'; expiryDays?: number }
 
 const pageStatus = ref<PageStatus>({ type: 'loading' })
 
@@ -34,20 +32,18 @@ onMounted(async () => {
   const sharedId = getIdFromUrl()
   if (sharedId && isBackendEnabled()) {
     const result = await fetchSheet(sharedId)
-    if (result) {
-      if (result.status === 'success') {
-        store.loadFromSharedState(result.data)
-        pageStatus.value = { type: 'ready', isSharedView: true }
-        return
-      }
-      if (result.status === 'expired') {
-        pageStatus.value = { type: 'error', reason: result.status, expiryDays: result.expiryDays }
-        return
-      }
-      if (result.status === 'notfound') {
-        pageStatus.value = { type: 'error', reason: result.status }
-        return
-      }
+    if (result.status === 'success') {
+      store.loadFromSharedState(result.data)
+      pageStatus.value = { type: 'ready', isSharedView: true }
+      return
+    }
+    if (result.status === 'expired') {
+      pageStatus.value = { type: 'error', reason: result.status, expiryDays: result.expiryDays }
+      return
+    }
+    if (result.status === 'notfound' || result.status === 'error') {
+      pageStatus.value = { type: 'error', reason: result.status }
+      return
     }
   }
 
@@ -213,14 +209,18 @@ const displayCategories = computed(() =>
         {{
           pageStatus.reason === 'expired'
             ? 'リンクの有効期限が切れています'
-            : 'リンクが見つかりません'
+            : pageStatus.reason === 'notfound'
+              ? 'リンクが見つかりません'
+              : '読み込みに失敗しました'
         }}
       </h2>
       <p class="error-message">
         {{
           pageStatus.reason === 'expired'
             ? `共有リンクの有効期限（${pageStatus.expiryDays}日間）が切れています。`
-            : 'お探しのスキルシートは存在しないか、削除された可能性があります。'
+            : pageStatus.reason === 'notfound'
+              ? 'お探しのスキルシートは存在しないか、削除された可能性があります。'
+              : '一時的な問題で読み込めませんでした。時間をおいて再度お試しください。'
         }}
       </p>
       <AnimatedIconButton

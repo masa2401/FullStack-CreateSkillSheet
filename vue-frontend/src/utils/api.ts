@@ -8,6 +8,7 @@ export type FetchSheetResult =
   | { status: 'success'; data: SurveyState }
   | { status: 'expired'; expiryDays: number }
   | { status: 'notfound' }
+  | { status: 'error' }
 
 export type PdfStatus = { status: 'generating' } | { status: 'ready'; downloadUrl: string }
 
@@ -26,19 +27,20 @@ export const saveSheet = async (state: SurveyState): Promise<string | null> => {
   return id
 }
 
-export const fetchSheet = async (id: string): Promise<FetchSheetResult | null> => {
-  if (!isBackendEnabled()) return null
+export const fetchSheet = async (id: string): Promise<FetchSheetResult> => {
+  if (!isBackendEnabled()) return { status: 'error' }
   try {
     const res = await fetch(`${getApiBase()}/api/sheets/${id}`)
     if (res.status === 410) {
       const body = await res.json()
       return { status: 'expired', expiryDays: body.expiryDays }
     }
-    if (!res.ok) return { status: 'notfound' }
+    if (res.status === 404) return { status: 'notfound' }
+    if (!res.ok) return { status: 'error' }
     const dto = (await res.json()) as SheetDto
     return { status: 'success', data: toSurveyState(dto) }
   } catch {
-    return null
+    return { status: 'error' }
   }
 }
 
