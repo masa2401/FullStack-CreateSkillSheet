@@ -1,14 +1,8 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-import { ROUTES } from '@/utils/constants'
+import { useAppNavigation } from '@/composables/useAppNavigation'
 
-const router = useRouter()
-
-const goToTop = () => {
-  router.push(ROUTES.TOP)
-}
+const { goToTop } = useAppNavigation()
 </script>
 
 <template>

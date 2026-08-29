@@ -1,26 +1,24 @@
 ﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
-import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
+import { LEVEL_LABELS } from '@/utils/constants'
 import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
 
-const router = useRouter()
 const store = useSurveyStore()
 const { mergedCategories } = useMergedSurvey()
 
-const goToTop = () => router.push(ROUTES.TOP)
-const goBack = () => router.push(ROUTES.SURVEY)
+const { goToTop, goToSurvey: goBack } = useAppNavigation()
 
 const startOwnSheet = (): void => {
   store.reset()
-  router.push(ROUTES.TOP)
+  goToTop()
 }
 
 type PageStatus =

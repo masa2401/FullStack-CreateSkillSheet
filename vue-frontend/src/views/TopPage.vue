@@ -1,13 +1,11 @@
 ﻿<script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import { useAppNavigation } from '@/composables/useAppNavigation'
 import { CATEGORY_MASTERS } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
-import { ROUTES } from '@/utils/constants'
 
-const router = useRouter()
 const store = useSurveyStore()
 
 const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!
@@ -21,10 +19,7 @@ const designerChecked = computed({
   get: () => store.selections.find((c) => c.categoryId === designerMaster.id)?.isChecked ?? false,
   set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val),
 })
-
-const goToSurvey = (): void => {
-  router.push(ROUTES.SURVEY)
-}
+const { goToSurvey } = useAppNavigation()
 </script>
 
 <template>

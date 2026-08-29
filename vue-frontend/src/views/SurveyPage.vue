@@ -1,18 +1,18 @@
 ﻿<script setup lang="ts">
 import { computed, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import QuestionCard from '@/components/QuestionCard.vue'
 import ValidationError from '@/components/ValidationError.vue'
+import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyValidation } from '@/composables/useSurveyValidation'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { StarLevel } from '@/types'
-import { LEVEL_LABELS, ROUTES } from '@/utils/constants'
+import { LEVEL_LABELS } from '@/utils/constants'
 
-const router = useRouter()
 const store = useSurveyStore()
+const { goToResult } = useAppNavigation()
 
 const { mergedCategories } = useMergedSurvey()
 const { validationErrors, validate, isSubmitDisabled, hasAttemptedSubmit } =
@@ -49,7 +49,7 @@ const handleSubmit = async (): Promise<void> => {
     target?.focus()
     return
   }
-  router.push(ROUTES.RESULT)
+  goToResult()
 }
 </script>
 
