@@ -41,11 +41,6 @@ const groupedErrors = computed<GroupedError[]>(() => {
 
   return Object.values(groups)
 })
-
-const PREVIEW_LENGTH = 30
-
-const getTextPreview = (text: string) =>
-  text.length > PREVIEW_LENGTH ? `${text.substring(0, PREVIEW_LENGTH)}...` : text
 </script>
 
 <template>
@@ -86,7 +81,7 @@ const getTextPreview = (text: string) =>
                   v-if="group.text"
                   class="error-question"
                 >
-                  {{ getTextPreview(group.text) }}
+                  {{ group.text }}
                 </div>
               </div>
             </li>

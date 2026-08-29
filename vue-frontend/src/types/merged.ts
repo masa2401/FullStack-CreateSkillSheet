@@ -9,7 +9,8 @@ type MergedAnswer = {
 
 export type MergedQuestion = {
   id: number
-  questionText: string
+  title: string
+  prompt: string
   answers: MergedAnswer[]
 }
 

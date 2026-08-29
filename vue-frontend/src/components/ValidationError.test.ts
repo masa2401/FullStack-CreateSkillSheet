@@ -47,17 +47,10 @@ describe('ValidationError', () => {
     expect(wrapper.findAll('.error-item')).toHaveLength(2)
   })
 
-  it('30文字を超えるテキストは省略される', () => {
-    const errors: VError[] = [{ category: 'テスト', text: 'a'.repeat(40) }]
+  it('text が指定されたエラーは補足テキストが表示される', () => {
+    const errors: VError[] = [{ category: 'テスト', text: 'データベース' }]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.find('.error-question').text()).toContain('...')
-  })
-
-  it('30文字以下のテキストは省略されない', () => {
-    const shortText = 'Q1. テスト質問'
-    const errors: VError[] = [{ category: 'テスト', text: shortText }]
-    const wrapper = createWrapper({ errors })
-    expect(wrapper.find('.error-question').text()).not.toContain('...')
+    expect(wrapper.find('.error-question').text()).toBe('データベース')
   })
 
   it('text が無いエラーは補足テキストが表示されない', () => {

@@ -7,7 +7,8 @@ type Answer = {
 
 export type Question = {
   id: number
-  questionText: string
+  title: string
+  prompt: string
   answers: Answer[]
 }
 

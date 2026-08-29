@@ -14,7 +14,8 @@ const makeCategory = (overrides?: Partial<MergedCategory>): MergedCategory => ({
   questions: [
     {
       id: 1,
-      questionText: 'Q1. テスト質問',
+      title: 'テスト質問',
+      prompt: '当てはまるものを選択してください。',
       answers: [{ id: 1, label: 'テスト回答', isChecked: false, value: undefined }],
     },
   ],
@@ -55,7 +56,8 @@ describe('userSurveyValidation', () => {
         questions: [
           {
             id: 1,
-            questionText: 'Q1. テスト質問',
+            title: 'テスト質問',
+            prompt: '当てはまるものを選択してください。',
             answers: [{ id: 1, label: 'テスト回答', isChecked: true, value: undefined }],
           },
         ],
@@ -75,7 +77,8 @@ describe('userSurveyValidation', () => {
         questions: [
           {
             id: 1,
-            questionText: 'Q1. テスト質問',
+            title: 'テスト質問',
+            prompt: '当てはまるものを選択してください。',
             answers: [{ id: 1, label: 'テスト回答', isChecked: true, value: undefined }],
           },
         ],
@@ -93,7 +96,8 @@ describe('userSurveyValidation', () => {
         questions: [
           {
             id: 1,
-            questionText: 'Q1. テスト質問',
+            title: 'テスト質問',
+            prompt: '当てはまるものを選択してください。',
             answers: [{ id: 1, label: 'テスト回答', isChecked: true, value: undefined }],
           },
         ],
@@ -109,7 +113,8 @@ describe('userSurveyValidation', () => {
         questions: [
           {
             id: 1,
-            questionText: 'Q1. テスト質問',
+            title: 'テスト質問',
+            prompt: '当てはまるものを選択してください。',
             answers: [{ id: 1, label: 'テスト回答', isChecked: true, value: 3 }],
           },
         ],
@@ -125,7 +130,8 @@ describe('userSurveyValidation', () => {
         questions: [
           {
             id: 1,
-            questionText: 'Q1. テスト質問',
+            title: 'テスト質問',
+            prompt: '当てはまるものを選択してください。',
             answers: [{ id: 1, label: 'テスト回答', isChecked: true, value: undefined }],
           },
         ],

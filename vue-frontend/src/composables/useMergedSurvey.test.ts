@@ -59,11 +59,13 @@ describe('useMergedSurvey', () => {
     expect(answer.value).toBe(4)
   })
 
-  it('質問テキストがマスターデータから解決される', () => {
+  it('質問のタイトルと設問文がマスターデータから解決される', () => {
     const { mergedCategories } = useMergedSurvey()
-    const questionText = mergedCategories.value[0]!.questions[0]!.questionText
-    expect(typeof questionText).toBe('string')
-    expect(questionText.length).toBeGreaterThan(0)
+    const question = mergedCategories.value[0]!.questions[0]!
+    expect(typeof question.title).toBe('string')
+    expect(question.title.length).toBeGreaterThan(0)
+    expect(typeof question.prompt).toBe('string')
+    expect(question.prompt.length).toBeGreaterThan(0)
   })
 
   it('回答ラベルがマスターデータから解決される', () => {
