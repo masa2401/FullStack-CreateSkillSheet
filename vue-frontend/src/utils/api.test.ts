@@ -92,7 +92,7 @@ describe('fetchSheet', () => {
   it('バックエンド無効時は null を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
     const result = await fetchSheet('sheet-1')
-    expect(result).toBeNull()
+    expect(result).toEqual({ status: 'error' })
   })
 
   it('取得成功時に status: success とデータを返す', async () => {
@@ -124,18 +124,21 @@ describe('fetchSheet', () => {
     expect(result).toEqual({ status: 'expired', expiryDays: 5 })
   })
 
-  it('404 の場合は status: notfound を返す', async () => {
-    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 404 }))
-    const result = await fetchSheet('sheet-1')
-    expect(result).toEqual({ status: 'notfound' })
-  })
+  it.each([400, 401, 403, 429, 500, 503])(
+    '404 以外のエラーステータス（%i）の場合は status: error を返す',
+    async (statusCode) => {
+      vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: statusCode }))
+      const result = await fetchSheet('sheet-1')
+      expect(result).toEqual({ status: 'error' })
+    },
+  )
 
   it('ネットワークエラー時は null を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network Error'))
     const result = await fetchSheet('sheet-1')
-    expect(result).toBeNull()
+    expect(result).toEqual({ status: 'error' })
   })
 })
 

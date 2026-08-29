@@ -185,36 +185,23 @@ describe('ResultPage', () => {
     expect(button.props('label')).toContain('自分のスキルシートを作成')
   })
 
-  it('fetchSheet が expired を返す場合はエラー画面になる', async () => {
-    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
-    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
-    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'expired', expiryDays: 5 })
+  it.each([
+    [{ status: 'expired', expiryDays: 5 } as const, '有効期限', '有効期限（5日間）が切れています'],
+    [{ status: 'notfound' } as const, 'リンクが見つかりません', '削除された可能性があります'],
+    [{ status: 'error' } as const, '読み込みに失敗しました', '時間をおいて再度お試しください'],
+  ])(
+    'fetchSheet が %o を返す場合は該当するエラー画面になる',
+    async (result, titleText, messageText) => {
+      vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+      vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+      vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue(result)
 
-    const wrapper = createWrapper()
-    await flushPromises()
-    expect(wrapper.find('.error-title').text()).toContain('有効期限')
-  })
-
-  it('fetchSheet が notfound を返す場合はエラー画面になる', async () => {
-    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
-    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
-    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'notfound' })
-
-    const wrapper = createWrapper()
-    await flushPromises()
-    expect(wrapper.find('.error-title').text()).toContain('リンクが見つかりません')
-    expect(wrapper.find('.error-message').text()).toContain('削除された可能性があります')
-  })
-
-  it('fetchSheet が null を返す場合は通常の結果画面にフォールバックする', async () => {
-    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
-    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
-    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue(null)
-
-    const wrapper = createWrapper()
-    await flushPromises()
-    expect(wrapper.find('.user-name-heading').text()).toContain('テストユーザー')
-  })
+      const wrapper = createWrapper()
+      await flushPromises()
+      expect(wrapper.find('.error-title').text()).toContain(titleText)
+      expect(wrapper.find('.error-message').text()).toContain(messageText)
+    },
+  )
 
   // ─── ナビゲーション ────────────────────────────────────────────
 
