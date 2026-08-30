@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import TheFooter from '@/components/TheFooter.vue'
 import TheHeader from '@/components/TheHeader.vue'
+import { TooltipProvider } from '@/components/ui/tooltip'
 </script>
 
 <template>
-  <TheHeader />
-  <main class="main">
-    <router-view v-slot="{ Component }">
-      <transition
-        name="page"
-        mode="out-in"
-      >
-        <component :is="Component" />
-      </transition>
-    </router-view>
-  </main>
-  <TheFooter />
+  <TooltipProvider>
+    <TheHeader />
+    <main class="main">
+      <router-view v-slot="{ Component }">
+        <transition
+          name="page"
+          mode="out-in"
+        >
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </main>
+    <TheFooter />
+  </TooltipProvider>
 </template>
 
 <style>

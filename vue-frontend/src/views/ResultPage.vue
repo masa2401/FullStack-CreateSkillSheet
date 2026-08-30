@@ -494,11 +494,6 @@ const displayCategories = computed(() =>
 
 /* 印刷用スタイル */
 @media print {
-  @page {
-    size: A4;
-    margin: 15mm 10mm;
-  }
-
   .no-print,
   .button-group {
     display: none !important;

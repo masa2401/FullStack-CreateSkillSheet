@@ -11,6 +11,40 @@
       content="width=device-width, initial-scale=1.0"
     />
     <title>スキルシート作成ページ</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
+    />
+    <!--
+      ダークモードのFOUC対策。
+      useColorMode が動くのは Vue のマウント後（このファイル末尾の module script は defer 扱い）
+      のため、それより前に .dark を確定させておかないと一瞬ライトテーマが描画される。
+      useColorMode の既定値（storageKey: 'vueuse-color-scheme' / selector: html /
+      attribute: class / 初期値 auto）に合わせてあるので、オプションを変更した場合は
+      このスクリプトも合わせて修正すること。
+    -->
+    <script>
+      ;(function () {
+        try {
+          var mode = localStorage.getItem('vueuse-color-scheme')
+          var isDark =
+            mode === 'dark' ||
+            ((!mode || mode === 'auto') && matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark', isDark)
+        } catch (e) {
+          /* localStorage が使えない環境では何もしない */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

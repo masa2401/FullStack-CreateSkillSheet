@@ -58,6 +58,7 @@ const variant = computed(() => (copySuccess.value ? 'success' : 'default'))
     :variant="variant"
     :spin="isSaving"
     :disabled="isSaving"
+    :close-on-select="false"
     @click="handleCopy"
   />
 </template>

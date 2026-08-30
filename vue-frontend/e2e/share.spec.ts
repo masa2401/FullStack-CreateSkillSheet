@@ -42,7 +42,7 @@ test.describe('共有URL（ID方式）', () => {
     await resultPage.openShareMenu()
     await resultPage.copyUrl()
 
-    await expect(page.getByRole('button', { name: 'コピー完了' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'コピー完了' })).toBeVisible()
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toContain('id=clip-id-1')
   })
@@ -67,7 +67,7 @@ test.describe('共有URL（ID方式）', () => {
     await resultPage.openShareMenu()
     await resultPage.copyUrl()
 
-    await expect(page.getByRole('button', { name: 'コピー完了' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'コピー完了' })).toBeVisible()
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toContain('#/result?data=')
   })
@@ -106,8 +106,8 @@ test.describe('PDF生成', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await resultPage.openShareMenu()
 
-    await expect(page.getByRole('button', { name: 'PDFを準備中...' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+    await expect(page.getByRole('menuitem', { name: 'PDFを準備中...' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'PDFをダウンロード' })).toBeVisible({
       timeout: 6000,
     })
   })
@@ -124,7 +124,7 @@ test.describe('PDF生成', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await resultPage.openShareMenu()
 
-    await expect(page.getByRole('button', { name: /再試行/ })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: /再試行/ })).toBeVisible()
 
     await mockPdfRegenerate(page, 'saved-id-2')
     await page.unroute('**/api/pdf/saved-id-2/status')
@@ -133,15 +133,15 @@ test.describe('PDF生成', () => {
       { status: 'ready', downloadUrl: 'https://example.com/x.pdf' },
     ])
 
-    await page.getByRole('button', { name: /再試行/ }).click()
-    await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+    await page.getByRole('menuitem', { name: /再試行/ }).click()
+    await expect(page.getByRole('menuitem', { name: 'PDFをダウンロード' })).toBeVisible({
       timeout: 6000,
     })
   })
 })
 
 test.describe('ゲストゲート', () => {
-  test('名前未入力のままResultPageに到達すると、共有・印刷ボタンはメニューを開かずツールチップでブロックされる', async ({
+  test('名前未入力の共有・印刷ボタンはホバーで理由が提示され、クリックしてもメニューが開かない', async ({
     topPage,
     surveyPage,
     resultPage,
@@ -152,13 +152,14 @@ test.describe('ゲストゲート', () => {
     await surveyPage.selectLevel(3)
     await surveyPage.submit()
 
-    await resultPage.shareButton.dispatchEvent('click')
-
+    await resultPage.shareButton.hover()
     await expect(resultPage.page.getByRole('tooltip')).toBeVisible()
+
+    await resultPage.shareButton.click()
     await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
   })
 
-  test('ツールチップから名前を入力すると、以降は共有・印刷メニューが開けるようになる', async ({
+  test('ボタンを押すと名前入力欄へ誘導され、入力後は共有・印刷メニューが開けるようになる', async ({
     topPage,
     surveyPage,
     resultPage,
@@ -169,8 +170,8 @@ test.describe('ゲストゲート', () => {
     await surveyPage.selectLevel(3)
     await surveyPage.submit()
 
-    await resultPage.shareButton.dispatchEvent('click')
-    await resultPage.page.getByRole('button', { name: 'お名前を入力する' }).click()
+    await resultPage.shareButton.click()
+    await expect(resultPage.nameInput).toHaveClass(/is-highlighted/)
 
     await resultPage.fillName('山田太郎')
 

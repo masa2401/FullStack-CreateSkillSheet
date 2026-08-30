@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import AppButton from '@/components/AppButton.vue'
+
 interface Props {
   icon: string
   label: string
   animationType?: 'beat' | 'bounce' | 'fade' | 'spin' | 'none'
   variant?: 'primary' | 'secondary'
+  inactive?: boolean
 }
-const { variant = 'primary' } = defineProps<Props>()
+const { variant = 'primary', inactive = false } = defineProps<Props>()
 defineOptions({ inheritAttrs: false })
 
 const emit = defineEmits<{ click: [] }>()
@@ -15,15 +18,16 @@ const handleClick = () => {
 </script>
 
 <template>
-  <button
-    type="button"
+  <AppButton
     v-bind="$attrs"
-    class="action-button"
-    :class="variant"
+    size="lg"
+    :variant="variant === 'primary' ? 'default' : 'outline'"
+    :inactive="inactive"
+    :class="['action-button max-md:w-full', variant === 'primary' ? 'flex-row-reverse' : '']"
     @click="handleClick"
   >
     <span
-      class="button-icon"
+      class="button-icon text-[1.1rem]"
       aria-hidden="true"
     >
       <font-awesome-icon
@@ -34,63 +38,13 @@ const handleClick = () => {
         :spin="animationType === 'spin'"
       />
     </span>
-    <span class="button-text">{{ label }}</span>
-  </button>
+    <span>{{ label }}</span>
+  </AppButton>
 </template>
 
 <style scoped>
-.action-button {
-  padding: var(--p-8, 1rem) var(--p-16, 2rem);
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  white-space: nowrap;
-  border: 2px solid transparent;
-}
-
-.button-icon {
-  font-size: 1.1rem;
-  display: inline-block;
-}
-
-.button-text {
-  display: inline-block;
-}
-
-.button-icon:deep(svg) {
+.button-icon :deep(svg) {
   animation-name: none;
-}
-
-.action-button.primary {
-  background: #483c32;
-  color: #ffffff;
-  box-shadow: 0 6px 16px rgba(72, 60, 50, 0.3);
-  flex-direction: row-reverse;
-}
-
-.action-button.primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(72, 60, 50, 0.4);
-  background: #5a4a3e;
-}
-
-.action-button.secondary {
-  background: #ffffff;
-  color: #483c32;
-  border-color: #483c32;
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-}
-
-.action-button.secondary:hover {
-  background: #483c32;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.25);
 }
 
 .action-button:hover .button-icon :deep(svg.fa-beat) {
@@ -109,31 +63,7 @@ const handleClick = () => {
   animation-name: fa-spin;
 }
 
-.action-button:disabled,
-.action-button[aria-disabled='true'] {
-  animation-name: none;
-  background: #94a3b8;
-  color: #ffffff;
-  cursor: not-allowed;
-  box-shadow: none;
-  opacity: 0.6;
-  transform: none !important;
-}
-
-.action-button[aria-disabled='true']:hover {
-  background: #94a3b8;
-  color: #ffffff;
-  box-shadow: none;
-}
-
 .action-button[aria-disabled='true']:hover .button-icon :deep(svg) {
   animation-name: none;
-}
-
-@media (max-width: 768px) {
-  .action-button {
-    width: 100%;
-    justify-content: center;
-  }
 }
 </style>

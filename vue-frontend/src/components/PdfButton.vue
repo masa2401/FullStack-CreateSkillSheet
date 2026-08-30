@@ -51,6 +51,7 @@ const handleClick = () => {
     :variant="variant"
     :spin="isBusy"
     :disabled="isBusy"
+    :close-on-select="false"
     @click="handleClick"
   />
 </template>

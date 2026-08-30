@@ -73,17 +73,17 @@ export class ResultPage {
 
   async downloadCsv(): Promise<Download> {
     const downloadPromise = this.page.waitForEvent('download')
-    await this.page.getByRole('button', { name: 'CSVとして保存' }).click()
+    await this.page.getByRole('menuitem', { name: 'CSVとして保存' }).click()
     return downloadPromise
   }
 
   async copyUrl(): Promise<void> {
-    await this.page.getByRole('button', { name: 'URLをコピー' }).click()
+    await this.page.getByRole('menuitem', { name: 'URLをコピー' }).click()
   }
 
   async print(): Promise<void> {
     await this.openShareMenu()
-    await this.page.getByRole('button', { name: '印刷する' }).click()
+    await this.page.getByRole('menuitem', { name: '印刷する' }).click()
   }
 
   skillCard(index = 0): Locator {

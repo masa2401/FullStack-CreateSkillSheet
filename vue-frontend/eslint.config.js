@@ -34,5 +34,16 @@ export default defineConfig([
     files: ['**/*.{js,mjs,jsx}'],
     ...tseslint.configs.disableTypeChecked,
   },
+
+  // shadcn-vue の生成コンポーネントは Button.vue / Card.vue のように
+  // 単語1つのファイル名になるため、このディレクトリのみルールを無効化する。
+  // 他のルールは生成物にも適用したいので globalIgnores は使わない。
+  {
+    files: ['src/components/ui/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
   skipFormatting,
 ])
