@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { ROUTES } from '@/utils/constants'
 
@@ -15,7 +16,7 @@ const handleTitleClick = () => {
 </script>
 
 <template>
-  <header class="header">
+  <header class="header relative">
     <h1>
       <button
         class="title"
@@ -31,6 +32,7 @@ const handleTitleClick = () => {
         スキルシート制作ページ
       </button>
     </h1>
+    <ThemeToggle class="absolute top-1/2 right-4 -translate-y-1/2" />
   </header>
 </template>
 

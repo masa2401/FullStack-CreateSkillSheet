@@ -2,6 +2,9 @@
 import TheFooter from '@/components/TheFooter.vue'
 import TheHeader from '@/components/TheHeader.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { usePrintColorScheme } from '@/composables/useTheme'
+
+usePrintColorScheme()
 </script>
 
 <template>
