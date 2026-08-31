@@ -10,11 +10,6 @@ interface Props {
 }
 const { variant = 'primary', inactive = false } = defineProps<Props>()
 defineOptions({ inheritAttrs: false })
-
-const emit = defineEmits<{ click: [] }>()
-const handleClick = () => {
-  emit('click')
-}
 </script>
 
 <template>
@@ -24,7 +19,6 @@ const handleClick = () => {
     :variant="variant === 'primary' ? 'default' : 'outline'"
     :inactive="inactive"
     :class="['action-button max-md:w-full', variant === 'primary' ? 'flex-row-reverse' : '']"
-    @click="handleClick"
   >
     <span
       class="button-icon text-[1.1rem]"
@@ -38,7 +32,7 @@ const handleClick = () => {
         :spin="animationType === 'spin'"
       />
     </span>
-    <span>{{ label }}</span>
+    <span class="button-text">{{ label }}</span>
   </AppButton>
 </template>
 
