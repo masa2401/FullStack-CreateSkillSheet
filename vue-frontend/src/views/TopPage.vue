@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { CATEGORY_MASTERS } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -50,7 +51,11 @@ const { goToSurvey } = useAppNavigation()
               />
               <div class="card-content">
                 <div class="card-icon-large">
-                  <font-awesome-icon :icon="engineerMaster.icon" />
+                  <component
+                    :is="resolveCategoryIcon(engineerMaster.key)"
+                    class="size-14"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h4 class="card-category-title">{{ engineerMaster.label }}</h4>
                 <p
@@ -79,7 +84,11 @@ const { goToSurvey } = useAppNavigation()
               />
               <div class="card-content">
                 <div class="card-icon-large">
-                  <font-awesome-icon :icon="designerMaster.icon" />
+                  <component
+                    :is="resolveCategoryIcon(designerMaster.key)"
+                    class="size-14"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h4 class="card-category-title">{{ designerMaster.label }}</h4>
                 <p
@@ -225,8 +234,9 @@ const { goToSurvey } = useAppNavigation()
 }
 
 .card-icon-large {
+  display: flex;
+  justify-content: center;
   color: #483c32;
-  font-size: 3.5rem;
   margin-bottom: var(--p-8, 1rem);
 }
 

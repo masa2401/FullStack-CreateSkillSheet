@@ -7,7 +7,6 @@ export const CATEGORY_MASTERS: CategoryMaster[] = [
   {
     id: 1,
     key: 'common',
-    icon: 'fa-solid fa-briefcase',
     label: '共通',
     description: '全ユーザーが回答する項目',
     isCheckedByDefault: true,
@@ -16,7 +15,6 @@ export const CATEGORY_MASTERS: CategoryMaster[] = [
   {
     id: 2,
     key: 'engineer',
-    icon: 'fa-solid fa-computer',
     label: 'プログラマ / ITエンジニア',
     description: '開発言語、フレームワーク、インフラ関連のスキル',
     isCheckedByDefault: false,
@@ -25,7 +23,6 @@ export const CATEGORY_MASTERS: CategoryMaster[] = [
   {
     id: 3,
     key: 'designer',
-    icon: 'fa-solid fa-palette',
     label: 'デザイナー / 動画制作',
     description: 'デザインツール、動画編集、制作スキル',
     isCheckedByDefault: false,

@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import { useId } from 'vue'
+
+import type { AcceptableValue } from 'reka-ui'
+import { RadioGroupItem } from 'reka-ui'
+
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { RadioGroup } from '@/components/ui/radio-group'
 import type { StarLevel } from '@/types'
 import { LEVEL_LABELS } from '@/utils/constants'
 
@@ -9,7 +17,7 @@ interface Props {
   value?: StarLevel
 }
 
-const props = defineProps<Props>()
+const { answerId, label, isChecked, value } = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:answer': [
@@ -17,64 +25,76 @@ const emit = defineEmits<{
   ]
 }>()
 
+/**
+ * 回答IDは質問ごとに1から振り直されるため文書内で一意にならない。
+ * Label の for 属性が別の質問の同IDに当たってしまうので、
+ * Vue が払い出す一意なIDを使う。
+ */
+const checkboxId = useId()
+
 // チェックボックスの変更
-const handleCheckChange = (e: Event) => {
-  const target = e.target as HTMLInputElement
+const handleCheckChange = (checked: boolean | 'indeterminate'): void => {
   emit('update:answer', {
-    answerId: props.answerId,
-    patch: {
-      isChecked: target.checked,
-    },
+    answerId,
+    patch: { isChecked: checked === true },
   })
 }
 
 // 習熟度の変更
-const handleLevelChange = (level: StarLevel) => {
+const handleLevelChange = (level: AcceptableValue): void => {
   emit('update:answer', {
-    answerId: props.answerId,
-    patch: { value: level },
+    answerId,
+    patch: { value: Number(level) as StarLevel },
   })
 }
 </script>
 
 <template>
-  <div class="answer-item">
-    <label class="checkbox-label">
-      <input
-        type="checkbox"
-        :checked="isChecked"
-        @change="handleCheckChange"
-        class="custom-checkbox"
+  <div class="border-l-4 pl-4">
+    <div class="flex items-center gap-2 py-2">
+      <Checkbox
+        :id="checkboxId"
+        :model-value="isChecked"
+        @update:model-value="handleCheckChange"
       />
-      <span class="checkbox-text">{{ label }}</span>
-    </label>
+      <Label
+        :for="checkboxId"
+        class="flex-1 cursor-pointer text-base leading-relaxed font-normal"
+      >
+        {{ label }}
+      </Label>
+    </div>
 
     <transition name="slide-fade">
       <div
         v-if="isChecked"
-        class="level-selector"
+        class="bg-card mt-2 rounded-xl border p-4"
       >
-        <div class="level-buttons">
-          <label
+        <RadioGroup
+          :model-value="value"
+          class="flex flex-wrap gap-2"
+          :aria-label="`${label} の習熟度`"
+          @update:model-value="handleLevelChange"
+        >
+          <!--
+            shadcn-vue の RadioGroupItem は円形インジケータ前提のため、
+            カード型の見た目を保つ用途では Reka の RadioGroupItem を直接使い、
+            data-[state=checked] でスタイルを切り替える。
+          -->
+          <RadioGroupItem
             v-for="level in LEVEL_LABELS.length"
             :key="level"
-            class="level-button"
+            :value="level"
             :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`"
+            class="focus-visible:border-ring focus-visible:ring-ring/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary flex min-w-20 flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-[3px] focus-visible:outline-none data-[state=checked]:scale-105"
           >
-            <input
-              type="radio"
-              :checked="value === level"
-              @change="handleLevelChange(level as StarLevel)"
-              class="level-radio"
-              :aria-label="`${level}段階`"
-            />
-            <span class="level-number">{{ level }}</span>
-            <span class="level-stars">{{ '★'.repeat(level) }}</span>
-          </label>
-        </div>
+            <span class="text-xl font-bold">{{ level }}</span>
+            <span class="text-xs opacity-80">{{ '★'.repeat(level) }}</span>
+          </RadioGroupItem>
+        </RadioGroup>
         <span
           v-if="!value"
-          class="warning-text"
+          class="mt-2 block text-center text-sm font-semibold text-amber-500 motion-safe:animate-pulse"
           role="alert"
         >
           <font-awesome-icon icon="fa-regular fa-lightbulb" />
@@ -86,107 +106,8 @@ const handleLevelChange = (level: StarLevel) => {
 </template>
 
 <style scoped>
-.answer-item {
-  border-left: 4px solid #d3c6a6;
-  padding-left: var(--p-8, 1rem);
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  cursor: pointer;
-  font-size: 1rem;
-  color: #444;
-  padding: var(--p-4, 0.5rem) 0;
-}
-
-.custom-checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #483c32;
-}
-
-.checkbox-text {
-  flex: 1;
-  line-height: 1.5;
-}
-
-.level-selector {
-  margin-top: var(--p-4, 0.5rem);
-  padding: var(--p-8, 1rem);
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  border: 1px solid #d3c6a6;
-}
-
-.level-buttons {
-  display: flex;
-  gap: var(--p-4, 0.5rem);
-  margin-bottom: var(--p-4, 0.5rem);
-  flex-wrap: wrap;
-}
-
-.level-button {
-  flex: 1;
-  min-width: 80px;
-  padding: var(--p-4, 0.5rem);
-  background: #ffffff;
-  border: 2px solid #d3c6a6;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-}
-
-.level-button:hover {
-  border-color: #483c32;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(72, 60, 50, 0.15);
-}
-
-.level-button:has(.level-radio:checked) {
-  background: #483c32;
-  border-color: #483c32;
-  color: #ffffff;
-  transform: scale(1.05);
-}
-
-.level-radio {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.level-number {
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.level-stars {
-  font-size: 0.75rem;
-  opacity: 0.8;
-}
-
-.warning-text {
-  color: #f59e0b;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-align: center;
-  display: block;
-  animation: pulse 2s infinite;
-}
-
+/* transform と opacity を同時に扱う遷移は Tailwind の transition ユーティリティで
+   表現しづらいため、既存のクラスベースの定義を維持する */
 .slide-fade-enter-active {
   transition: all 0.3s ease;
 }
@@ -203,35 +124,5 @@ const handleLevelChange = (level: StarLevel) => {
 .slide-fade-leave-to {
   transform: translateY(-10px);
   opacity: 0;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.6;
-  }
-}
-
-@media (max-width: 768px) {
-  .level-buttons {
-    gap: var(--p-4, 0.5rem);
-  }
-
-  .level-button {
-    min-width: 60px;
-    padding: var(--p-4, 0.5rem);
-  }
-
-  .level-number {
-    font-size: 1rem;
-  }
-
-  .level-stars {
-    font-size: 0.65rem;
-  }
 }
 </style>

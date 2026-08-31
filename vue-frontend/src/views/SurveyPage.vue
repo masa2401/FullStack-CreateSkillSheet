@@ -4,6 +4,7 @@ import { computed, nextTick } from 'vue'
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import QuestionCard from '@/components/QuestionCard.vue'
 import ValidationError from '@/components/ValidationError.vue'
+import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyValidation } from '@/composables/useSurveyValidation'
@@ -92,9 +93,10 @@ const handleSubmit = async (): Promise<void> => {
           class="category-section"
         >
           <div class="category-header">
-            <font-awesome-icon
-              :icon="category.icon"
-              class="category-icon"
+            <component
+              :is="resolveCategoryIcon(category.key)"
+              class="category-icon size-8"
+              aria-hidden="true"
             />
             <h3 class="category-title">{{ category.label }}</h3>
           </div>

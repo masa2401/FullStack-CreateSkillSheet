@@ -26,29 +26,48 @@ const createWrapper = (
 describe('AnswerItem.vue', () => {
   it('isChecked が true のとき習熟度選択が表示される', () => {
     const wrapper = createWrapper({ isChecked: true })
-    expect(wrapper.find('.level-selector').exists()).toBe(true)
+    expect(wrapper.find('[role="radiogroup"]').exists()).toBe(true)
   })
 
   it('isChecked が false のとき習熟度選択が表示されない', () => {
     const wrapper = createWrapper({ isChecked: false })
-    expect(wrapper.find('.level-selector').exists()).toBe(false)
+    expect(wrapper.find('[role="radiogroup"]').exists()).toBe(false)
   })
 
-  it('チェックボックス変更時に update:answer が emit される', async () => {
+  it('チェックボックスの状態が isChecked と対応する', () => {
+    const wrapper = createWrapper({ isChecked: true })
+    expect(wrapper.find('[role="checkbox"]').attributes('aria-checked')).toBe('true')
+  })
+
+  it('チェックボックス操作時に update:answer が emit される', async () => {
     const wrapper = createWrapper({ isChecked: false })
-    await wrapper.find('input[type="checkbox"]').trigger('change')
-    expect(wrapper.emitted('update:answer')).toBeTruthy()
+    await wrapper.find('[role="checkbox"]').trigger('click')
+
+    const emitted = wrapper.emitted('update:answer')
+    expect(emitted).toBeTruthy()
+
+    const [payload] = emitted![0] as [{ answerId: number; patch: { isChecked: boolean } }]
+    expect(payload.patch.isChecked).toBe(true)
   })
 
-  it('習熟度ボタンをクリックすると value が更新される', async () => {
+  it('習熟度ボタンを選択すると value が更新される', async () => {
     const wrapper = createWrapper({ isChecked: true, value: undefined })
-    const radios = wrapper.findAll('.level-radio')
-    expect(radios.length).toBe(5)
-    await radios[2]!.trigger('change')
-    const emittedEvents = wrapper.emitted('update:answer')
-    expect(emittedEvents).toBeTruthy()
-    const [payload] = emittedEvents![0] as [{ answerId: number; patch: { value: number } }]
+    const radios = wrapper.findAll('[role="radio"]')
+    expect(radios).toHaveLength(5)
+
+    await radios[2]!.trigger('click')
+
+    const emitted = wrapper.emitted('update:answer')
+    expect(emitted).toBeTruthy()
+
+    const [payload] = emitted![0] as [{ answerId: number; patch: { value: number } }]
     expect(payload.patch.value).toBe(3)
+  })
+
+  it('選択済みの習熟度に aria-checked が付く', () => {
+    const wrapper = createWrapper({ isChecked: true, value: 3 })
+    const radios = wrapper.findAll('[role="radio"]')
+    expect(radios[2]!.attributes('aria-checked')).toBe('true')
   })
 
   it('習熟度未選択時は警告テキストが表示される', () => {

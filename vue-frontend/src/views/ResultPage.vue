@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -133,9 +134,10 @@ const displayCategories = computed(() =>
         class="category-section"
       >
         <div class="category-header">
-          <font-awesome-icon
-            :icon="category.icon"
-            class="category-icon"
+          <component
+            :is="resolveCategoryIcon(category.key)"
+            class="category-icon size-8"
+            aria-hidden="true"
           />
           <h3 class="category-title">{{ category.label }}</h3>
         </div>

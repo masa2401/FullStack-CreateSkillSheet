@@ -15,9 +15,9 @@ describe('useMergedSurvey', () => {
     expect(mergedCategories.value[0]!.label).toBe('共通')
   })
 
-  it('マスターデータと結合してカテゴリの icon が解決される', () => {
+  it('マスターデータと結合してカテゴリの key が解決される', () => {
     const { mergedCategories } = useMergedSurvey()
-    expect(mergedCategories.value[0]!.icon).toBe('fa-solid fa-briefcase')
+    expect(mergedCategories.value[0]!.key).toBe('common')
   })
 
   it('初期状態では全カテゴリが mergedCategories に含まれる', () => {
