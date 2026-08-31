@@ -20,7 +20,7 @@ import ShareUrlButton from './ShareUrlButton.vue'
 const store = useSurveyStore()
 const showMenu = ref<boolean>(false)
 
-const { isGuest, guard } = useGuestGate()
+const { isGuest, guard, goToNameInput } = useGuestGate()
 
 const openMenu = async (): Promise<void> => {
   showMenu.value = true
@@ -58,24 +58,39 @@ const handlePrint = (): void => {
 </script>
 
 <template>
+  <!--
+    TooltipTrigger と DropdownMenuTrigger を as-child で入れ子にすると、
+    Popper のアンカー要素が解決できずメニューが画面外に描画される。
+    ゲスト時はメニューを開かせないので、状態で描画そのものを分ける。
+  -->
+  <Tooltip v-if="isGuest">
+    <TooltipTrigger as-child>
+      <AnimatedIconButton
+        animationType="bounce"
+        icon="fa-solid fa-arrow-up-right-from-square"
+        label="結果を印刷/共有"
+        variant="secondary"
+        inactive
+        @click="goToNameInput"
+      />
+    </TooltipTrigger>
+    <TooltipContent>{{ GUEST_HINT_MESSAGE }}</TooltipContent>
+  </Tooltip>
+
   <DropdownMenu
+    v-else
     :open="showMenu"
+    :modal="false"
     @update:open="handleOpenChange"
   >
-    <Tooltip :disabled="!isGuest">
-      <TooltipTrigger as-child>
-        <DropdownMenuTrigger as-child>
-          <AnimatedIconButton
-            animationType="bounce"
-            icon="fa-solid fa-arrow-up-right-from-square"
-            label="結果を印刷/共有"
-            variant="secondary"
-            :inactive="isGuest"
-          />
-        </DropdownMenuTrigger>
-      </TooltipTrigger>
-      <TooltipContent>{{ GUEST_HINT_MESSAGE }}</TooltipContent>
-    </Tooltip>
+    <DropdownMenuTrigger as-child>
+      <AnimatedIconButton
+        animationType="bounce"
+        icon="fa-solid fa-arrow-up-right-from-square"
+        label="結果を印刷/共有"
+        variant="secondary"
+      />
+    </DropdownMenuTrigger>
     <DropdownMenuContent
       align="center"
       side="top"

@@ -161,13 +161,24 @@ describe('ShareButton', () => {
   // ─── GuestGate ─────────────────────────────────────
 
   describe('GuestGate', () => {
-    it('ゲスト時はメニューが開かず、名前入力欄へスクロールする', async () => {
+    it('ゲスト時は DropdownMenu を描画せず、Tooltip 付きのボタンだけを出す', () => {
+      const wrapper = createWrapper({ userName: '' })
+      expect(wrapper.findComponent({ name: 'DropdownMenu' }).exists()).toBe(false)
+      expect(wrapper.findComponent({ name: 'Tooltip' }).exists()).toBe(true)
+    })
+
+    it('非ゲスト時は Tooltip を描画せず、DropdownMenu を出す', () => {
+      const wrapper = createWrapper()
+      expect(wrapper.findComponent({ name: 'Tooltip' }).exists()).toBe(false)
+      expect(wrapper.findComponent({ name: 'DropdownMenu' }).exists()).toBe(true)
+    })
+
+    it('ゲスト時はボタンクリックで名前入力欄へスクロールする', async () => {
       const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
       const wrapper = createWrapper({ userName: '' })
 
-      await requestOpen(wrapper, true)
+      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
 
-      expect(isOpen(wrapper)).toBe(false)
       expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     })
 
@@ -181,14 +192,6 @@ describe('ShareButton', () => {
       expect(
         wrapper.findComponent({ name: 'AnimatedIconButton' }).attributes('aria-disabled'),
       ).toBe('false')
-    })
-
-    it('ゲスト時のみ Tooltip が有効化される', () => {
-      const guestWrapper = createWrapper({ userName: '' })
-      expect(guestWrapper.findComponent({ name: 'Tooltip' }).props('disabled')).toBe(false)
-
-      const wrapper = createWrapper()
-      expect(wrapper.findComponent({ name: 'Tooltip' }).props('disabled')).toBe(true)
     })
   })
 
