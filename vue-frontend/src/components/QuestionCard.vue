@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { MergedQuestion, StarLevel } from '@/types'
 
 import AnswerItem from './AnswerItem.vue'
@@ -18,12 +19,14 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="question-card">
-    <div class="question-header">
-      <h4 class="question-title">Q{{ questionNumber }}. {{ question.title }}</h4>
-      <p class="question-prompt">{{ question.prompt }}</p>
-    </div>
-    <div class="answers-grid">
+  <Card class="mx-auto w-full max-w-3xl">
+    <CardHeader>
+      <CardTitle class="text-lg leading-relaxed font-semibold">
+        Q{{ questionNumber }}. {{ question.title }}
+      </CardTitle>
+      <CardDescription>{{ question.prompt }}</CardDescription>
+    </CardHeader>
+    <CardContent class="flex flex-col gap-4">
       <AnswerItem
         v-for="answer in question.answers"
         :key="answer.id"
@@ -33,49 +36,6 @@ const emit = defineEmits<{
         :value="answer.value"
         @update:answer="emit('update:answer', $event)"
       />
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
-
-<style scoped>
-.question-card {
-  background: #ffffff;
-  border-radius: 15px;
-  padding: var(--p-12, 1.5rem) var(--p-8, 1rem);
-  transition: transform 0.2s;
-  width: 80ch;
-  margin: 0 auto;
-}
-
-.question-header {
-  margin: 0 0 var(--p-8, 1rem) 0;
-}
-
-.question-title {
-  font-size: 1.1rem;
-  margin: 0;
-  color: #483c32;
-  font-weight: 600;
-  line-height: 1.6;
-}
-
-.question-prompt {
-  font-size: 0.9rem;
-  margin: var(--p-4, 0.5rem) 0 0;
-  color: #6b6157;
-  line-height: 1.5;
-}
-
-.answers-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--p-8, 1rem);
-}
-
-@media (max-width: 768px) {
-  .question-card {
-    padding: var(--p-12, 1.5rem);
-    width: 100%;
-  }
-}
-</style>

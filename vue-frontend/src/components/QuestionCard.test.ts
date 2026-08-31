@@ -25,17 +25,19 @@ const createWrapper = (propsData = {}) =>
 describe('QuestionCard', () => {
   it('タイトルが Q番号付きで表示される', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.question-title').text()).toBe('Q1. テスト質問')
+    expect(wrapper.find('[data-slot="card-title"]').text()).toBe('Q1. テスト質問')
   })
 
   it('questionNumber に応じて Q番号が変わる', () => {
     const wrapper = createWrapper({ questionNumber: 5 })
-    expect(wrapper.find('.question-title').text()).toBe('Q5. テスト質問')
+    expect(wrapper.find('[data-slot="card-title"]').text()).toBe('Q5. テスト質問')
   })
 
   it('設問文が表示される', () => {
     const wrapper = createWrapper()
-    expect(wrapper.find('.question-prompt').text()).toBe('当てはまるものを選択してください。')
+    expect(wrapper.find('[data-slot="card-description"]').text()).toBe(
+      '当てはまるものを選択してください。',
+    )
   })
 
   it('回答の数だけ AnswerItem が表示される', () => {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { ValidationError } from '@/types'
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -45,63 +46,50 @@ const groupedErrors = computed<GroupedError[]>(() => {
 
 <template>
   <transition name="fade">
-    <div
+    <Alert
       v-if="isVisible"
-      class="error-message"
       :id="messageId"
+      variant="destructive"
+      class="error-alert mt-8"
       role="alert"
       aria-live="assertive"
       tabindex="-1"
     >
-      <div class="error-content">
-        <div class="error-title">
-          <div class="error-icon">
-            <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-          </div>
-          <h4>入力エラー</h4>
-        </div>
-        <div class="error-text">
-          <slot name="description"></slot>
-          <ul class="error-list">
-            <li
-              v-for="(group, index) in groupedErrors"
-              :key="index"
-              class="error-item"
-            >
-              <font-awesome-icon
-                icon="fa-solid fa-circle-exclamation"
-                class="error-bullet"
-              />
-              <div class="error-details">
-                <div class="error-main">
-                  <strong>{{ group.category }}</strong>
-                  <span class="error-count">（{{ group.count }}件）</span>
-                </div>
-                <div
-                  v-if="group.text"
-                  class="error-question"
-                >
-                  {{ group.text }}
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+      <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
+      <AlertTitle class="text-lg font-bold">入力エラー</AlertTitle>
+      <AlertDescription>
+        <slot name="description"></slot>
+        <ul class="mt-2 flex list-none flex-col gap-1">
+          <li
+            v-for="(group, index) in groupedErrors"
+            :key="index"
+            class="flex items-baseline gap-2"
+          >
+            <font-awesome-icon
+              icon="fa-solid fa-circle-exclamation"
+              class="shrink-0 text-sm"
+            />
+            <span class="flex flex-col">
+              <span class="flex flex-wrap items-center gap-1">
+                <strong class="font-bold">{{ group.category }}</strong>
+                <span class="text-sm font-semibold">（{{ group.count }}件）</span>
+              </span>
+              <span
+                v-if="group.text"
+                class="text-sm leading-snug opacity-80"
+                >{{ group.text }}</span
+              >
+            </span>
+          </li>
+        </ul>
+      </AlertDescription>
+    </Alert>
   </transition>
 </template>
 
 <style scoped>
-.error-message {
-  background: #fff5f5;
-  border: 2px solid #f88;
-  border-radius: var(--radius, 12px);
-  padding: var(--p-16, 2rem);
-  margin-top: var(--p-16, 2rem);
-  display: flex;
-  gap: var(--p-4, 0.5rem);
-  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.15);
+/* animation-name の指定は Tailwind で表現できないためスコープCSSで維持する */
+.error-alert {
   animation: shake 0.5s ease;
 }
 
@@ -120,83 +108,6 @@ const groupedErrors = computed<GroupedError[]>(() => {
   }
 }
 
-.error-icon {
-  color: #ef4444;
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
-.error-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  gap: var(--p-8, 1rem);
-  color: #c00;
-}
-
-.error-title {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-}
-
-.error-title > h4 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.error-text {
-  width: 100%;
-  text-align: center;
-}
-
-.error-list {
-  width: fit-content;
-  margin: var(--p-8, 1rem) auto 0;
-  padding: 0;
-  list-style: none;
-}
-
-.error-item {
-  display: flex;
-  align-items: baseline;
-  width: fit-content;
-  padding: var(--p-4, 0.5rem);
-  line-height: 1.4;
-}
-
-.error-bullet {
-  color: #ef4444;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.error-main {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.error-main strong {
-  font-weight: 700;
-}
-
-.error-count {
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.error-question {
-  color: #666;
-  font-size: 0.85rem;
-  margin-left: 0;
-  line-height: 1.3;
-}
-
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -205,23 +116,5 @@ const groupedErrors = computed<GroupedError[]>(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-@media (max-width: 768px) {
-  .error-message {
-    padding: var(--p-12, 1.5rem);
-  }
-
-  .error-icon {
-    font-size: 1.5rem;
-  }
-
-  .error-title > h4 {
-    font-size: 1.2rem;
-  }
-
-  .error-item {
-    font-size: 0.9rem;
-  }
 }
 </style>

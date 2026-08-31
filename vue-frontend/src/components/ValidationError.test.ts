@@ -26,7 +26,7 @@ describe('ValidationError', () => {
       { category: '共通', text: 'Q1' },
     ]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.findAll('.error-item')).toHaveLength(1)
+    expect(wrapper.findAll('li')).toHaveLength(1)
   })
 
   it('グループ化された件数が表示される', () => {
@@ -35,7 +35,7 @@ describe('ValidationError', () => {
       { category: '共通', text: 'Q1' },
     ]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.find('.error-count').text()).toContain('2件')
+    expect(wrapper.find('li').text()).toContain('2件')
   })
 
   it('異なるカテゴリのエラーは別々に表示される', () => {
@@ -44,18 +44,18 @@ describe('ValidationError', () => {
       { category: 'エンジニア', text: 'Q1' },
     ]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.findAll('.error-item')).toHaveLength(2)
+    expect(wrapper.findAll('li')).toHaveLength(2)
   })
 
   it('text が指定されたエラーは補足テキストが表示される', () => {
     const errors: VError[] = [{ category: 'テスト', text: 'データベース' }]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.find('.error-question').text()).toBe('データベース')
+    expect(wrapper.find('li').text()).toContain('データベース')
   })
 
   it('text が無いエラーは補足テキストが表示されない', () => {
     const errors: VError[] = [{ category: 'テスト' } as unknown as VError]
     const wrapper = createWrapper({ errors })
-    expect(wrapper.find('.error-question').exists()).toBe(false)
+    expect(wrapper.find('li').text()).toBe('テスト（1件）')
   })
 })
