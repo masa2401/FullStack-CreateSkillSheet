@@ -13,7 +13,7 @@ const { isDark, toggleTheme } = useTheme()
     size="icon"
     :aria-label="isDark ? 'ライトテーマに切り替える' : 'ダークテーマに切り替える'"
     :aria-pressed="isDark"
-    class="text-white hover:bg-white/15 hover:text-white print:hidden"
+    class="print:hidden"
     @click="toggleTheme"
   >
     <Moon

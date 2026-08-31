@@ -7,6 +7,8 @@ import { ROUTES } from '@/utils/constants'
 
 import TheHeader from './TheHeader.vue'
 
+const TITLE_BUTTON = '[aria-label^="スキルシート制作ページ"]'
+
 const buildRouter = async (initialPath = '/') => {
   const router = createRouter({
     history: createMemoryHistory(),
@@ -23,17 +25,17 @@ describe('TheHeader', () => {
   it('タイトルが表示される', async () => {
     const router = await buildRouter()
     const wrapper = mount(TheHeader, {
-      global: { plugins: [router], stubs: { 'font-awesome-icon': true } },
+      global: { plugins: [router] },
     })
-    expect(wrapper.find('.title').text()).toContain('スキルシート制作ページ')
+    expect(wrapper.find(TITLE_BUTTON).text()).toContain('スキルシート制作ページ')
   })
 
   it('トップページ以外でタイトルをクリックするとトップへ遷移する', async () => {
     const router = await buildRouter('/survey')
     const wrapper = mount(TheHeader, {
-      global: { plugins: [router], stubs: { 'font-awesome-icon': true } },
+      global: { plugins: [router] },
     })
-    await wrapper.find('.title').trigger('click')
+    await wrapper.find(TITLE_BUTTON).trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
   })
@@ -42,9 +44,9 @@ describe('TheHeader', () => {
     const router = await buildRouter()
     const pushSpy = vi.spyOn(router, 'push')
     const wrapper = mount(TheHeader, {
-      global: { plugins: [router], stubs: { 'font-awesome-icon': true } },
+      global: { plugins: [router] },
     })
-    await wrapper.find('.title').trigger('click')
+    await wrapper.find(TITLE_BUTTON).trigger('click')
     expect(pushSpy).not.toHaveBeenCalled()
   })
 })

@@ -1,9 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
-
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* index.html の <link> で読み込む Noto Sans JP を既定のサンセリフにする。
+     Tailwind の preflight が html に var(--font-sans) を適用する。 */
+  --font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+}
 
 @theme inline {
   --font-heading: var(--font-sans);
@@ -118,6 +122,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }

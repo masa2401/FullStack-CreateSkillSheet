@@ -9,28 +9,24 @@ usePrintColorScheme()
 
 <template>
   <TooltipProvider>
-    <TheHeader />
-    <main class="main">
-      <router-view v-slot="{ Component }">
-        <transition
-          name="page"
-          mode="out-in"
-        >
-          <component :is="Component" />
-        </transition>
-      </router-view>
-    </main>
-    <TheFooter />
+    <div class="flex min-h-svh flex-col">
+      <TheHeader />
+      <main class="flex flex-1 flex-col">
+        <router-view v-slot="{ Component }">
+          <transition
+            name="page"
+            mode="out-in"
+          >
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </main>
+      <TheFooter />
+    </div>
   </TooltipProvider>
 </template>
 
 <style>
-.main {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
 .page-enter-active,
 .page-leave-active {
   transition: opacity 0.3s ease;
