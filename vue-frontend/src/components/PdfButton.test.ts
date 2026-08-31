@@ -1,68 +1,86 @@
-import { ref } from 'vue'
-
-import { createTestingPinia } from '@pinia/testing'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type PdfGenerationState, usePdfStatus } from '@/composables/usePdfStatus'
+import type { PdfGenerationState } from '@/composables/usePdfStatus'
 
 import PdfButton from './PdfButton.vue'
 
-vi.mock('@/composables/usePdfStatus')
-
-const mockRetry = vi.fn()
-
-const createWrapper = (state: PdfGenerationState, downloadUrl = '') => {
-  vi.mocked(usePdfStatus).mockReturnValue({
-    state: ref(state),
-    downloadUrl: ref(downloadUrl),
-    retry: mockRetry,
-  })
-
-  return mount(PdfButton, {
+const createWrapper = (state: PdfGenerationState, progress = 0) =>
+  mount(PdfButton, {
+    props: { state, progress },
     global: {
-      plugins: [createTestingPinia({ initialState: { survey: { savedSheetId: 'sheet-1' } } })],
-      stubs: { 'font-awesome-icon': true },
+      stubs: {
+        'font-awesome-icon': true,
+        Progress: {
+          name: 'Progress',
+          props: ['modelValue'],
+          template: '<div class="progress-stub" />',
+        },
+        MenuItemButton: {
+          name: 'MenuItemButton',
+          props: ['icon', 'text', 'variant', 'spin', 'disabled', 'closeOnSelect'],
+          template:
+            '<button :disabled="disabled" @click="$emit(\'click\')">{{ text }}<slot /></button>',
+          emits: ['click'],
+        },
+      },
     },
   })
-}
 
 describe('PdfButton', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('generating 状態では disabled になる', () => {
-    const wrapper = createWrapper('generating')
-    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(true)
+  // ─── 生成中 ─────────────────────────────────────
+
+  it('generating 状態では「PDFを準備中...」と進捗バーが表示され、選択できない', () => {
+    const wrapper = createWrapper('generating', 42)
+    expect(wrapper.find('button').text()).toContain('PDFを準備中...')
+    expect(wrapper.findComponent({ name: 'Progress' }).props('modelValue')).toBe(42)
+    expect(wrapper.findComponent({ name: 'MenuItemButton' }).props('disabled')).toBe(true)
   })
 
-  it('generating 状態でクリックしても何も起きない', async () => {
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
-    const wrapper = createWrapper('generating')
-    await wrapper.get('button').trigger('click')
-    expect(openSpy).not.toHaveBeenCalled()
-    expect(mockRetry).not.toHaveBeenCalled()
+  it('slow 状態では文言が切り替わり、バーは表示されたままになる', () => {
+    const wrapper = createWrapper('slow', 100)
+    expect(wrapper.find('button').text()).toContain('PDF処理に時間がかかっています...')
+    expect(wrapper.findComponent({ name: 'Progress' }).exists()).toBe(true)
   })
 
-  it('ready 状態では「PDFをダウンロード」と表示される', () => {
-    const wrapper = createWrapper('ready', 'https://example.com/x.pdf')
-    expect(wrapper.find('button').text()).toBe('PDFをダウンロード')
-    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(false)
+  it('生成中にクリックしても download / retry は emit されない', async () => {
+    const wrapper = createWrapper('generating', 10)
+    await wrapper.findComponent({ name: 'MenuItemButton' }).vm.$emit('click')
+    expect(wrapper.emitted('download')).toBeFalsy()
+    expect(wrapper.emitted('retry')).toBeFalsy()
   })
 
-  it('ready 状態でクリックすると window.open が呼ばれ done が emit される', async () => {
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
-    const wrapper = createWrapper('ready', 'https://example.com/x.pdf')
+  // ─── 完了 ───────────────────────────────────────
+
+  it('ready 状態では「PDFをダウンロード」と表示され、バーは消える', () => {
+    const wrapper = createWrapper('ready')
+    expect(wrapper.find('button').text()).toContain('PDFをダウンロード')
+    expect(wrapper.findComponent({ name: 'Progress' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'MenuItemButton' }).props('variant')).toBe('success')
+  })
+
+  it('ready 状態でクリックすると download が emit される', async () => {
+    const wrapper = createWrapper('ready')
     await wrapper.find('button').trigger('click')
-    expect(openSpy).toHaveBeenCalledWith('https://example.com/x.pdf', '_blank')
-    expect(wrapper.emitted('done')).toBeTruthy()
+    expect(wrapper.emitted('download')).toBeTruthy()
   })
 
-  it('error 状態では再試行表示になりクリックで retry が呼ばれる', async () => {
+  // ─── 失敗 ───────────────────────────────────────
+
+  it('error 状態では再試行の文言になり、バーは消える', () => {
     const wrapper = createWrapper('error')
-    expect(wrapper.find('button').text()).toContain('再試行')
+    expect(wrapper.find('button').text()).toContain('PDF生成に失敗（再試行）')
+    expect(wrapper.findComponent({ name: 'Progress' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'MenuItemButton' }).props('variant')).toBe('error')
+  })
+
+  it('error 状態でクリックすると retry が emit される', async () => {
+    const wrapper = createWrapper('error')
     await wrapper.find('button').trigger('click')
-    expect(mockRetry).toHaveBeenCalledOnce()
+    expect(wrapper.emitted('retry')).toBeTruthy()
   })
 })

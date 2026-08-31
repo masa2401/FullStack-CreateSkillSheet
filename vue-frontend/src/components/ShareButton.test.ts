@@ -1,4 +1,4 @@
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 
 import { createTestingPinia } from '@pinia/testing'
 import { type VueWrapper, flushPromises, mount } from '@vue/test-utils'
@@ -9,6 +9,16 @@ import * as apiUtils from '@/utils/api'
 
 import MenuItemButton from './MenuItemButton.vue'
 import ShareButton from './ShareButton.vue'
+
+// ポーリングは ShareButton 側で開始されるため、テストでは常に止めておく
+vi.mock('@/composables/usePdfStatus', () => ({
+  usePdfStatus: () => ({
+    state: ref('waiting'),
+    downloadUrl: ref(''),
+    progress: ref(0),
+    retry: vi.fn(),
+  }),
+}))
 
 const passThroughStub = (name: string, props: string[] = []) => ({
   name,

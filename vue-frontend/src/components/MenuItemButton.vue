@@ -44,15 +44,19 @@ const handleSelect = (event: Event): void => {
 <template>
   <DropdownMenuItem
     :disabled="disabled"
-    :class="['w-full justify-start gap-2 px-3 py-2 text-base font-semibold', variantClass]"
+    :class="['w-full flex-col items-stretch gap-1 px-3 py-2', variantClass]"
     @select="handleSelect"
   >
-    <span class="menu-icon">
-      <font-awesome-icon
-        :icon="icon"
-        :spin="spin"
-      />
+    <span class="flex w-full items-center gap-2 text-base font-semibold">
+      <span class="menu-icon">
+        <font-awesome-icon
+          :icon="icon"
+          :spin="spin"
+        />
+      </span>
+      <span class="text-left">{{ text }}</span>
     </span>
-    <span class="text-left">{{ text }}</span>
+    <!-- 進捗バーなど、テキスト行の下に置く補助表示 -->
+    <slot />
   </DropdownMenuItem>
 </template>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import { storeToRefs } from 'pinia'
+
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import {
   DropdownMenu,
@@ -9,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { GUEST_HINT_MESSAGE, useGuestGate } from '@/composables/useGuestGate'
+import { usePdfStatus } from '@/composables/usePdfStatus'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { isBackendEnabled } from '@/utils/api'
 
@@ -21,6 +24,15 @@ const store = useSurveyStore()
 const showMenu = ref<boolean>(false)
 
 const { isGuest, guard, goToNameInput } = useGuestGate()
+
+// メニューを閉じてもポーリングが巻き戻らないよう、開閉に依らず生存する側で保持する
+const { savedSheetId } = storeToRefs(store)
+const {
+  state: pdfState,
+  downloadUrl: pdfDownloadUrl,
+  progress: pdfProgress,
+  retry: retryPdf,
+} = usePdfStatus(savedSheetId)
 
 const openMenu = async (): Promise<void> => {
   showMenu.value = true
@@ -54,6 +66,11 @@ const closeMenu = (): void => {
 
 const handlePrint = (): void => {
   window.print()
+}
+
+const handlePdfDownload = (): void => {
+  window.open(pdfDownloadUrl.value, '_blank')
+  closeMenu()
 }
 </script>
 
@@ -106,7 +123,10 @@ const handlePrint = (): void => {
       <ShareUrlButton @done="closeMenu" />
       <PdfButton
         v-if="isBackendEnabled()"
-        @done="closeMenu"
+        :state="pdfState"
+        :progress="pdfProgress"
+        @download="handlePdfDownload"
+        @retry="retryPdf"
       />
     </DropdownMenuContent>
   </DropdownMenu>
