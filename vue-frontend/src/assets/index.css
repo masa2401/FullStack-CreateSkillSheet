@@ -50,71 +50,74 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
+  /* 以下は Material Design 3 の SchemeNeutral（seed #6750a4）が生成する light スキーム。
+     コメントは対応する MD3 のカラーロール名。 */
+  --background: #fdf8fa; /* surface */
+  --foreground: #1c1b1d; /* onSurface */
+  --card: #f7f2f4; /* surfaceContainerLow */
+  --card-foreground: #1c1b1d; /* onSurface */
+  --popover: #f1edee; /* surfaceContainer */
+  --popover-foreground: #1c1b1d; /* onSurface */
+  --primary: #615c6b; /* primary */
+  --primary-foreground: #ffffff; /* onPrimary */
+  --secondary: #e7e0eb; /* secondaryContainer */
+  --secondary-foreground: #49454e; /* onSecondaryContainer */
+  --muted: #ebe7e9; /* surfaceContainerHigh */
+  --muted-foreground: #484648; /* onSurfaceVariant */
+  --accent: #e7e0eb; /* secondaryContainer */
+  --accent-foreground: #49454e; /* onSecondaryContainer */
+  --destructive: #ba1a1a; /* error */
+  --border: #c9c5c7; /* outlineVariant */
+  --input: #c9c5c7; /* outlineVariant */
+  --ring: #797678; /* outline */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
+  --sidebar: #f7f2f4; /* surfaceContainerLow */
+  --sidebar-foreground: #1c1b1d; /* onSurface */
+  --sidebar-primary: #615c6b; /* primary */
+  --sidebar-primary-foreground: #ffffff; /* onPrimary */
+  --sidebar-accent: #e7e0eb; /* secondaryContainer */
+  --sidebar-accent-foreground: #49454e; /* onSecondaryContainer */
+  --sidebar-border: #c9c5c7; /* outlineVariant */
+  --sidebar-ring: #797678; /* outline */
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
+  /* Material Design 3 の SchemeNeutral（seed #6750a4）が生成する dark スキーム。 */
+  --background: #141314; /* surface */
+  --foreground: #e6e1e3; /* onSurface */
+  --card: #1c1b1d; /* surfaceContainerLow */
+  --card-foreground: #e6e1e3; /* onSurface */
+  --popover: #201f21; /* surfaceContainer */
+  --popover-foreground: #e6e1e3; /* onSurface */
+  --primary: #cbc3d5; /* primary */
+  --primary-foreground: #322e3c; /* onPrimary */
+  --secondary: #49454e; /* secondaryContainer */
+  --secondary-foreground: #e7e0eb; /* onSecondaryContainer */
+  --muted: #2b292b; /* surfaceContainerHigh */
+  --muted-foreground: #c9c5c7; /* onSurfaceVariant */
+  --accent: #49454e; /* secondaryContainer */
+  --accent-foreground: #e7e0eb; /* onSecondaryContainer */
+  --destructive: #ffb4ab; /* error */
+  --border: #484648; /* outlineVariant */
+  --input: #484648; /* outlineVariant */
+  --ring: #939092; /* outline */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --sidebar: #1c1b1d; /* surfaceContainerLow */
+  --sidebar-foreground: #e6e1e3; /* onSurface */
+  --sidebar-primary: #cbc3d5; /* primary */
+  --sidebar-primary-foreground: #322e3c; /* onPrimary */
+  --sidebar-accent: #49454e; /* secondaryContainer */
+  --sidebar-accent-foreground: #e7e0eb; /* onSecondaryContainer */
+  --sidebar-border: #484648; /* outlineVariant */
+  --sidebar-ring: #939092; /* outline */
 }
 
 @layer base {

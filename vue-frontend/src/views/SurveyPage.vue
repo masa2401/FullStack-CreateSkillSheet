@@ -1,10 +1,13 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick } from 'vue'
+
+import { Check } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import QuestionCard from '@/components/QuestionCard.vue'
 import ValidationError from '@/components/ValidationError.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
+import { Card, CardContent } from '@/components/ui/card'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyValidation } from '@/composables/useSurveyValidation'
@@ -55,52 +58,45 @@ const handleSubmit = async (): Promise<void> => {
 </script>
 
 <template>
-  <div class="page-container">
-    <div class="header-section">
-      <div class="inner">
-        <div class="instruction-card">
-          <p class="instruction-text">
-            <font-awesome-icon icon="fa-solid fa-check" />
-            以下の質問で該当する項目を選択後、習熟度を5段階で選択してください。
-          </p>
-          <div class="description-group">
-            <div class="image">
-              <img
-                src="../assets/customers.png"
-                alt=""
-              />
-            </div>
-            <ul class="stars-description">
-              <li
-                v-for="level in LEVEL_LABELS"
-                :key="level.stars"
-              >
-                {{ level.stars }}： {{ level.text }}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
+    <Card>
+      <CardContent class="space-y-4">
+        <p class="flex items-center justify-center gap-2 text-center leading-relaxed">
+          <Check
+            class="size-4 shrink-0"
+            aria-hidden="true"
+          />
+          以下の質問で該当する項目を選択後、習熟度を5段階で選択してください。
+        </p>
+        <ul class="text-muted-foreground mx-auto w-fit space-y-1 text-sm">
+          <li
+            v-for="level in LEVEL_LABELS"
+            :key="level.stars"
+          >
+            {{ level.stars }}： {{ level.text }}
+          </li>
+        </ul>
+      </CardContent>
+    </Card>
 
-    <div class="wrap">
-      <template
-        v-for="category in mergedCategories"
-        :key="category.id"
+    <template
+      v-for="category in mergedCategories"
+      :key="category.id"
+    >
+      <section
+        v-if="category.isChecked"
+        class="mt-10"
       >
-        <div
-          v-if="category.isChecked"
-          class="category-section"
-        >
-          <div class="category-header">
-            <component
-              :is="resolveCategoryIcon(category.key)"
-              class="category-icon size-8"
-              aria-hidden="true"
-            />
-            <h3 class="category-title">{{ category.label }}</h3>
-          </div>
+        <div class="mb-4 flex items-center justify-center gap-2">
+          <component
+            :is="resolveCategoryIcon(category.key)"
+            class="size-8 shrink-0"
+            aria-hidden="true"
+          />
+          <h2 class="text-xl font-bold sm:text-2xl">{{ category.label }}</h2>
+        </div>
 
+        <div class="space-y-4">
           <QuestionCard
             v-for="(question, index) in category.questions"
             :key="question.id"
@@ -111,143 +107,51 @@ const handleSubmit = async (): Promise<void> => {
             "
           />
         </div>
+      </section>
+    </template>
+
+    <!-- バリデーションエラー表示 -->
+    <ValidationError :errors="validationErrors">
+      <template #description>
+        <p>チェックを入れた項目には、習熟度の選択が必須です。</p>
       </template>
+    </ValidationError>
 
-      <!-- バリデーションエラー表示 -->
-      <ValidationError :errors="validationErrors">
-        <template #description>
-          <p class="error-description">チェックを入れた項目には、習熟度の選択が必須です。</p>
-        </template>
-      </ValidationError>
+    <!-- 回答0件エラー表示 -->
+    <ValidationError
+      :errors="[]"
+      :show="noAnswersError"
+      message-id="no-answers-message"
+    >
+      <template #description>
+        <p>1つ以上の項目に回答してから次へ進んでください</p>
+      </template>
+    </ValidationError>
 
-      <!-- 回答0件エラー表示 -->
-      <ValidationError
-        :errors="[]"
-        :show="noAnswersError"
-        message-id="no-answers-message"
+    <div class="mt-10 flex flex-col items-center gap-4">
+      <p
+        v-if="isSubmitDisabled"
+        class="submit-hint text-destructive text-center text-sm font-semibold"
       >
-        <template #description>
-          <p class="error-description">1つ以上の項目に回答してから次へ進んでください</p>
-        </template>
-      </ValidationError>
-
-      <div class="submit-section">
-        <p
-          v-if="isSubmitDisabled"
-          class="submit-hint"
-        >
-          <font-awesome-icon
-            icon="fa-solid fa-triangle-exclamation"
-            shake
-          />
-          すべてのチェック項目に習熟度を選択してください
-        </p>
-        <AnimatedIconButton
-          animation-type="bounce"
-          icon="fa-solid fa-arrow-right"
-          label="次へ進む"
-          @click="handleSubmit"
-          :disabled="isSubmitDisabled"
+        <font-awesome-icon
+          icon="fa-solid fa-triangle-exclamation"
+          shake
         />
-      </div>
+        すべてのチェック項目に習熟度を選択してください
+      </p>
+      <AnimatedIconButton
+        icon="fa-solid fa-arrow-right"
+        label="次へ進む"
+        animation-type="bounce"
+        :inactive="isSubmitDisabled"
+        @click="handleSubmit"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
-.page-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-  padding: var(--p-24, 3rem) var(--p-8, 1rem) var(--p-16, 2rem);
-}
-
-.header-section {
-  max-width: 1000px;
-  margin: 0 auto var(--p-16, 2rem);
-}
-
-.inner {
-  color: #483c32;
-  max-width: 1000px;
-  padding: var(--p-16, 2rem) var(--p-8, 1rem);
-  margin: 0 auto;
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
-  border: 1px solid rgba(72, 60, 50, 0.1);
-}
-
-.instruction-text {
-  margin: 0 0 var(--p-8, 0.5rem);
-  font-size: 1.05rem;
-  color: #444;
-  text-align: center;
-  line-height: 1.6;
-}
-
-.description-group {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--p-24, 3rem);
-}
-
-.stars-description {
-  font-size: 0.95rem;
-}
-
-.wrap {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.category-section {
-  margin-top: var(--p-16, 2rem);
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-  padding: var(--p-20, 2.5rem) 0;
-}
-
-.category-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  padding: var(--p-8, 1rem);
-}
-
-.category-icon {
-  font-size: 2rem;
-  color: #483c32;
-}
-
-.category-title {
-  font-size: 1.5rem;
-  margin: 0;
-  color: #483c32;
-  font-weight: 700;
-}
-
-.submit-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--p-8, 1rem);
-  margin-top: var(--p-16, 2rem);
-}
-
 .submit-hint {
-  color: #c00e0b;
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0;
-  text-align: center;
   animation: pulse 2s infinite;
 }
 
@@ -259,20 +163,6 @@ const handleSubmit = async (): Promise<void> => {
 
   50% {
     opacity: 0.6;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-container {
-    padding: var(--p-8, 1rem);
-  }
-
-  .stars-description {
-    margin-right: 0;
-  }
-
-  .image {
-    display: none;
   }
 }
 </style>

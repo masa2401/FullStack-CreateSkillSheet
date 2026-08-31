@@ -19,7 +19,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <Card class="mx-auto w-full max-w-3xl">
+  <Card>
     <CardHeader>
       <CardTitle class="text-lg leading-relaxed font-semibold">
         Q{{ questionNumber }}. {{ question.title }}

@@ -1,28 +1,40 @@
+import type { Locator } from '@playwright/test'
+
 import { expect, test } from './fixture'
+
+/** 具体的な色を固定せず、選択前後で計算値が変化したことだけを検証する */
+const styleOf = (locator: Locator, property: string): Promise<string> =>
+  locator.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop), property)
 
 test.describe('選択状態の見た目', () => {
   test('カテゴリカードを選択すると背景色がハイライトされる', async ({ topPage }) => {
     await topPage.goto()
     const engineerCard = topPage.categoryCard('プログラマ / ITエンジニア')
+    const checkbox = topPage.categoryCheckbox('プログラマ / ITエンジニア')
 
-    await expect(engineerCard).not.toHaveCSS('border-color', 'rgb(72, 60, 50)')
+    await expect(checkbox).not.toBeChecked()
+    const before = await styleOf(engineerCard, 'background-color')
+
     await engineerCard.click()
-    await expect(engineerCard).toHaveCSS('border-color', 'rgb(72, 60, 50)')
+
+    await expect(checkbox).toBeChecked()
+    expect(await styleOf(engineerCard, 'background-color')).not.toBe(before)
   })
 
-  test('カード選択時、タイトルと説明文の文字色が白に反転する', async ({ topPage }) => {
+  test('カード選択時、タイトルと説明文の文字色が反転する', async ({ topPage }) => {
     await topPage.goto()
 
     const engineerCard = topPage.categoryCard('プログラマ / ITエンジニア')
-    const title = engineerCard.locator('.card-category-title')
-    const description = engineerCard.locator('.card-category-desc')
+    const title = engineerCard.locator('[data-slot="category-card-title"]')
+    const description = engineerCard.locator('[data-slot="category-card-description"]')
 
-    await expect(title).toHaveCSS('color', 'rgb(72, 60, 50)')
-    await expect(description).toHaveCSS('color', 'rgb(102, 102, 102)')
+    const titleBefore = await styleOf(title, 'color')
+    const descriptionBefore = await styleOf(description, 'color')
 
     await engineerCard.click()
-    await expect(title).toHaveCSS('color', 'rgb(255, 255, 255)')
-    await expect(description).toHaveCSS('color', 'rgb(255, 255, 255)')
+
+    expect(await styleOf(title, 'color')).not.toBe(titleBefore)
+    expect(await styleOf(description, 'color')).not.toBe(descriptionBefore)
   })
 
   test('習熟度ボタン選択時、AnswerItemのlevel-buttonが実際にハイライトされる', async ({
@@ -34,10 +46,13 @@ test.describe('選択状態の見た目', () => {
 
     await surveyPage.checkAnswer('Slack')
 
-    const level3 = surveyPage.levelRadio(3).locator('..')
-    await expect(level3).not.toHaveCSS('background-color', 'rgb(72, 60, 50)')
+    const level3 = surveyPage.levelRadio(3)
+    await expect(level3).toHaveAttribute('data-state', 'unchecked')
+    const before = await styleOf(level3, 'background-color')
 
     await surveyPage.selectLevel(3)
-    await expect(level3).toHaveCSS('background-color', 'rgb(72, 60, 50)')
+
+    await expect(level3).toHaveAttribute('data-state', 'checked')
+    expect(await styleOf(level3, 'background-color')).not.toBe(before)
   })
 })

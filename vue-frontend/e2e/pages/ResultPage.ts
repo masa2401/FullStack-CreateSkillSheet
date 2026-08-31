@@ -14,13 +14,13 @@ export class ResultPage {
 
   constructor(page: Page) {
     this.page = page
-    // 共有ビューでは.page-title、通常ビューではEditableNameHeading内の
-    // 視覚上非表示な.user-name-heading（h2）が使われる。両者は排他的に描画される。
-    this.heading = page.locator('.page-title, .user-name-heading')
-    this.nameInput = page.locator('.page-title-input')
+    // 共有ビューの h2 と、通常ビューの EditableNameHeading 内にある視覚上非表示な
+    // h2 は排他的に描画される。どちらも同じ見出し文言を持つ。
+    this.heading = page.getByRole('heading', { name: /様のスキルシート/ })
+    this.nameInput = page.getByRole('textbox', { name: /お名前/ })
     this.shareButton = page.getByRole('button', { name: '結果を印刷/共有' })
-    this.buttonGroup = page.locator('.button-group')
-    this.errorHeading = page.locator('.error-title')
+    this.buttonGroup = page.locator('[data-slot="result-actions"]')
+    this.errorHeading = page.locator('[data-slot="state-panel-title"]')
   }
 
   /** id= 経由（バックエンド連携）での共有ビュー表示 */
@@ -87,7 +87,7 @@ export class ResultPage {
   }
 
   skillCard(index = 0): Locator {
-    return this.page.locator('.skill-card').nth(index)
+    return this.page.locator('[data-slot="skill-card"]').nth(index)
   }
 
   /** 「名前を編集する」ボタンから再編集を開始する（committedフェーズ中のみ有効） */

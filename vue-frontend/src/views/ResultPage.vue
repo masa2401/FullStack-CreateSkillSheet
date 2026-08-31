@@ -1,10 +1,14 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+
+import { TriangleAlert } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import StatePanel from '@/components/StatePanel.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -22,10 +26,12 @@ const startOwnSheet = (): void => {
   goToTop()
 }
 
+type ErrorReason = 'expired' | 'notfound' | 'error'
+
 type PageStatus =
   | { type: 'loading' }
   | { type: 'ready'; isSharedView: boolean }
-  | { type: 'error'; reason: 'expired' | 'notfound' | 'error'; expiryDays?: number }
+  | { type: 'error'; reason: ErrorReason; expiryDays?: number }
 
 const pageStatus = ref<PageStatus>({ type: 'loading' })
 
@@ -85,19 +91,41 @@ const displayCategories = computed(() =>
     }))
     .filter((cat) => cat.questions.length > 0),
 )
+
+const ERROR_TITLES: Record<ErrorReason, string> = {
+  expired: 'リンクの有効期限が切れています',
+  notfound: 'リンクが見つかりません',
+  error: '読み込みに失敗しました',
+}
+
+const errorTitle = computed(() =>
+  pageStatus.value.type === 'error' ? ERROR_TITLES[pageStatus.value.reason] : '',
+)
+
+const errorMessage = computed(() => {
+  const status = pageStatus.value
+  if (status.type !== 'error') return ''
+
+  const messages: Record<ErrorReason, string> = {
+    expired: `共有リンクの有効期限（${status.expiryDays}日間）が切れています。`,
+    notfound: 'お探しのスキルシートは存在しないか、削除された可能性があります。',
+    error: '一時的な問題で読み込めませんでした。時間をおいて再度お試しください。',
+  }
+  return messages[status.reason]
+})
 </script>
 
 <template>
   <div
-    class="page-container"
     v-if="pageStatus.type === 'ready'"
+    class="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14 print:max-w-none print:p-0"
   >
-    <div class="content-wrapper">
-      <div class="header-section">
-        <div class="result-header">
+    <Card class="print:break-inside-avoid print:rounded-none print:shadow-none">
+      <CardContent class="space-y-4">
+        <div class="flex items-center justify-center gap-2">
           <h2
             v-if="pageStatus.isSharedView"
-            class="page-title"
+            class="text-center text-3xl font-extrabold sm:text-4xl print:text-2xl print:break-after-avoid"
           >
             {{ displayName }} 様のスキルシート
           </h2>
@@ -108,498 +136,152 @@ const displayCategories = computed(() =>
             @commit="handleNameCommitted"
           />
         </div>
-        <div class="description-group">
-          <div class="image">
-            <img
-              src="../assets/mission.png"
-              alt=""
-            />
-          </div>
-          <ul class="stars-description">
-            <li
-              v-for="level in LEVEL_LABELS"
-              :key="level.stars"
-            >
-              {{ level.stars }}： {{ level.text }}
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+        <ul class="text-muted-foreground mx-auto w-fit space-y-1 text-sm">
+          <li
+            v-for="level in LEVEL_LABELS"
+            :key="level.stars"
+          >
+            {{ level.stars }}： {{ level.text }}
+          </li>
+        </ul>
+      </CardContent>
+    </Card>
 
-    <div class="content-wrapper">
-      <div
+    <div class="mt-8 space-y-6 print:mt-4 print:space-y-4">
+      <Card
         v-for="category in displayCategories"
         :key="category.id"
-        class="category-section"
+        class="gap-4 print:box-decoration-clone print:rounded-none print:py-4 print:shadow-none"
       >
-        <div class="category-header">
-          <component
-            :is="resolveCategoryIcon(category.key)"
-            class="category-icon size-8"
-            aria-hidden="true"
-          />
-          <h3 class="category-title">{{ category.label }}</h3>
-        </div>
-        <div
-          v-for="question in category.questions"
-          :key="question.id"
-          class="question-block"
-        >
-          <h4 class="question-title">{{ question.title }}</h4>
-          <div class="skills-grid">
-            <div
-              v-for="answer in question.answers"
-              :key="answer.label"
-              class="skill-card"
-            >
-              <div class="skill-info">
-                <div class="skill-name">{{ answer.label }}</div>
-                <div class="skill-level">
-                  <span class="level-stars">{{
-                    LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars
-                  }}</span>
-                  <span class="level-number">&nbsp;({{ answer.value }}/5)</span>
-                </div>
-              </div>
-            </div>
+        <CardHeader>
+          <div class="flex items-center justify-center gap-2">
+            <component
+              :is="resolveCategoryIcon(category.key)"
+              class="size-8 shrink-0 print:size-7"
+              aria-hidden="true"
+            />
+            <CardTitle class="text-xl font-bold sm:text-2xl print:text-lg print:break-after-avoid">
+              {{ category.label }}
+            </CardTitle>
           </div>
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent class="space-y-6 print:space-y-4">
+          <div
+            v-for="question in category.questions"
+            :key="question.id"
+          >
+            <h4
+              class="mb-3 leading-relaxed font-semibold print:mb-2 print:text-base print:break-inside-avoid print:break-after-avoid"
+            >
+              {{ question.title }}
+            </h4>
+            <ul class="space-y-3 print:space-y-2">
+              <li
+                v-for="answer in question.answers"
+                :key="answer.label"
+                data-slot="skill-card"
+                class="border-border border-l-2 py-1 pl-3 print:break-inside-avoid"
+              >
+                <div
+                  data-slot="skill-info"
+                  class="flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch max-sm:gap-1"
+                >
+                  <span class="font-medium">{{ answer.label }}</span>
+                  <span class="flex shrink-0 items-center max-sm:justify-between">
+                    <span
+                      class="text-lg text-amber-500 dark:text-amber-400 print:text-base print:text-current print:[print-color-adjust:exact]"
+                    >
+                      {{ LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars }}
+                    </span>
+                    <span class="text-muted-foreground text-xs">&nbsp;({{ answer.value }}/5)</span>
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
 
-      <div class="button-group no-print">
-        <template v-if="!pageStatus.isSharedView">
-          <AnimatedIconButton
-            animationType="beat"
-            icon="fa-solid fa-arrow-left"
-            label="修正する"
-            variant="secondary"
-            @click="goBack"
-          />
+    <div
+      data-slot="result-actions"
+      class="mt-10 flex flex-wrap justify-center gap-4 max-sm:flex-col print:hidden"
+    >
+      <template v-if="!pageStatus.isSharedView">
+        <AnimatedIconButton
+          icon="fa-solid fa-arrow-left"
+          label="修正する"
+          animation-type="beat"
+          variant="secondary"
+          @click="goBack"
+        />
 
-          <ShareButton />
+        <ShareButton />
 
-          <AnimatedIconButton
-            animationType="beat"
-            icon="fa-regular fa-house"
-            label="トップへ戻る"
-            variant="secondary"
-            @click="goToTop"
-          />
-        </template>
+        <AnimatedIconButton
+          icon="fa-regular fa-house"
+          label="トップへ戻る"
+          animation-type="beat"
+          variant="secondary"
+          @click="goToTop"
+        />
+      </template>
 
-        <template v-else>
-          <AnimatedIconButton
-            icon="fa-solid fa-pen"
-            label="自分のスキルシートを作成"
-            @click="startOwnSheet"
-          />
-        </template>
-      </div>
+      <template v-else>
+        <AnimatedIconButton
+          icon="fa-solid fa-pen"
+          label="自分のスキルシートを作成"
+          animation-type="beat"
+          @click="startOwnSheet"
+        />
+      </template>
     </div>
   </div>
 
-  <div
+  <StatePanel
     v-else-if="pageStatus.type === 'error'"
-    class="error-container"
+    :title="errorTitle"
   >
-    <div class="error-content">
-      <span class="error-icon">
-        <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-      </span>
-      <h2 class="error-title">
-        {{
-          pageStatus.reason === 'expired'
-            ? 'リンクの有効期限が切れています'
-            : pageStatus.reason === 'notfound'
-              ? 'リンクが見つかりません'
-              : '読み込みに失敗しました'
-        }}
-      </h2>
-      <p class="error-message">
-        {{
-          pageStatus.reason === 'expired'
-            ? `共有リンクの有効期限（${pageStatus.expiryDays}日間）が切れています。`
-            : pageStatus.reason === 'notfound'
-              ? 'お探しのスキルシートは存在しないか、削除された可能性があります。'
-              : '一時的な問題で読み込めませんでした。時間をおいて再度お試しください。'
-        }}
-      </p>
+    <template #icon>
+      <TriangleAlert
+        class="size-12"
+        aria-hidden="true"
+      />
+    </template>
+    <template #message>{{ errorMessage }}</template>
+    <template #actions>
       <AnimatedIconButton
         icon="fa-solid fa-house"
         label="トップへ戻る"
+        animation-type="beat"
         @click="goToTop"
       />
-    </div>
-  </div>
+    </template>
+  </StatePanel>
 
   <div
     v-else
-    class="loading-container"
+    class="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-16"
     role="status"
     aria-label="データを読み込んでいます"
     aria-live="polite"
   >
     <div
-      class="loading-spinner"
+      class="loading-spinner border-muted border-t-primary size-14 rounded-full border-4"
       aria-hidden="true"
     ></div>
-    <p class="loading-text">データを読み込んでいます...</p>
+    <p class="text-lg font-semibold">データを読み込んでいます...</p>
   </div>
 </template>
 
 <style scoped>
-.page-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-  padding: var(--p-24, 3rem) 0;
-}
-
-.header-section {
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-  padding: 0;
-}
-
-.result-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  padding: var(--p-16, 2rem);
-}
-
-.description-group {
-  display: flex;
-  justify-content: center;
-  gap: var(--p-24, 3rem);
-  padding-bottom: var(--p-16, 2rem);
-}
-
-.stars-description {
-  display: flex;
-  flex-direction: column;
-  width: fit-content;
-}
-
-.page-title {
-  font-size: 2.5rem;
-  color: #483c32;
-  margin: 0;
-  font-weight: 800;
-  text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-}
-
-.content-wrapper {
-  max-width: 1000px;
-  margin: var(--p-20, 2.5rem) auto 0;
-  padding: 0 var(--p-8, 1rem);
-}
-
-.category-section {
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-  margin-bottom: var(--p-12, 1.5rem);
-}
-
-.category-header {
-  color: #483c32;
-  padding: var(--p-16, 2rem);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--p-4, 0.5rem);
-}
-
-.category-icon {
-  font-size: 2rem;
-}
-
-.category-title {
-  font-size: 1.5rem;
-  margin: 0;
-  font-weight: 700;
-}
-
-.question-block {
-  padding: 0 var(--p-24, 3rem) var(--p-20, 2.5rem);
-}
-
-.question-title {
-  font-size: 1.1rem;
-  color: #483c32;
-  margin: 0 0 var(--p-8, 1rem);
-  font-weight: 600;
-  line-height: 1.6;
-}
-
-.skills-grid {
-  display: grid;
-  gap: var(--p-12, 1.5rem);
-}
-
-.skill-card {
-  background: #ffffff;
-  padding: var(--p-4, 0.5rem) var(--p-8, 1rem);
-  border-left: 4px solid #d3c6a6;
-  transition: all 0.3s;
-}
-
-.skill-info {
-  display: grid;
-  grid-template-columns: 9fr 1fr;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--p-8, 1rem);
-}
-
-.skill-name {
-  flex: 1;
-  color: #483c32;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.skill-level {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.level-stars {
-  color: #fbbf24;
-  font-size: 1.2rem;
-}
-
-.level-number {
-  font-size: 0.8em;
-  color: #666;
-}
-
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: var(--p-8, 1rem);
-  flex-wrap: wrap;
-  margin-top: var(--p-24, 3rem);
-}
-
-.loading-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: var(--p-16, 2rem);
-}
-
 .loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(72, 60, 50, 0.3);
-  border-top-color: #483c32;
-  border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-.error-container {
-  min-height: 85vh;
-  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--p-32, 4rem);
-}
-
-.error-content {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: var(--p-24, 3rem);
-  text-align: center;
-  max-width: 600px;
-  width: 75%;
-  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
-  border: 1px solid rgba(72, 60, 50, 0.1);
-}
-
-.error-icon {
-  display: block;
-  font-size: 3rem;
-  color: #b45309;
-  margin-bottom: 1rem;
-}
-
-.error-title {
-  color: #483c32;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 1rem;
-}
-
-.error-message {
-  color: #666;
-  line-height: 1.7;
-  margin: 0 0 2rem;
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.loading-text {
-  color: #483c32;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .page-title {
-    font-size: 2rem;
-  }
-
-  .image {
-    display: none;
-  }
-
-  .category-header {
-    padding: var(--p-8, 1rem);
-  }
-
-  .question-block {
-    padding: var(--p-8, 1rem);
-  }
-
-  .skill-info {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--p-4, 0.5rem);
-  }
-
-  .skill-level {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .button-group {
-    flex-direction: column;
-    width: 100%;
-    gap: var(--p-4, 0.5rem);
-  }
-}
-
-/* 印刷用スタイル */
-@media print {
-  .no-print,
-  .button-group {
-    display: none !important;
-  }
-
-  .page-container {
-    background: #ffffff !important;
-    padding: 0;
-    min-height: auto;
-  }
-
-  .header-section {
-    padding: 0 0 var(--p-8, 1rem) 0;
-    border: 1px solid #e5e7eb;
-    border-radius: var(--radius, 12px);
-  }
-
-  .page-title {
-    font-size: 1.8rem;
-    text-shadow: none;
-    break-after: avoid;
-  }
-
-  .content-wrapper {
-    padding: 0;
-    max-width: 100%;
-  }
-
-  .category-section {
-    margin-bottom: var(--p-12, 1.5rem);
-    box-shadow: none;
-    border: 1.5px solid #d1d5db;
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
-    border-radius: 0;
-    padding: var(--p-8, 1rem) 0;
-  }
-
-  .category-header {
-    padding: var(--p-8, 1rem);
-    margin-bottom: var(--p-4, 0.5rem);
-  }
-
-  .category-icon {
-    font-size: 1.75rem;
-  }
-
-  .category-title {
-    font-size: 1.3rem;
-  }
-
-  .question-block {
-    padding: 0 var(--p-12, 1.5rem) var(--p-16, 2rem);
-  }
-
-  .question-title {
-    font-size: 1rem;
-    margin: 0 0 var(--p-4, 0.5rem);
-    break-after: avoid;
-    break-inside: avoid;
-  }
-
-  .skills-grid {
-    gap: var(--p-4, 0.5rem);
-  }
-
-  .skill-card {
-    padding: var(--p-8, 1rem);
-    border-radius: var(--radius, 12px);
-    box-shadow: none;
-    border: 1px solid #e5e7eb;
-    break-inside: avoid;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .skill-info {
-    gap: var(--p-8, 1rem);
-  }
-
-  .skill-name {
-    font-size: 0.9rem;
-  }
-
-  .level-stars {
-    font-size: 0.9rem;
-    color: #1a1a1a !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    font-weight: 600;
-  }
-
-  .level-number {
-    color: #444 !important;
-  }
-
-  h2,
-  h3,
-  h4 {
-    break-after: avoid;
-  }
-
-  a[href]:after {
-    content: none !important;
   }
 }
 </style>
