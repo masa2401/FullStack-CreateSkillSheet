@@ -38,7 +38,8 @@
           var mode = localStorage.getItem('vueuse-color-scheme')
           var isDark =
             mode === 'dark' ||
-            ((!mode || mode === 'auto') && matchMedia('(prefers-color-scheme: dark)').matches)
+            ((!mode || mode === 'auto') &&
+              matchMedia('(prefers-color-scheme: dark)').matches)
           document.documentElement.classList.toggle('dark', isDark)
         } catch (e) {
           /* localStorage が使えない環境では何もしない */

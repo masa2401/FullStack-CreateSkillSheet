@@ -1,0 +1,24 @@
+# Prettier 3 は cwd の .gitignore と .prettierignore を既定の ignore-path として読む。
+# リポジトリルートの .gitignore は vue-frontend/ の外にあり参照されないため、ここで明示する。
+
+# 依存関係
+node_modules/
+
+# ビルド成果物
+dist/
+dist-ssr/
+
+# テスト・カバレッジの生成物
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+__screenshots__/
+
+# 自動生成されるため整形しない
+package-lock.json
+
+# ログ
+*.log
