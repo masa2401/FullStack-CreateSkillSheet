@@ -5,6 +5,7 @@ import { TriangleAlert } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
+import ResultSkeleton from '@/components/ResultSkeleton.vue'
 import ShareButton from '@/components/ShareButton.vue'
 import StatePanel from '@/components/StatePanel.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
@@ -259,29 +260,5 @@ const errorMessage = computed(() => {
     </template>
   </StatePanel>
 
-  <div
-    v-else
-    class="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-16"
-    role="status"
-    aria-label="データを読み込んでいます"
-    aria-live="polite"
-  >
-    <div
-      class="loading-spinner border-muted border-t-primary size-14 rounded-full border-4"
-      aria-hidden="true"
-    ></div>
-    <p class="text-lg font-semibold">データを読み込んでいます...</p>
-  </div>
+  <ResultSkeleton v-else />
 </template>
-
-<style scoped>
-.loading-spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>
