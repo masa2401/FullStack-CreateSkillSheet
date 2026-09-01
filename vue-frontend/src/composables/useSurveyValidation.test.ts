@@ -9,7 +9,7 @@ import { useSurveyValidation } from './useSurveyValidation'
 const makeCategory = (overrides?: Partial<MergedCategory>): MergedCategory => ({
   id: 1,
   label: '共通',
-  icon: 'fa-solid fa-briefcase',
+  key: 'common',
   isChecked: true,
   questions: [
     {

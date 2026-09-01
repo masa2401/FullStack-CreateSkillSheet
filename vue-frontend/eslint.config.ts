@@ -8,7 +8,13 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig([
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', 'node_modules/**']),
+  globalIgnores([
+    '**/dist/**',
+    '**/dist-ssr/**',
+    '**/coverage/**',
+    '**/playwright-report/**',
+    '**/test-results/**',
+  ]),
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/essential'],
@@ -31,13 +37,10 @@ export default defineConfig([
   },
 
   {
-    files: ['**/*.{js,mjs,jsx}'],
     ...tseslint.configs.disableTypeChecked,
+    files: ['**/*.{js,mjs,jsx}'],
   },
 
-  // shadcn-vue の生成コンポーネントは Button.vue / Card.vue のように
-  // 単語1つのファイル名になるため、このディレクトリのみルールを無効化する。
-  // 他のルールは生成物にも適用したいので globalIgnores は使わない。
   {
     files: ['src/components/ui/**/*.vue'],
     rules: {
