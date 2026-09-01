@@ -92,7 +92,7 @@ describe('ResultPage', () => {
   it('store のデータからユーザー名が表示される', async () => {
     const wrapper = createWrapper()
     await flushPromises()
-    expect(wrapper.find('.user-name-heading').text()).toContain('テストユーザー')
+    expect(wrapper.find('[data-slot="user-name-heading"]').text()).toContain('テストユーザー')
   })
 
   it('URL データがある場合は URL データが優先して表示される', async () => {

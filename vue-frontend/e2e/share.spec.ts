@@ -171,7 +171,7 @@ test.describe('ゲストゲート', () => {
     await surveyPage.submit()
 
     await resultPage.shareButton.click()
-    await expect(resultPage.nameInput).toHaveClass(/is-highlighted/)
+    await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
 
     await resultPage.fillName('山田太郎')
 

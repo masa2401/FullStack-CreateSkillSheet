@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import AppButton from '@/components/AppButton.vue'
 import { useNameCommit } from '@/composables/useNameCommit'
 
 interface Props {
@@ -21,7 +22,6 @@ const NAME_MAX_LENGTH = 20
 const {
   draft: nameDraft,
   isEditable: isNameEditable,
-  isLocked: isNameLocked,
   showEditButton,
   editableWindowMs,
   requestCommit: commitNameDraft,
@@ -62,18 +62,19 @@ watch(showEditButton, (visible) => {
 </script>
 <template>
   <h2
-    class="user-name-heading"
+    data-slot="user-name-heading"
+    class="sr-only"
     aria-live="polite"
   >
     {{ displayName }} 様のスキルシート
   </h2>
-  <div class="name-editor">
-    <div class="name-input-wrapper">
+  <div class="flex min-w-0 flex-col items-center gap-2">
+    <div class="flex min-w-0 flex-wrap items-baseline justify-center gap-1">
       <input
         v-model="nameDraft"
         type="text"
-        class="page-title-input"
-        :class="{ 'is-locked': isNameLocked, 'is-editable-hint': isNameEditable }"
+        data-slot="name-input"
+        class="bg-accent hover:border-ring focus:border-ring placeholder:text-muted-foreground/60 read-only:hover:border-transparent read-only:focus:border-transparent min-w-0 rounded-lg border-b-2 border-dashed border-transparent px-2 text-center text-3xl font-extrabold transition-colors outline-none read-only:cursor-default read-only:bg-transparent sm:text-4xl print:border-none print:text-2xl print:break-after-avoid"
         :readonly="!isNameEditable"
         :maxlength="NAME_MAX_LENGTH"
         :size="nameInputSize"
@@ -84,184 +85,35 @@ watch(showEditButton, (visible) => {
         @keydown="handleNameKeydown"
       />
       <span
-        class="title-suffix"
+        class="text-3xl font-extrabold sm:text-4xl print:text-2xl"
         aria-hidden="true"
         >様のスキルシート</span
       >
     </div>
     <div
       v-if="showEditButton"
-      class="edit-controls"
+      class="flex items-center justify-center gap-2 print:hidden"
     >
-      <button
-        type="button"
-        class="edit-name-button"
+      <AppButton
+        data-slot="edit-name-button"
+        variant="link"
+        size="sm"
+        class="underline"
         @click="startNameEdit"
       >
         名前を編集する
-      </button>
+      </AppButton>
       <div
-        class="edit-progress-track"
+        class="bg-primary/20 h-1 w-20 shrink-0 overflow-hidden rounded-full"
         aria-hidden="true"
       >
         <div
-          class="edit-progress-fill"
-          :class="{ 'is-collapsed': isEditProgressCollapsed }"
+          data-slot="edit-progress-fill"
+          class="bg-primary h-full transition-[width] ease-linear motion-reduce:transition-none"
+          :class="isEditProgressCollapsed ? 'w-0' : 'w-full'"
           :style="{ transitionDuration: `${editableWindowMs}ms` }"
         ></div>
       </div>
     </div>
   </div>
 </template>
-<style scoped>
-.user-name-heading {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.name-editor {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  min-width: 0;
-}
-
-.name-input-wrapper {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  position: relative;
-  min-width: 0;
-}
-
-.page-title-input {
-  font-family: inherit;
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #483c32;
-  text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-  text-align: center;
-  background: transparent;
-  border: none;
-  border-bottom: 2px dashed transparent;
-  padding: 0 var(--p-4, 0.5rem);
-  transition:
-    border-color 0.2s,
-    background-color 0.3s ease;
-  border-radius: 8px;
-  min-width: 0;
-}
-
-.page-title-input.is-editable-hint {
-  background-color: rgba(211, 198, 166, 0.35);
-}
-
-.page-title-input:not(.is-locked):hover,
-.page-title-input:not(.is-locked):focus {
-  border-bottom-color: #d3c6a6;
-}
-
-.page-title-input:focus {
-  outline: none;
-}
-
-.page-title-input.is-locked {
-  cursor: default;
-}
-
-.page-title-input::placeholder {
-  color: rgba(72, 60, 50, 0.35);
-}
-
-.title-suffix {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #483c32;
-  text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-}
-
-.edit-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--p-4, 0.5rem);
-}
-
-.edit-name-button {
-  display: inline-block;
-  text-align: center;
-  background: none;
-  border: none;
-  color: #7c6a58;
-  font-size: 0.9rem;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-}
-
-.edit-name-button:hover,
-.edit-name-button:focus-visible {
-  color: #483c32;
-}
-
-.edit-progress-track {
-  width: 80px;
-  height: 4px;
-  background: rgba(72, 60, 50, 0.15);
-  border-radius: 2px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.edit-progress-fill {
-  width: 100%;
-  height: 100%;
-  background: #483c32;
-  transition-property: width;
-  transition-timing-function: linear;
-}
-
-.edit-progress-fill.is-collapsed {
-  width: 0%;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .edit-progress-fill {
-    transition: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-title-input,
-  .title-suffix {
-    font-size: 2rem;
-  }
-}
-
-@media print {
-  .page-title-input,
-  .title-suffix {
-    font-size: 1.8rem;
-    text-shadow: none;
-    break-after: avoid;
-  }
-
-  .page-title-input {
-    border: none !important;
-  }
-
-  .edit-controls {
-    display: none !important;
-  }
-}
-</style>

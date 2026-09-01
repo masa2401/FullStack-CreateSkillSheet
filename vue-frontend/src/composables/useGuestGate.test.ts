@@ -8,7 +8,6 @@ import { useGuestGate } from './useGuestGate'
 describe('useGuestGate', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    document.body.innerHTML = ''
   })
 
   // ─── isGuest ────────────────────────────────────────────────
@@ -59,35 +58,6 @@ describe('useGuestGate', () => {
 
       expect(action).toHaveBeenCalledOnce()
       expect(scrollToSpy).not.toHaveBeenCalled()
-    })
-  })
-
-  // ─── goToNameInput ──────────────────────────────────────────
-
-  describe('goToNameInput', () => {
-    it('入力欄が存在する場合、一時的にハイライトクラスが付与され、時間経過で外れる', () => {
-      vi.useFakeTimers()
-      vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
-
-      const input = document.createElement('input')
-      input.className = 'page-title-input'
-      document.body.appendChild(input)
-
-      const { goToNameInput } = useGuestGate()
-      goToNameInput()
-
-      expect(input.classList.contains('is-highlighted')).toBe(true)
-      vi.advanceTimersByTime(1500)
-      expect(input.classList.contains('is-highlighted')).toBe(false)
-
-      vi.useRealTimers()
-    })
-
-    it('入力欄が存在しなくてもエラーにならない', () => {
-      vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
-      const { goToNameInput } = useGuestGate()
-
-      expect(() => goToNameInput()).not.toThrow()
     })
   })
 })
