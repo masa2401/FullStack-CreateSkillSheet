@@ -10,6 +10,7 @@ import ShareButton from '@/components/ShareButton.vue'
 import StatePanel from '@/components/StatePanel.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -31,18 +32,23 @@ type ErrorReason = 'expired' | 'notfound' | 'error'
 
 type PageStatus =
   | { type: 'loading' }
-  | { type: 'ready'; isSharedView: boolean }
+  | { type: 'ready' }
   | { type: 'error'; reason: ErrorReason; expiryDays?: number }
 
 const pageStatus = ref<PageStatus>({ type: 'loading' })
 
+// 共有ビューかどうかはURLだけで確定するため、取得完了を待たずに決めておく。
+// これによりローディング中もアクション行を実描画でき、表示完了時に位置が動かない。
+const sharedId = getIdFromUrl()
+const urlData = getDataFromUrl()
+const isSharedView = (!!sharedId && isBackendEnabled()) || urlData !== null
+
 onMounted(async () => {
-  const sharedId = getIdFromUrl()
   if (sharedId && isBackendEnabled()) {
     const result = await fetchSheet(sharedId)
     if (result.status === 'success') {
       store.loadFromSharedState(result.data)
-      pageStatus.value = { type: 'ready', isSharedView: true }
+      pageStatus.value = { type: 'ready' }
       return
     }
     if (result.status === 'expired') {
@@ -55,13 +61,10 @@ onMounted(async () => {
     }
   }
 
-  const urlData = getDataFromUrl()
   if (urlData) {
     store.loadFromSharedState(urlData)
-    pageStatus.value = { type: 'ready', isSharedView: true }
-    return
   }
-  pageStatus.value = { type: 'ready', isSharedView: false }
+  pageStatus.value = { type: 'ready' }
 })
 
 const handleNameCommitted = async (name: string): Promise<void> => {
@@ -78,8 +81,12 @@ const displayName = computed(() => store.userName || 'Guest')
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
-const displayCategories = computed(() =>
-  mergedCategories.value
+// ready 以外では空配列を返す。ローディング中にストアの前回データが
+// 一瞬描画されるのを防ぎ、テンプレート側は v-for だけで済む。
+const displayCategories = computed(() => {
+  if (pageStatus.value.type !== 'ready') return []
+
+  return mergedCategories.value
     .filter((cat) => cat.isChecked)
     .map((cat) => ({
       ...cat,
@@ -90,8 +97,8 @@ const displayCategories = computed(() =>
         }))
         .filter((q) => q.answers.length > 0),
     }))
-    .filter((cat) => cat.questions.length > 0),
-)
+    .filter((cat) => cat.questions.length > 0)
+})
 
 const ERROR_TITLES: Record<ErrorReason, string> = {
   expired: 'リンクの有効期限が切れています',
@@ -118,14 +125,18 @@ const errorMessage = computed(() => {
 
 <template>
   <div
-    v-if="pageStatus.type === 'ready'"
+    v-if="pageStatus.type !== 'error'"
     class="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14 print:max-w-none print:p-0"
   >
     <Card class="print:break-inside-avoid print:rounded-none print:shadow-none">
       <CardContent class="space-y-4">
         <div class="flex items-center justify-center gap-2">
+          <Skeleton
+            v-if="pageStatus.type === 'loading'"
+            class="h-9 w-72 max-w-full sm:h-10"
+          />
           <h2
-            v-if="pageStatus.isSharedView"
+            v-else-if="isSharedView"
             class="text-center text-3xl font-extrabold sm:text-4xl print:text-2xl print:break-after-avoid"
           >
             {{ displayName }} 様のスキルシート
@@ -149,6 +160,8 @@ const errorMessage = computed(() => {
     </Card>
 
     <div class="mt-8 space-y-6 print:mt-4 print:space-y-4">
+      <ResultSkeleton v-if="pageStatus.type === 'loading'" />
+
       <Card
         v-for="category in displayCategories"
         :key="category.id"
@@ -208,7 +221,7 @@ const errorMessage = computed(() => {
       data-slot="result-actions"
       class="mt-10 flex flex-wrap justify-center gap-4 max-sm:flex-col print:hidden"
     >
-      <template v-if="!pageStatus.isSharedView">
+      <template v-if="!isSharedView">
         <AnimatedIconButton
           icon="fa-solid fa-arrow-left"
           label="修正する"
@@ -240,7 +253,7 @@ const errorMessage = computed(() => {
   </div>
 
   <StatePanel
-    v-else-if="pageStatus.type === 'error'"
+    v-else
     :title="errorTitle"
   >
     <template #icon>
@@ -259,6 +272,4 @@ const errorMessage = computed(() => {
       />
     </template>
   </StatePanel>
-
-  <ResultSkeleton v-else />
 </template>
