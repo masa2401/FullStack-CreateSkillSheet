@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import { SquarePen } from '@lucide/vue'
+
 import AppButton from '@/components/AppButton.vue'
 import { useNameCommit } from '@/composables/useNameCommit'
 
@@ -96,11 +98,11 @@ watch(showEditButton, (visible) => {
     >
       <AppButton
         data-slot="edit-name-button"
-        variant="link"
+        variant="outline"
         size="sm"
-        class="underline"
         @click="startNameEdit"
       >
+        <SquarePen aria-hidden="true" />
         名前を編集する
       </AppButton>
       <div
