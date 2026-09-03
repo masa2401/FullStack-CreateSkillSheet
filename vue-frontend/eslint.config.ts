@@ -9,6 +9,7 @@ import playwright from 'eslint-plugin-playwright'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import vueA11y from 'eslint-plugin-vuejs-accessibility'
 
 export default defineConfig([
   globalIgnores([
@@ -21,6 +22,13 @@ export default defineConfig([
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/essential'],
+  ...vueA11y.configs['flat/recommended'],
+  {
+    files: ['**/*.vue'],
+    rules: {
+      'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
+    },
+  },
   {
     ...vitest.configs.recommended,
     files: ['src/**/*.{test,spec}.ts'],
@@ -82,6 +90,7 @@ export default defineConfig([
     files: ['src/components/ui/**/*.vue'],
     rules: {
       'vue/multi-word-component-names': 'off',
+      'vuejs-accessibility/label-has-for': 'off',
     },
   },
 
