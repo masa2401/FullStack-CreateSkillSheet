@@ -45,12 +45,17 @@ const groupedErrors = computed<GroupedError[]>(() => {
 </script>
 
 <template>
-  <transition name="fade">
+  <transition
+    enter-active-class="transition-opacity duration-200 ease-out"
+    enter-from-class="opacity-0"
+    leave-active-class="transition-opacity duration-150 ease-in"
+    leave-to-class="opacity-0"
+  >
     <Alert
       v-if="isVisible"
       :id="messageId"
       variant="destructive"
-      class="error-alert mt-8"
+      class="animate-shake mt-8"
       role="alert"
       aria-live="assertive"
       tabindex="-1"
@@ -86,35 +91,3 @@ const groupedErrors = computed<GroupedError[]>(() => {
     </Alert>
   </transition>
 </template>
-
-<style scoped>
-/* animation-name の指定は Tailwind で表現できないためスコープCSSで維持する */
-.error-alert {
-  animation: shake 0.5s ease;
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-5px);
-  }
-
-  75% {
-    transform: translateX(5px);
-  }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

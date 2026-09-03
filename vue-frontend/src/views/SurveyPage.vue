@@ -131,7 +131,8 @@ const handleSubmit = async (): Promise<void> => {
     <div class="mt-10 flex flex-col items-center gap-4">
       <p
         v-if="isSubmitDisabled"
-        class="submit-hint text-destructive text-center text-sm font-semibold"
+        data-slot="submit-hint"
+        class="text-destructive text-center text-sm font-semibold motion-safe:animate-pulse"
       >
         <font-awesome-icon
           icon="fa-solid fa-triangle-exclamation"
@@ -149,20 +150,3 @@ const handleSubmit = async (): Promise<void> => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.submit-hint {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.6;
-  }
-}
-</style>

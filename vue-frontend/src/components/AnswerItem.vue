@@ -65,7 +65,12 @@ const handleLevelChange = (level: AcceptableValue): void => {
       </Label>
     </div>
 
-    <transition name="slide-fade">
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="-translate-y-2.5 opacity-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-to-class="-translate-y-2.5 opacity-0"
+    >
       <div
         v-if="isChecked"
         class="bg-card mt-2 rounded-xl border p-4"
@@ -104,25 +109,3 @@ const handleLevelChange = (level: AcceptableValue): void => {
     </transition>
   </div>
 </template>
-
-<style scoped>
-/* transform と opacity を同時に扱う遷移は Tailwind の transition ユーティリティで
-   表現しづらいため、既存のクラスベースの定義を維持する */
-.slide-fade-enter-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-leave-active {
-  transition: all 0.2s ease;
-}
-
-.slide-fade-enter-from {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-
-.slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-</style>

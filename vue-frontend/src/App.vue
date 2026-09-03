@@ -14,8 +14,11 @@ usePrintColorScheme()
       <main class="flex flex-1 flex-col">
         <router-view v-slot="{ Component }">
           <transition
-            name="page"
             mode="out-in"
+            enter-active-class="transition-opacity duration-200 ease-out"
+            enter-from-class="opacity-0"
+            leave-active-class="transition-opacity duration-150 ease-in"
+            leave-to-class="opacity-0"
           >
             <component :is="Component" />
           </transition>
@@ -25,15 +28,3 @@ usePrintColorScheme()
     </div>
   </TooltipProvider>
 </template>
-
-<style>
-.page-enter-active,
-.page-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.page-enter-from,
-.page-leave-to {
-  opacity: 0;
-}
-</style>

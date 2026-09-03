@@ -84,7 +84,7 @@ const { goToSurvey } = useAppNavigation()
             class="bg-card text-primary absolute top-4 right-4 flex size-10 items-center justify-center rounded-full shadow-sm"
             aria-hidden="true"
           >
-            <Check class="check-mark size-6" />
+            <Check class="animate-check-pop size-6" />
           </span>
         </label>
         <label
@@ -121,7 +121,7 @@ const { goToSurvey } = useAppNavigation()
             class="bg-card text-primary absolute top-4 right-4 flex size-10 items-center justify-center rounded-full shadow-sm"
             aria-hidden="true"
           >
-            <Check class="check-mark size-6" />
+            <Check class="animate-check-pop size-6" />
           </span>
         </label>
       </div>
@@ -145,23 +145,3 @@ const { goToSurvey } = useAppNavigation()
     </div>
   </div>
 </template>
-
-<style scoped>
-.check-mark {
-  animation: checkPop 0.3s ease;
-}
-
-@keyframes checkPop {
-  0% {
-    transform: scale(0);
-  }
-
-  50% {
-    transform: scale(1.2);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-</style>

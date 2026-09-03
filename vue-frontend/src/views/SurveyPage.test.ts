@@ -163,7 +163,7 @@ describe('SurveyPage', () => {
     })
     await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
     await flushPromises()
-    expect(wrapper.find('.submit-hint').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="submit-hint"]').exists()).toBe(true)
   })
 
   it('チェックあり・習熟度選択済みの場合はエラーなしで遷移できる', async () => {
