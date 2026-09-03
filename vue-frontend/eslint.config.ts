@@ -3,7 +3,9 @@ import vueParser from 'vue-eslint-parser'
 
 import js from '@eslint/js'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+import vitest from '@vitest/eslint-plugin'
 import pluginVue from 'eslint-plugin-vue'
+import playwright from 'eslint-plugin-playwright'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
@@ -19,6 +21,14 @@ export default defineConfig([
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/essential'],
+  {
+    ...vitest.configs.recommended,
+    files: ['src/**/*.{test,spec}.ts'],
+  },
+  {
+    ...playwright.configs['flat/recommended'],
+    files: ['e2e/**/*.ts'],
+  },
 
   {
     files: ['**/*.{js,mjs,jsx,ts,tsx,vue}'],

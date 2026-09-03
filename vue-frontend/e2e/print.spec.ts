@@ -37,6 +37,6 @@ test.describe('印刷スタイル', () => {
       window.print = () => (window as unknown as { __print: () => void }).__print()
     })
     await resultPage.print()
-    expect(printCalls.length).toBe(1)
+    expect(printCalls).toHaveLength(1)
   })
 })
