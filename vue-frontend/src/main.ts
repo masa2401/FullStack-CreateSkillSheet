@@ -62,7 +62,7 @@ library.add(
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate) // localStorage自動永続化
 const app = createApp(App)
-app.component('font-awesome-icon', FontAwesomeIcon)
+app.component('FontAwesomeIcon', FontAwesomeIcon)
 app.use(router)
 app.use(pinia)
 app.mount('#app')

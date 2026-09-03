@@ -1,15 +1,16 @@
-import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import vueParser from 'vue-eslint-parser'
 
 import js from '@eslint/js'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import vitest from '@vitest/eslint-plugin'
-import pluginVue from 'eslint-plugin-vue'
+
+import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import playwright from 'eslint-plugin-playwright'
+import vueA11y from 'eslint-plugin-vuejs-accessibility'
+import pluginVue from 'eslint-plugin-vue'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import vueA11y from 'eslint-plugin-vuejs-accessibility'
 
 export default defineConfig([
   globalIgnores([
@@ -21,18 +22,22 @@ export default defineConfig([
   ]),
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  ...pluginVue.configs['flat/essential'],
+  ...pluginVue.configs['flat/recommended'],
   ...vueA11y.configs['flat/recommended'],
+
   {
     files: ['**/*.vue'],
     rules: {
+      'vue/require-default-prop': 'off',
       'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
     },
   },
+
   {
     ...vitest.configs.recommended,
     files: ['src/**/*.{test,spec}.ts'],
   },
+
   {
     ...playwright.configs['flat/recommended'],
     files: ['e2e/**/*.ts'],

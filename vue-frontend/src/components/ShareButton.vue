@@ -83,7 +83,7 @@ const handlePdfDownload = (): void => {
   <Tooltip v-if="isGuest">
     <TooltipTrigger as-child>
       <AnimatedIconButton
-        animationType="bounce"
+        animation-type="bounce"
         icon="fa-solid fa-arrow-up-right-from-square"
         label="結果を印刷/共有"
         variant="secondary"
@@ -102,7 +102,7 @@ const handlePdfDownload = (): void => {
   >
     <DropdownMenuTrigger as-child>
       <AnimatedIconButton
-        animationType="bounce"
+        animation-type="bounce"
         icon="fa-solid fa-arrow-up-right-from-square"
         label="結果を印刷/共有"
         variant="secondary"
