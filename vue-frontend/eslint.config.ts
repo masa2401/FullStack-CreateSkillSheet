@@ -1,3 +1,4 @@
+import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import vueParser from 'vue-eslint-parser'
 
 import js from '@eslint/js'
@@ -39,6 +40,32 @@ export default defineConfig([
   {
     ...tseslint.configs.disableTypeChecked,
     files: ['**/*.{js,mjs,jsx}'],
+  },
+
+  {
+    files: ['**/*.vue'],
+    plugins: { 'better-tailwindcss': betterTailwindcss },
+    settings: {
+      'better-tailwindcss': {
+        entryPoint: 'src/assets/index.css',
+        attributes: [
+          'class',
+          'enter-active-class',
+          'enter-from-class',
+          'leave-active-class',
+          'leave-to-class',
+        ],
+      },
+    },
+    rules: {
+      'better-tailwindcss/no-duplicate-classes': 'error',
+      'better-tailwindcss/no-unknown-classes': [
+        'warn',
+        { ignore: ['^button-icon$', '^button-text$', '^menu-icon$'] },
+      ],
+      'better-tailwindcss/enforce-consistent-class-order': 'off',
+      'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
+    },
   },
 
   {
