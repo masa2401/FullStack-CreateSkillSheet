@@ -73,7 +73,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
     >
       <div
         v-if="isChecked"
-        class="bg-card mt-2 rounded-xl border p-4"
+        class="mt-2 rounded-xl border bg-card p-4"
       >
         <RadioGroup
           :model-value="value"
@@ -91,7 +91,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
             :key="level"
             :value="level"
             :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`"
-            class="focus-visible:border-ring focus-visible:ring-ring/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary flex min-w-20 flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-[3px] focus-visible:outline-none data-[state=checked]:scale-105"
+            class="flex min-w-20 flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none data-[state=checked]:scale-105 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
           >
             <span class="text-xl font-bold">{{ level }}</span>
             <span class="text-xs opacity-80">{{ '★'.repeat(level) }}</span>

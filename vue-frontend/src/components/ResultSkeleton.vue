@@ -32,7 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton'
           <div
             v-for="answer in 3"
             :key="answer"
-            class="border-border flex items-center justify-between gap-4 border-l-2 py-1 pl-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-1"
+            class="flex items-center justify-between gap-4 border-l-2 border-border py-1 pl-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-1"
           >
             <Skeleton class="h-5 w-full max-w-56" />
             <Skeleton class="h-5 w-24 shrink-0 max-sm:w-full" />

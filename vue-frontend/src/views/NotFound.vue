@@ -17,7 +17,7 @@ const { goToTop } = useAppNavigation()
       />
     </template>
     <template #lead>
-      <p class="text-muted-foreground mb-2 text-5xl font-extrabold">404</p>
+      <p class="mb-2 text-5xl font-extrabold text-muted-foreground">404</p>
     </template>
     <template #message>
       お探しのページは存在しないか、<br />

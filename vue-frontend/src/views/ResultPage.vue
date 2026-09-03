@@ -137,7 +137,7 @@ const errorMessage = computed(() => {
           />
           <h2
             v-else-if="isSharedView"
-            class="text-center text-3xl font-extrabold sm:text-4xl print:text-2xl print:break-after-avoid"
+            class="text-center text-3xl font-extrabold sm:text-4xl print:break-after-avoid print:text-2xl"
           >
             {{ displayName }} 様のスキルシート
           </h2>
@@ -148,7 +148,7 @@ const errorMessage = computed(() => {
             @commit="handleNameCommitted"
           />
         </div>
-        <ul class="text-muted-foreground mx-auto w-fit space-y-1 text-sm">
+        <ul class="mx-auto w-fit space-y-1 text-sm text-muted-foreground">
           <li
             v-for="level in LEVEL_LABELS"
             :key="level.stars"
@@ -165,7 +165,7 @@ const errorMessage = computed(() => {
       <Card
         v-for="category in displayCategories"
         :key="category.id"
-        class="gap-4 print:box-decoration-clone print:rounded-none print:py-4 print:shadow-none"
+        class="gap-4 print:rounded-none print:box-decoration-clone print:py-4 print:shadow-none"
       >
         <CardHeader>
           <div class="flex items-center justify-center gap-2">
@@ -174,7 +174,7 @@ const errorMessage = computed(() => {
               class="size-8 shrink-0 print:size-7"
               aria-hidden="true"
             />
-            <CardTitle class="text-xl font-bold sm:text-2xl print:text-lg print:break-after-avoid">
+            <CardTitle class="text-xl font-bold sm:text-2xl print:break-after-avoid print:text-lg">
               {{ category.label }}
             </CardTitle>
           </div>
@@ -185,7 +185,7 @@ const errorMessage = computed(() => {
             :key="question.id"
           >
             <h4
-              class="mb-3 leading-relaxed font-semibold print:mb-2 print:text-base print:break-inside-avoid print:break-after-avoid"
+              class="mb-3 leading-relaxed font-semibold print:mb-2 print:break-inside-avoid print:break-after-avoid print:text-base"
             >
               {{ question.title }}
             </h4>
@@ -194,7 +194,7 @@ const errorMessage = computed(() => {
                 v-for="answer in question.answers"
                 :key="answer.label"
                 data-slot="skill-card"
-                class="border-border border-l-2 py-1 pl-3 print:break-inside-avoid"
+                class="border-l-2 border-border py-1 pl-3 print:break-inside-avoid"
               >
                 <div
                   data-slot="skill-info"
@@ -207,7 +207,7 @@ const errorMessage = computed(() => {
                     >
                       {{ LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars }}
                     </span>
-                    <span class="text-muted-foreground text-xs">&nbsp;({{ answer.value }}/5)</span>
+                    <span class="text-xs text-muted-foreground">&nbsp;({{ answer.value }}/5)</span>
                   </span>
                 </div>
               </li>

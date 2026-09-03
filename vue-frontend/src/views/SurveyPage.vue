@@ -68,7 +68,7 @@ const handleSubmit = async (): Promise<void> => {
           />
           以下の質問で該当する項目を選択後、習熟度を5段階で選択してください。
         </p>
-        <ul class="text-muted-foreground mx-auto w-fit space-y-1 text-sm">
+        <ul class="mx-auto w-fit space-y-1 text-sm text-muted-foreground">
           <li
             v-for="level in LEVEL_LABELS"
             :key="level.stars"
@@ -132,7 +132,7 @@ const handleSubmit = async (): Promise<void> => {
       <p
         v-if="isSubmitDisabled"
         data-slot="submit-hint"
-        class="text-destructive text-center text-sm font-semibold motion-safe:animate-pulse"
+        class="text-center text-sm font-semibold text-destructive motion-safe:animate-pulse"
       >
         <font-awesome-icon
           icon="fa-solid fa-triangle-exclamation"

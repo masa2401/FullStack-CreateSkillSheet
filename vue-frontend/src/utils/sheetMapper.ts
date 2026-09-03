@@ -56,22 +56,16 @@ export const toSheetDto = (state: SurveyState): SheetDto => ({
 
 export const toSurveyState = (dto: SheetDto): SurveyState => ({
   userName: dto.userName,
-  selections: dto.categories.map(
-    (cat): CategorySelection => ({
-      categoryId: cat.categoryId,
-      isChecked: true,
-      questions: cat.questions.map(
-        (q): QuestionSelection => ({
-          questionId: q.questionId,
-          answers: q.answers.map(
-            (a): AnswerSelection => ({
-              answerId: a.answerId,
-              isChecked: true,
-              value: toStarLevel(a.value),
-            }),
-          ),
-        }),
-      ),
-    }),
-  ),
+  selections: dto.categories.map((cat): CategorySelection => ({
+    categoryId: cat.categoryId,
+    isChecked: true,
+    questions: cat.questions.map((q): QuestionSelection => ({
+      questionId: q.questionId,
+      answers: q.answers.map((a): AnswerSelection => ({
+        answerId: a.answerId,
+        isChecked: true,
+        value: toStarLevel(a.value),
+      })),
+    })),
+  })),
 })

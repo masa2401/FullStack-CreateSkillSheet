@@ -76,7 +76,7 @@ watch(showEditButton, (visible) => {
         v-model="nameDraft"
         type="text"
         data-slot="name-input"
-        class="bg-accent hover:border-ring focus:border-ring placeholder:text-muted-foreground/60 read-only:hover:border-transparent read-only:focus:border-transparent min-w-0 rounded-lg border-b-2 border-dashed border-transparent px-2 text-center text-3xl font-extrabold transition-colors outline-none read-only:cursor-default read-only:bg-transparent sm:text-4xl print:border-none print:text-2xl print:break-after-avoid"
+        class="min-w-0 rounded-lg border-b-2 border-dashed border-transparent bg-accent px-2 text-center text-3xl font-extrabold transition-colors outline-none placeholder:text-muted-foreground/60 read-only:cursor-default read-only:bg-transparent hover:border-ring read-only:hover:border-transparent focus:border-ring read-only:focus:border-transparent sm:text-4xl print:break-after-avoid print:border-none print:text-2xl"
         :readonly="!isNameEditable"
         :maxlength="NAME_MAX_LENGTH"
         :size="nameInputSize"
@@ -106,12 +106,12 @@ watch(showEditButton, (visible) => {
         名前を編集する
       </AppButton>
       <div
-        class="bg-primary/20 h-1 w-20 shrink-0 overflow-hidden rounded-full"
+        class="h-1 w-20 shrink-0 overflow-hidden rounded-full bg-primary/20"
         aria-hidden="true"
       >
         <div
           data-slot="edit-progress-fill"
-          class="bg-primary h-full transition-[width] ease-linear motion-reduce:transition-none"
+          class="h-full bg-primary transition-[width] ease-linear motion-reduce:transition-none"
           :class="isEditProgressCollapsed ? 'w-0' : 'w-full'"
           :style="{ transitionDuration: `${editableWindowMs}ms` }"
         ></div>

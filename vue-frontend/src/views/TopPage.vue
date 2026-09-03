@@ -52,7 +52,7 @@ const { goToSurvey } = useAppNavigation()
       >
         <label
           data-slot="category-card"
-          class="group border-input bg-card hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-ring/50 relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border p-6 text-center shadow-sm transition-colors has-[:focus-visible]:ring-[3px]"
+          class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input bg-card p-6 text-center shadow-sm transition-colors hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50"
         >
           <input
             v-model="engineerChecked"
@@ -75,21 +75,21 @@ const { goToSurvey } = useAppNavigation()
           <p
             id="engineer-desc"
             data-slot="category-card-description"
-            class="text-muted-foreground group-has-[:checked]:text-primary-foreground text-sm leading-relaxed"
+            class="text-sm leading-relaxed text-muted-foreground group-has-[:checked]:text-primary-foreground"
           >
             {{ engineerMaster.description }}
           </p>
           <span
             v-if="engineerChecked"
-            class="bg-card text-primary absolute top-4 right-4 flex size-10 items-center justify-center rounded-full shadow-sm"
+            class="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
             aria-hidden="true"
           >
-            <Check class="animate-check-pop size-6" />
+            <Check class="size-6 animate-check-pop" />
           </span>
         </label>
         <label
           data-slot="category-card"
-          class="group border-input bg-card hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-ring/50 relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border p-6 text-center shadow-sm transition-colors has-[:focus-visible]:ring-[3px]"
+          class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input bg-card p-6 text-center shadow-sm transition-colors hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50"
         >
           <input
             v-model="designerChecked"
@@ -112,21 +112,21 @@ const { goToSurvey } = useAppNavigation()
           <p
             id="designer-desc"
             data-slot="category-card-description"
-            class="text-muted-foreground group-has-[:checked]:text-primary-foreground text-sm leading-relaxed"
+            class="text-sm leading-relaxed text-muted-foreground group-has-[:checked]:text-primary-foreground"
           >
             {{ designerMaster.description }}
           </p>
           <span
             v-if="designerChecked"
-            class="bg-card text-primary absolute top-4 right-4 flex size-10 items-center justify-center rounded-full shadow-sm"
+            class="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
             aria-hidden="true"
           >
-            <Check class="animate-check-pop size-6" />
+            <Check class="size-6 animate-check-pop" />
           </span>
         </label>
       </div>
 
-      <p class="text-muted-foreground mt-6 flex items-center justify-center gap-2 text-sm">
+      <p class="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <Lightbulb
           class="size-4 shrink-0"
           aria-hidden="true"

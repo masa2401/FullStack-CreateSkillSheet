@@ -55,7 +55,7 @@ const groupedErrors = computed<GroupedError[]>(() => {
       v-if="isVisible"
       :id="messageId"
       variant="destructive"
-      class="animate-shake mt-8"
+      class="mt-8 animate-shake"
       role="alert"
       aria-live="assertive"
       tabindex="-1"
