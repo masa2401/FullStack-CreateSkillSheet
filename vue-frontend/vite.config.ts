@@ -9,8 +9,9 @@ export default defineConfig({
   base: '/',
   plugins: [vue(), vueDevTools(), tailwindcss()],
   test: {
-    environment: 'happy-dom',
+    environment: 'jsdom',
     globals: true,
+    setupFiles: ['./vitest.setup.ts'],
     restoreMocks: true,
     exclude: [...configDefaults.exclude, '**/e2e/**'],
     coverage: {
