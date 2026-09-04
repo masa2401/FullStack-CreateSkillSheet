@@ -1,13 +1,12 @@
 import vueParser from 'vue-eslint-parser'
 
 import js from '@eslint/js'
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import vitest from '@vitest/eslint-plugin'
-
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import playwright from 'eslint-plugin-playwright'
-import vueA11y from 'eslint-plugin-vuejs-accessibility'
 import pluginVue from 'eslint-plugin-vue'
+import vueA11y from 'eslint-plugin-vuejs-accessibility'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'

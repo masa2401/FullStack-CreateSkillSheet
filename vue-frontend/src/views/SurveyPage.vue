@@ -14,6 +14,7 @@ import { useSurveyValidation } from '@/composables/useSurveyValidation'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { StarLevel } from '@/types'
 import { LEVEL_LABELS } from '@/utils/constants'
+import { getScrollBehavior } from '@/utils/motion'
 
 const store = useSurveyStore()
 const { goToResult } = useAppNavigation()
@@ -35,22 +36,30 @@ const handleAnswerUpdate = (
   store.setAnswerSelection(categoryId, questionId, answerId, patch)
 }
 
+/**
+ * 描画後のエラー表示へフォーカスを移し、画面中央へスクロールする。
+ *
+ * focus() は既定で対象をビューポートへ即時スクロールする。
+ * これが scrollIntoView のスムーススクロールを打ち消すため preventScroll で抑止し、
+ * スクロールの指示は scrollIntoView 側に一本化する。
+ */
+const focusAndScrollTo = async (id: string): Promise<void> => {
+  await nextTick()
+  const target = document.getElementById(id)
+  target?.focus({ preventScroll: true })
+  target?.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' })
+}
+
 const handleSubmit = async (): Promise<void> => {
   const isValid = validate()
 
   if (!store.hasAnswers) {
-    await nextTick()
-    const target = document.getElementById('no-answers-message')
-    target?.scrollIntoView({ behavior: 'smooth' })
-    target?.focus()
+    await focusAndScrollTo('no-answers-message')
     return
   }
 
   if (!isValid) {
-    await nextTick()
-    const target = document.getElementById('error-message')
-    target?.scrollIntoView({ behavior: 'smooth' })
-    target?.focus()
+    await focusAndScrollTo('error-message')
     return
   }
   goToResult()
