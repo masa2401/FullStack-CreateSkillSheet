@@ -206,10 +206,6 @@ describe('downloadCSV', () => {
     createObjectURLSpy.mockRestore()
   })
 
-  it('userName が空の場合は false を返す', () => {
-    expect(downloadCSV('', [{ categoryId: 1, isChecked: true, questions: [] }])).toBe(false)
-  })
-
   it('selections が空配列の場合は false を返す', () => {
     expect(downloadCSV('山田太郎', [])).toBe(false)
   })

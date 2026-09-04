@@ -110,9 +110,7 @@ describe('fetchSheet', () => {
       new Response(JSON.stringify(mockDto), { status: 200 }),
     )
     const result = await fetchSheet('sheet-1')
-    expect(result).not.toBeNull()
-    expect(result!.status).toBe('success')
-    if (result!.status === 'success') expect(result!.data.userName).toBe('テストユーザー')
+    expect(result).toMatchObject({ status: 'success', data: { userName: 'テストユーザー' } })
   })
 
   it('410 の場合は status: expired と expiryDays を返す', async () => {

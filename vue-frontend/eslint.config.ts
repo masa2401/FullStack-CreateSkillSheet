@@ -40,6 +40,13 @@ export default defineConfig([
   {
     ...playwright.configs['flat/recommended'],
     files: ['e2e/**/*.ts'],
+    rules: {
+      ...playwright.configs['flat/recommended'].rules,
+      // アサーションを共通ヘルパへ切り出すため、expect で始まる関数呼び出しも検証と見なす
+      'playwright/expect-expect': ['warn', { assertFunctionPatterns: ['^expect'] }],
+      // ブラウザ差異による条件付き skip は意図的なもの。無条件の skip だけを検出する
+      'playwright/no-skipped-test': ['warn', { allowConditional: true }],
+    },
   },
 
   {

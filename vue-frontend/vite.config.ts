@@ -15,7 +15,12 @@ export default defineConfig({
     restoreMocks: true,
     exclude: [...configDefaults.exclude, '**/e2e/**'],
     coverage: {
-      exclude: [...(configDefaults.coverage?.exclude ?? []), 'src/views/NotFound.vue'],
+      exclude: [
+        ...(configDefaults.coverage?.exclude ?? []),
+        'src/views/NotFound.vue',
+        // shadcn-vue が生成したコンポーネント。自前のロジックを持たないため計測対象外にする
+        'src/components/ui/**',
+      ],
     },
   },
   resolve: {
