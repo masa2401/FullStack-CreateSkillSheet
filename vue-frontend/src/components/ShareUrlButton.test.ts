@@ -1,11 +1,18 @@
+import { defineComponent } from 'vue'
+
 import { createTestingPinia } from '@pinia/testing'
-import { flushPromises, mount } from '@vue/test-utils'
+import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import * as apiUtils from '@/utils/api'
 import * as shareUtils from '@/utils/shareUtils'
 
-import MenuItemButton from './MenuItemButton.vue'
 import ShareUrlButton from './ShareUrlButton.vue'
 
 const mockGetSavedIdOrSave = vi.fn()
@@ -17,14 +24,30 @@ vi.mock('@/stores/useSurveyStore', () => ({
   }),
 }))
 
-const createWrapper = () =>
-  mount(ShareUrlButton, {
-    global: {
-      plugins: [createTestingPinia()],
-      components: { MenuItemButton },
-      stubs: { 'font-awesome-icon': true },
-    },
+/**
+ * `ShareUrlButton` は `MenuItemButton` 経由で `DropdownMenuItem` を描画する。
+ * `MenuRoot` のコンテキストが無いと注入エラーで落ちるため、ホスト越しにマウントする。
+ * Portal の描画は同期的に完了しないので、取得は必ず `findByRole` で待つ。
+ */
+const Host = defineComponent({
+  components: { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, ShareUrlButton },
+  emits: ['done'],
+  template: `
+    <DropdownMenu :open="true">
+      <DropdownMenuTrigger>開く</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <ShareUrlButton @done="$emit('done')" />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  `,
+})
+
+const renderButton = () =>
+  render(Host, {
+    global: { plugins: [createTestingPinia()], stubs: { 'font-awesome-icon': true } },
   })
+
+const findMenuItem = () => screen.findByRole('menuitem')
 
 describe('ShareUrlButton', () => {
   beforeEach(() => {
@@ -36,14 +59,14 @@ describe('ShareUrlButton', () => {
 
   // ─── 表示 ────────────────────────────────────────────────────
 
-  it('初期状態では「URLをコピー」と表示される', () => {
-    const wrapper = createWrapper()
-    expect(wrapper.find('button').text()).toBe('URLをコピー')
+  it('初期状態では「URLをコピー」と表示される', async () => {
+    renderButton()
+    expect(await findMenuItem()).toHaveTextContent('URLをコピー')
   })
 
-  it('初期状態では disabled ではない', () => {
-    const wrapper = createWrapper()
-    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(false)
+  it('初期状態では無効化されていない', async () => {
+    renderButton()
+    expect(await findMenuItem()).not.toHaveAttribute('data-disabled')
   })
 
   // ─── バックエンド無効時 ────────────────────────────────────────
@@ -53,29 +76,35 @@ describe('ShareUrlButton', () => {
       vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false)
     })
 
-    it('コピー成功時に success クラスが付与される', async () => {
+    it('コピー成功時に success 用のクラスが付与される', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
-      expect(wrapper.find('button').classes()).toContain('success')
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
+      expect(await findMenuItem()).toHaveClass('text-emerald-700')
     })
 
     it('コピー成功時に createShareUrl が呼ばれる', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
       const createShareUrlSpy = vi.spyOn(shareUtils, 'createShareUrl')
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
       expect(createShareUrlSpy).toHaveBeenCalled()
     })
 
-    it('コピー失敗時は success クラスが付与されない', async () => {
+    it('コピー失敗時は success 用のクラスが付与されない', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(false)
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
-      expect(wrapper.find('button').classes()).not.toContain('success')
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
+      expect(await findMenuItem()).not.toHaveClass('text-emerald-700')
     })
   })
 
@@ -88,37 +117,45 @@ describe('ShareUrlButton', () => {
     })
 
     it('getSavedIdOrSave が呼ばれる', async () => {
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
       expect(mockGetSavedIdOrSave).toHaveBeenCalled()
     })
 
     it('IDベースの URL がクリップボードへコピーされる', async () => {
       const copyToClipboardSpy = vi.spyOn(shareUtils, 'copyToClipboard')
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
       expect(copyToClipboardSpy).toHaveBeenCalledWith(expect.stringContaining('id=sheet-id-123'))
     })
 
     it('バックエンド失敗時は createShareUrl にフォールバックする', async () => {
       mockGetSavedIdOrSave.mockRejectedValue(new Error('保存に失敗しました'))
       const createShareUrlSpy = vi.spyOn(shareUtils, 'createShareUrl')
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
       expect(createShareUrlSpy).toHaveBeenCalled()
     })
 
     it('バックエンド失敗時もコピー完了表示になる', async () => {
       mockGetSavedIdOrSave.mockRejectedValue(new Error('保存に失敗しました'))
-      vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
-      expect(wrapper.find('button').classes()).toContain('success')
-      expect(wrapper.find('button').text()).toBe('コピー完了')
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
+      const menuItem = await findMenuItem()
+      expect(menuItem).toHaveClass('text-emerald-700')
+      expect(menuItem).toHaveTextContent('コピー完了')
     })
   })
 
@@ -127,46 +164,44 @@ describe('ShareUrlButton', () => {
   describe('多重送信の抑制', () => {
     beforeEach(() => {
       vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+      vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
     })
 
-    it('保存中は disabled になる', async () => {
+    it('保存中は無効化される', async () => {
       mockGetSavedIdOrSave.mockReturnValue(new Promise(() => {}))
-      const wrapper = createWrapper()
-      wrapper.find('button').trigger('click')
-      await wrapper.vm.$nextTick()
-      expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(true)
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
+      expect(await findMenuItem()).toHaveAttribute('data-disabled')
     })
 
     it('保存中に再度クリックしても getSavedIdOrSave は1回しか呼ばれない', async () => {
-      let resolvePromise!: (value: string) => void
+      let resolveSave!: (value: string) => void
       mockGetSavedIdOrSave.mockReturnValue(
         new Promise<string>((resolve) => {
-          resolvePromise = resolve
+          resolveSave = resolve
         }),
       )
-      vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
+      const user = userEvent.setup()
+      renderButton()
 
-      const wrapper = createWrapper()
-      const button = wrapper.find('button')
+      await user.click(await findMenuItem())
+      await user.click(await findMenuItem())
 
-      button.trigger('click')
-      await wrapper.vm.$nextTick()
-
-      button.trigger('click')
-      await wrapper.vm.$nextTick()
-
-      resolvePromise('sheet-id-123')
-      await flushPromises()
+      resolveSave('sheet-id-123')
 
       expect(mockGetSavedIdOrSave).toHaveBeenCalledTimes(1)
     })
 
-    it('保存完了後は disabled が解除される', async () => {
-      vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
-      expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(false)
+    it('保存完了後は無効化が解除される', async () => {
+      const user = userEvent.setup()
+      renderButton()
+
+      await user.click(await findMenuItem())
+
+      expect(await findMenuItem()).not.toHaveAttribute('data-disabled')
     })
   })
 
@@ -184,15 +219,16 @@ describe('ShareUrlButton', () => {
     })
 
     it('コピー成功の2秒後に done イベントが emit される', async () => {
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
-      await flushPromises()
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const { emitted } = renderButton()
 
-      expect(wrapper.emitted('done')).toBeUndefined()
-      vi.advanceTimersByTime(2000)
-      await wrapper.vm.$nextTick()
+      await user.click(await findMenuItem())
 
-      expect(wrapper.emitted('done')).toBeTruthy()
+      expect(emitted('done')).toBeUndefined()
+
+      await vi.advanceTimersByTimeAsync(2000)
+
+      expect(emitted('done')).toBeTruthy()
     })
   })
 })

@@ -1,14 +1,39 @@
+import { defineComponent } from 'vue'
+
 import { createTestingPinia } from '@pinia/testing'
-import { mount } from '@vue/test-utils'
+import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import * as csvUtils from '@/utils/csvUtils'
 
 import CsvButton from './CsvButton.vue'
-import MenuItemButton from './MenuItemButton.vue'
 
-const createWrapper = () =>
-  mount(CsvButton, {
+/**
+ * `CsvButton` は `MenuItemButton` 経由で `DropdownMenuItem` を描画する。
+ * `MenuRoot` のコンテキストが無いと注入エラーで落ちるため、ホスト越しにマウントする。
+ * Portal の描画は同期的に完了しないので、取得は必ず `findByRole` で待つ。
+ */
+const Host = defineComponent({
+  components: { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, CsvButton },
+  emits: ['done'],
+  template: `
+    <DropdownMenu :open="true">
+      <DropdownMenuTrigger>開く</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <CsvButton @done="$emit('done')" />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  `,
+})
+
+const renderButton = () =>
+  render(Host, {
     global: {
       plugins: [
         createTestingPinia({
@@ -17,10 +42,11 @@ const createWrapper = () =>
           },
         }),
       ],
-      components: { MenuItemButton },
       stubs: { 'font-awesome-icon': true },
     },
   })
+
+const findMenuItem = () => screen.findByRole('menuitem')
 
 describe('CsvButton', () => {
   beforeEach(() => {
@@ -29,37 +55,46 @@ describe('CsvButton', () => {
 
   // ─── 表示 ────────────────────────────────────────────────────
 
-  it('初期状態では「CSVとして保存」と表示される', () => {
-    const wrapper = createWrapper()
-    expect(wrapper.find('button').text()).toBe('CSVとして保存')
+  it('初期状態では「CSVとして保存」と表示される', async () => {
+    renderButton()
+    expect(await findMenuItem()).toHaveTextContent('CSVとして保存')
   })
 
-  it('初期状態では success クラスがない', () => {
-    const wrapper = createWrapper()
-    expect(wrapper.find('button').classes()).not.toContain('success')
+  it('初期状態では success 用のクラスがない', async () => {
+    renderButton()
+    expect(await findMenuItem()).not.toHaveClass('text-emerald-700')
   })
 
   // ─── ダウンロード成功 ──────────────────────────────────────────
 
-  it('ダウンロード成功時に success クラスが付与される', async () => {
+  it('ダウンロード成功時に success 用のクラスが付与される', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
-    const wrapper = createWrapper()
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.find('button').classes()).toContain('success')
+    const user = userEvent.setup()
+    renderButton()
+
+    await user.click(await findMenuItem())
+
+    expect(await findMenuItem()).toHaveClass('text-emerald-700')
   })
 
   it('ダウンロード成功時に「ダウンロード完了」と表示される', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
-    const wrapper = createWrapper()
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.find('button').text()).toBe('ダウンロード完了')
+    const user = userEvent.setup()
+    renderButton()
+
+    await user.click(await findMenuItem())
+
+    expect(await findMenuItem()).toHaveTextContent('ダウンロード完了')
   })
 
-  it('ダウンロード失敗時は success クラスが付与されない', async () => {
+  it('ダウンロード失敗時は success 用のクラスが付与されない', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
-    const wrapper = createWrapper()
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.find('button').classes()).not.toContain('success')
+    const user = userEvent.setup()
+    renderButton()
+
+    await user.click(await findMenuItem())
+
+    expect(await findMenuItem()).not.toHaveClass('text-emerald-700')
   })
 
   // ─── 自動クローズ ──────────────────────────────────────────────
@@ -75,25 +110,27 @@ describe('CsvButton', () => {
 
     it('成功の2秒後に done イベントが emit される', async () => {
       vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const { emitted } = renderButton()
 
-      expect(wrapper.emitted('done')).toBeUndefined()
-      vi.advanceTimersByTime(2000)
-      await wrapper.vm.$nextTick()
+      await user.click(await findMenuItem())
 
-      expect(wrapper.emitted('done')).toBeTruthy()
+      expect(emitted('done')).toBeUndefined()
+
+      await vi.advanceTimersByTimeAsync(2000)
+
+      expect(emitted('done')).toBeTruthy()
     })
 
     it('失敗時は done イベントが emit されない', async () => {
       vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
-      const wrapper = createWrapper()
-      await wrapper.find('button').trigger('click')
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const { emitted } = renderButton()
 
-      vi.advanceTimersByTime(2000)
-      await wrapper.vm.$nextTick()
+      await user.click(await findMenuItem())
+      await vi.advanceTimersByTimeAsync(2000)
 
-      expect(wrapper.emitted('done')).toBeUndefined()
+      expect(emitted('done')).toBeUndefined()
     })
   })
 })

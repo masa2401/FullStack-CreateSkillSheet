@@ -47,10 +47,12 @@ const createWrapper = (initialState: Record<string, unknown> = {}) =>
         Tooltip: passThroughStub('Tooltip', ['disabled']),
         TooltipTrigger: passThroughStub('TooltipTrigger'),
         TooltipContent: passThroughStub('TooltipContent'),
+        // inactive は値なし属性（`inactive`）で渡される。props を型なしの配列で宣言すると
+        // Vue のブール変換が働かず空文字のままになるため、Boolean として宣言する。
         AnimatedIconButton: {
           name: 'AnimatedIconButton',
-          props: ['inactive'],
-          template: '<button :aria-disabled="String(!!inactive)" />',
+          props: { inactive: Boolean },
+          template: '<button :aria-disabled="String(inactive)" />',
         },
         MenuItemButton: {
           name: 'MenuItemButton',
