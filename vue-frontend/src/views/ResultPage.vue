@@ -265,7 +265,7 @@ const errorMessage = computed(() => {
     <template #message>{{ errorMessage }}</template>
     <template #actions>
       <AnimatedIconButton
-        icon="fa-solid fa-house"
+        icon="fa-regular fa-house"
         label="トップへ戻る"
         animation-type="beat"
         @click="goToTop"
