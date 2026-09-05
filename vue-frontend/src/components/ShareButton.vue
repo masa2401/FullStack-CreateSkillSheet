@@ -25,7 +25,6 @@ const showMenu = ref<boolean>(false)
 
 const { isGuest, guard, goToNameInput } = useGuestGate()
 
-// メニューを閉じてもポーリングが巻き戻らないよう、開閉に依らず生存する側で保持する
 const { savedSheetId } = storeToRefs(store)
 const {
   state: pdfState,
@@ -46,10 +45,6 @@ const openMenu = async (): Promise<void> => {
   }
 }
 
-/**
- * DropdownMenu の開閉要求をゲストゲートに通す。
- * 外側クリック・Escape・項目選択による「閉じる」はそのまま反映する。
- */
 const handleOpenChange = (open: boolean): void => {
   if (!open) {
     showMenu.value = false
@@ -75,11 +70,6 @@ const handlePdfDownload = (): void => {
 </script>
 
 <template>
-  <!--
-    TooltipTrigger と DropdownMenuTrigger を as-child で入れ子にすると、
-    Popper のアンカー要素が解決できずメニューが画面外に描画される。
-    ゲスト時はメニューを開かせないので、状態で描画そのものを分ける。
-  -->
   <Tooltip v-if="isGuest">
     <TooltipTrigger as-child>
       <AnimatedIconButton

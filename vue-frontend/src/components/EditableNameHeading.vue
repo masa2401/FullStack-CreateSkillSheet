@@ -47,9 +47,6 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   ;(event.target as HTMLInputElement).blur()
 }
 
-// ─── 編集可能期間の残量プログレスバー ──────────────────────────────
-// committedフェーズ開始時に100%で描画したのち、次フレーム以降に0%へ切り替えることで
-// CSS transitionによる幅アニメーションを発火させる（毎フレームのJS更新は行わない）
 const isEditProgressCollapsed = ref<boolean>(false)
 
 watch(showEditButton, (visible) => {

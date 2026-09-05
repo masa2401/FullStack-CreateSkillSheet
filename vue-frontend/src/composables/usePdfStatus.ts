@@ -143,7 +143,6 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
     try {
       const ok = await regeneratePdf(currentId)
 
-      // 通信を待っている間にIDが変わったりアンマウントされていたら終了
       if (currentId !== sheetId.value) return
 
       if (!ok) {

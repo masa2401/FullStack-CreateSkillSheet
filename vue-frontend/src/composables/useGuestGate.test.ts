@@ -5,11 +5,6 @@ import { useSurveyStore } from '@/stores/useSurveyStore'
 
 import { useGuestGate } from './useGuestGate'
 
-/**
- * jsdom は `window.matchMedia` を実装していない（happy-dom は実装済み）。
- * `src/utils/motion.ts` の `getScrollBehavior()` は呼び出しのたびに評価するので、
- * テストごとに差し替えれば足りる。
- */
 const stubMatchMedia = (prefersReducedMotion: boolean): void => {
   vi.stubGlobal(
     'matchMedia',
@@ -26,7 +21,6 @@ const stubMatchMedia = (prefersReducedMotion: boolean): void => {
   )
 }
 
-/** `src/components/EditableNameHeading.vue` の入力欄を模した要素を DOM に置く */
 const mountNameInput = (): HTMLInputElement => {
   const input = document.createElement('input')
   input.setAttribute('data-slot', 'name-input')

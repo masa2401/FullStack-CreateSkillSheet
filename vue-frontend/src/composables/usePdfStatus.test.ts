@@ -12,7 +12,6 @@ const FAST_INTERVAL_MS = 3_000
 const SLOW_THRESHOLD_MS = 40_000
 const TIMEOUT_MS = 120_000
 
-/** 初回ポーリングが走るところまで時間を進める */
 const advanceToFirstPoll = async () => {
   vi.advanceTimersByTime(INITIAL_DELAY_MS)
   await flushPromises()
@@ -192,7 +191,6 @@ describe('usePdfStatus', () => {
     await flushPromises()
     fetchSpy.mockClear()
 
-    // 旧IDの3秒後予約は破棄され、新IDの初回ポーリングだけが走る
     vi.advanceTimersByTime(FAST_INTERVAL_MS)
     await flushPromises()
     expect(fetchSpy).not.toHaveBeenCalled()
@@ -230,7 +228,6 @@ describe('usePdfStatus', () => {
       expect(progress.value).toBe(0)
       expect(apiUtils.regeneratePdf).toHaveBeenCalledWith('sheet-1')
 
-      // 初回同様、INITIAL_DELAY_MS 経過までポーリングしない
       vi.advanceTimersByTime(FAST_INTERVAL_MS)
       await flushPromises()
       expect(fetchSpy).not.toHaveBeenCalled()

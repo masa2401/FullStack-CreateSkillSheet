@@ -8,7 +8,6 @@ import MenuItemButton from './MenuItemButton.vue'
 
 interface Props {
   state: PdfGenerationState
-  /** 0〜100。`state` が生成中のときだけ使う */
   progress: number
 }
 

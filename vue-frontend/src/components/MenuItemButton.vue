@@ -9,10 +9,6 @@ interface Props {
   variant?: 'default' | 'success' | 'error'
   spin?: boolean
   disabled?: boolean
-  /**
-   * 選択時にメニューを閉じるか。
-   * 「ダウンロード完了」等のフィードバックをメニュー内に残したい項目は false にする。
-   */
   closeOnSelect?: boolean
 }
 
@@ -56,7 +52,6 @@ const handleSelect = (event: Event): void => {
       </span>
       <span class="text-left">{{ text }}</span>
     </span>
-    <!-- 進捗バーなど、テキスト行の下に置く補助表示 -->
     <slot />
   </DropdownMenuItem>
 </template>

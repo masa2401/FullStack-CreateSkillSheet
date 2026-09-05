@@ -301,10 +301,6 @@ describe('useSurveyStore', () => {
         savedDataSnapshot: firstStore.savedDataSnapshot,
       }
 
-      // ページ再読み込みを模す：新しい Pinia インスタンス上に
-      // 「永続化されたデータ」だけを $patch で復元する
-      // （isIdVerified は state として公開されていないため、$patch でも触れられず、
-      //   実際のプラグイン挙動と同様に false のまま残る）
       setActivePinia(createPinia())
       const store = useSurveyStore()
       store.$patch(persisted)

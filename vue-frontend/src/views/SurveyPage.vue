@@ -36,13 +36,6 @@ const handleAnswerUpdate = (
   store.setAnswerSelection(categoryId, questionId, answerId, patch)
 }
 
-/**
- * 描画後のエラー表示へフォーカスを移し、画面中央へスクロールする。
- *
- * focus() は既定で対象をビューポートへ即時スクロールする。
- * これが scrollIntoView のスムーススクロールを打ち消すため preventScroll で抑止し、
- * スクロールの指示は scrollIntoView 側に一本化する。
- */
 const focusAndScrollTo = async (id: string): Promise<void> => {
   await nextTick()
   const target = document.getElementById(id)

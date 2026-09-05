@@ -14,11 +14,6 @@ import * as csvUtils from '@/utils/csvUtils'
 
 import CsvButton from './CsvButton.vue'
 
-/**
- * `CsvButton` は `MenuItemButton` 経由で `DropdownMenuItem` を描画する。
- * `MenuRoot` のコンテキストが無いと注入エラーで落ちるため、ホスト越しにマウントする。
- * Portal の描画は同期的に完了しないので、取得は必ず `findByRole` で待つ。
- */
 const Host = defineComponent({
   components: { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, CsvButton },
   emits: ['done'],

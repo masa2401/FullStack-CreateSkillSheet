@@ -12,11 +12,6 @@ import {
 
 import MenuItemButton from './MenuItemButton.vue'
 
-/**
- * `DropdownMenuItem` は `DropdownMenu` のコンテキストを必要とし、
- * かつ Portal 経由で `<body>` 直下へ描画されるため、ホスト越しにマウントする。
- * Portal の描画は同期的に完了しないので、取得は必ず `findByRole` で待つ。
- */
 const Host = defineComponent({
   components: { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, MenuItemButton },
   props: { itemProps: { type: Object, required: true } },

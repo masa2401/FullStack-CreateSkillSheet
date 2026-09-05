@@ -10,7 +10,6 @@ import * as apiUtils from '@/utils/api'
 import MenuItemButton from './MenuItemButton.vue'
 import ShareButton from './ShareButton.vue'
 
-// ポーリングは ShareButton 側で開始されるため、テストでは常に止めておく
 vi.mock('@/composables/usePdfStatus', () => ({
   usePdfStatus: () => ({
     state: ref('waiting'),
@@ -47,8 +46,6 @@ const createWrapper = (initialState: Record<string, unknown> = {}) =>
         Tooltip: passThroughStub('Tooltip', ['disabled']),
         TooltipTrigger: passThroughStub('TooltipTrigger'),
         TooltipContent: passThroughStub('TooltipContent'),
-        // inactive は値なし属性（`inactive`）で渡される。props を型なしの配列で宣言すると
-        // Vue のブール変換が働かず空文字のままになるため、Boolean として宣言する。
         AnimatedIconButton: {
           name: 'AnimatedIconButton',
           props: { inactive: Boolean },
@@ -79,7 +76,6 @@ const createWrapper = (initialState: Record<string, unknown> = {}) =>
     },
   })
 
-/** DropdownMenu からの開閉要求を模す */
 const requestOpen = async (wrapper: VueWrapper, open: boolean) => {
   wrapper.findComponent({ name: 'DropdownMenu' }).vm.$emit('update:open', open)
   await nextTick()

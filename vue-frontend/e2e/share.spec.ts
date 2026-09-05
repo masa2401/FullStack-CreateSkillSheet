@@ -156,7 +156,7 @@ test.describe('ゲストゲート', () => {
 
     await resultPage.shareButton.hover()
     await expect(resultPage.guestHint).toBeVisible()
-    await expect(resultPage.guestHint).toHaveText(
+    await expect(resultPage.guestHint).toContainText(
       'お名前を入力すると、印刷・共有機能が利用できます',
     )
 

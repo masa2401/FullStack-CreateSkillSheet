@@ -25,14 +25,8 @@ const emit = defineEmits<{
   ]
 }>()
 
-/**
- * 回答IDは質問ごとに1から振り直されるため文書内で一意にならない。
- * Label の for 属性が別の質問の同IDに当たってしまうので、
- * Vue が払い出す一意なIDを使う。
- */
 const checkboxId = useId()
 
-// チェックボックスの変更
 const handleCheckChange = (checked: boolean | 'indeterminate'): void => {
   emit('update:answer', {
     answerId,
@@ -40,7 +34,6 @@ const handleCheckChange = (checked: boolean | 'indeterminate'): void => {
   })
 }
 
-// 習熟度の変更
 const handleLevelChange = (level: AcceptableValue): void => {
   emit('update:answer', {
     answerId,
@@ -81,11 +74,6 @@ const handleLevelChange = (level: AcceptableValue): void => {
           :aria-label="`${label} の習熟度`"
           @update:model-value="handleLevelChange"
         >
-          <!--
-            shadcn-vue の RadioGroupItem は円形インジケータ前提のため、
-            カード型の見た目を保つ用途では Reka の RadioGroupItem を直接使い、
-            data-[state=checked] でスタイルを切り替える。
-          -->
           <RadioGroupItem
             v-for="level in LEVEL_LABELS.length"
             :key="level"

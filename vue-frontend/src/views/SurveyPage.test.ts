@@ -87,8 +87,6 @@ describe('SurveyPage', () => {
         ],
         stubs: {
           'font-awesome-icon': true,
-          // 回答の更新は QuestionCard 自身のテストで検証済み。
-          // ここでは SurveyPage が update:answer を store へ橋渡しするかだけを見る。
           QuestionCard: {
             props: ['question', 'questionNumber'],
             emits: ['update:answer'],

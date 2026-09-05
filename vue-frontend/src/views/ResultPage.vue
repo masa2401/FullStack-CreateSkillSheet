@@ -36,9 +36,6 @@ type PageStatus =
   | { type: 'error'; reason: ErrorReason; expiryDays?: number }
 
 const pageStatus = ref<PageStatus>({ type: 'loading' })
-
-// 共有ビューかどうかはURLだけで確定するため、取得完了を待たずに決めておく。
-// これによりローディング中もアクション行を実描画でき、表示完了時に位置が動かない。
 const sharedId = getIdFromUrl()
 const urlData = getDataFromUrl()
 const isSharedView = (!!sharedId && isBackendEnabled()) || urlData !== null
@@ -81,8 +78,6 @@ const displayName = computed(() => store.userName || 'Guest')
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
-// ready 以外では空配列を返す。ローディング中にストアの前回データが
-// 一瞬描画されるのを防ぎ、テンプレート側は v-for だけで済む。
 const displayCategories = computed(() => {
   if (pageStatus.value.type !== 'ready') return []
 

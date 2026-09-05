@@ -37,8 +37,6 @@ const mockSelections: CategorySelection[] = [
       },
     ],
   },
-  // isChecked のフィルタを検証するため、未選択カテゴリにもチェック済みの回答を持たせる。
-  // 回答が空だと questions.length > 0 のフィルタ側で落ち、isChecked を外しても表示が変わらない。
   {
     categoryId: 2,
     isChecked: false,
@@ -52,11 +50,6 @@ const urlSurveyState: SurveyState = {
   selections: mockSelections,
 }
 
-/**
- * 名前の確定は `EditableNameHeading` と `useNameCommit` が既に検証している。
- * ここで検証したいのは `handleNameCommitted`（store 更新とバックエンド保存の分岐）だけなので、
- * commit を即座に発火させるスタブへ差し替え、確定までの待ち時間を持ち込まない。
- */
 const NAME_COMMIT_STUB = {
   EditableNameHeading: {
     props: ['initialName', 'displayName'],
@@ -106,7 +99,6 @@ describe('ResultPage', () => {
       },
     })
 
-  /** 読み込み完了（Skeleton が消える）まで待つ */
   const waitForReady = () =>
     waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
 
