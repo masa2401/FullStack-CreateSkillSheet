@@ -106,7 +106,9 @@ test.describe('PDF生成', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await resultPage.openShareMenu()
 
-    await expect(page.getByRole('menuitem', { name: 'PDFを準備中...' })).toBeVisible()
+    // 生成中は Progress が子として描画され、その値がアクセシブル名の末尾に入る
+    // （例: "PDFを準備中... 42"）。値は時間で変わるため前方一致で照合する。
+    await expect(page.getByRole('menuitem', { name: /PDFを準備中/ })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: 'PDFをダウンロード' })).toBeVisible({
       timeout: 6000,
     })
@@ -153,9 +155,12 @@ test.describe('ゲストゲート', () => {
     await surveyPage.submit()
 
     await resultPage.shareButton.hover()
-    await expect(resultPage.page.getByRole('tooltip')).toBeVisible()
+    await expect(resultPage.guestHint).toBeVisible()
+    await expect(resultPage.guestHint).toHaveText(
+      'お名前を入力すると、印刷・共有機能が利用できます',
+    )
 
-    await resultPage.shareButton.click()
+    await resultPage.clickShareButtonAsGuest()
     await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
   })
 
@@ -170,7 +175,7 @@ test.describe('ゲストゲート', () => {
     await surveyPage.selectLevel(3)
     await surveyPage.submit()
 
-    await resultPage.shareButton.click()
+    await resultPage.clickShareButtonAsGuest()
     await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
 
     await resultPage.fillName('山田太郎')

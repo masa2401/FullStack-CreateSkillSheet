@@ -69,6 +69,11 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       VITE_API_BASE_URL: 'http://localhost:9999',
+      // PDF生成のポーリングを短縮する（本番既定は 10,000ms / 3,000ms）。
+      // reuseExistingServer が効いて既存の dev サーバへ相乗りすると反映されないので、
+      // e2e を回す前に手動起動した dev サーバは止めておくこと。
+      VITE_PDF_INITIAL_DELAY_MS: '1000',
+      VITE_PDF_FAST_INTERVAL_MS: '1000',
     },
   },
 })

@@ -4,10 +4,21 @@ import { fetchPdfStatus, regeneratePdf } from '@/utils/api'
 
 export type PdfGenerationState = 'waiting' | 'generating' | 'slow' | 'ready' | 'error'
 
+/**
+ * 待ち時間を環境変数で上書きする。未設定・不正値なら既定値を使う。
+ *
+ * e2e は実時間で待つため、既定値のままだと1テストに数十秒かかる。
+ * `playwright.config.ts` の `webServer.env` から短い値を渡して短縮する。
+ */
+const durationFromEnv = (raw: unknown, fallbackMs: number): number => {
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs
+}
+
 /** Lambdaのコールドスタート（実測16秒前後）を踏まえ、初回ポーリングまで待つ時間 */
-const INITIAL_DELAY_MS = 10_000
+const INITIAL_DELAY_MS = durationFromEnv(import.meta.env.VITE_PDF_INITIAL_DELAY_MS, 10_000)
 /** `generating` の間のポーリング間隔 */
-const FAST_INTERVAL_MS = 3_000
+const FAST_INTERVAL_MS = durationFromEnv(import.meta.env.VITE_PDF_FAST_INTERVAL_MS, 3_000)
 /** `slow` に移ってからのポーリング間隔 */
 const SLOW_INTERVAL_MS = 5_000
 /** ここを超えたら `slow` へ。進捗バーが100%になる時刻でもある */

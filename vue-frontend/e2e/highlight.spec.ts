@@ -2,7 +2,12 @@ import type { Locator } from '@playwright/test'
 
 import { expect, test } from './fixture'
 
-/** 具体的な色を固定せず、選択前後で計算値が変化したことだけを検証する */
+/**
+ * 具体的な色を固定せず、選択前後で計算値が変化したことだけを検証する。
+ *
+ * 対象には `transition-colors` が掛かっており、クリック直後は変化前の値が返る。
+ * 素の `expect(...)` はリトライしないため、比較は必ず `expect.poll` で行う。
+ */
 const styleOf = (locator: Locator, property: string): Promise<string> =>
   locator.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop), property)
 
@@ -18,13 +23,14 @@ test.describe('選択状態の見た目', () => {
     await engineerCard.click()
 
     await expect(checkbox).toBeChecked()
-    expect(await styleOf(engineerCard, 'background-color')).not.toBe(before)
+    await expect.poll(() => styleOf(engineerCard, 'background-color')).not.toBe(before)
   })
 
   test('カード選択時、タイトルと説明文の文字色が反転する', async ({ topPage }) => {
     await topPage.goto()
 
     const engineerCard = topPage.categoryCard('プログラマ / ITエンジニア')
+    const checkbox = topPage.categoryCheckbox('プログラマ / ITエンジニア')
     const title = engineerCard.locator('[data-slot="category-card-title"]')
     const description = engineerCard.locator('[data-slot="category-card-description"]')
 
@@ -33,8 +39,9 @@ test.describe('選択状態の見た目', () => {
 
     await engineerCard.click()
 
-    expect(await styleOf(title, 'color')).not.toBe(titleBefore)
-    expect(await styleOf(description, 'color')).not.toBe(descriptionBefore)
+    await expect(checkbox).toBeChecked()
+    await expect.poll(() => styleOf(title, 'color')).not.toBe(titleBefore)
+    await expect.poll(() => styleOf(description, 'color')).not.toBe(descriptionBefore)
   })
 
   test('習熟度ボタン選択時、AnswerItemのlevel-buttonが実際にハイライトされる', async ({
@@ -53,6 +60,6 @@ test.describe('選択状態の見た目', () => {
     await surveyPage.selectLevel(3)
 
     await expect(level3).toHaveAttribute('data-state', 'checked')
-    expect(await styleOf(level3, 'background-color')).not.toBe(before)
+    await expect.poll(() => styleOf(level3, 'background-color')).not.toBe(before)
   })
 })

@@ -9,6 +9,7 @@ export class ResultPage {
   readonly heading: Locator
   readonly nameInput: Locator
   readonly shareButton: Locator
+  readonly guestHint: Locator
   readonly buttonGroup: Locator
   readonly errorHeading: Locator
 
@@ -19,6 +20,10 @@ export class ResultPage {
     this.heading = page.getByRole('heading', { name: /様のスキルシート/ })
     this.nameInput = page.getByRole('textbox', { name: /お名前/ })
     this.shareButton = page.getByRole('button', { name: '結果を印刷/共有' })
+    // Reka の Tooltip は role="tooltip" を VisuallyHidden な span に付け、
+    // そこに aria-hidden="true" も付ける。getByRole('tooltip') は既定の
+    // includeHidden: false に弾かれて見つからないため、目に見える側を data-slot で取る。
+    this.guestHint = page.locator('[data-slot="tooltip-content"]')
     this.buttonGroup = page.locator('[data-slot="result-actions"]')
     this.errorHeading = page.locator('[data-slot="state-panel-title"]')
   }
@@ -69,6 +74,19 @@ export class ResultPage {
   async openShareMenu(): Promise<void> {
     await this.shareButton.click()
     await this.page.getByRole('menu').waitFor({ state: 'visible' })
+  }
+
+  /**
+   * ゲスト（名前未入力）状態の共有ボタンをクリックする。
+   *
+   * `AppButton` は `inactive` prop で `aria-disabled="true"` を付ける。
+   * Playwright 1.60 の `getAriaDisabled()` はこれを無効と判定し、
+   * `click()` のアクショナビリティ検査が `enabled` を待ち続けてタイムアウトする。
+   * アプリ側は意図的にクリックを受けて名前入力欄へ誘導するため、force で検査を外す。
+   */
+  async clickShareButtonAsGuest(): Promise<void> {
+    // eslint-disable-next-line playwright/no-force-option -- aria-disabled なボタンを意図的に押すため
+    await this.shareButton.click({ force: true })
   }
 
   async downloadCsv(): Promise<Download> {
