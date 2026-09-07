@@ -7,9 +7,10 @@ import AnswerItem from './AnswerItem.vue'
 interface Props {
   question: MergedQuestion
   questionNumber: number
+  flaggedAnswerIds?: number[]
 }
 
-defineProps<Props>()
+const { question, questionNumber, flaggedAnswerIds = [] } = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:answer': [
@@ -34,6 +35,7 @@ const emit = defineEmits<{
         :label="answer.label"
         :is-checked="answer.isChecked"
         :value="answer.value"
+        :is-flagged="flaggedAnswerIds.includes(answer.id)"
         @update:answer="emit('update:answer', $event)"
       />
     </CardContent>

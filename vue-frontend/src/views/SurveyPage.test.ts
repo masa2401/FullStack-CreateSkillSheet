@@ -88,9 +88,16 @@ describe('SurveyPage', () => {
         stubs: {
           'font-awesome-icon': true,
           QuestionCard: {
-            props: ['question', 'questionNumber'],
+            props: {
+              question: Object,
+              questionNumber: Number,
+              flaggedAnswerIds: { type: Array, default: () => [] },
+            },
             emits: ['update:answer'],
-            template: `<button @click="$emit('update:answer', { answerId: 1, patch: { isChecked: true } })">質問{{ question.id }}に回答する</button>`,
+            template: `<button
+              :data-flagged="flaggedAnswerIds.join(',')"
+              @click="$emit('update:answer', { answerId: 1, patch: { isChecked: true } })"
+            >質問{{ question.id }}に回答する</button>`,
           },
         },
       },
@@ -195,7 +202,7 @@ describe('SurveyPage', () => {
     expect(submitButton()).toHaveAttribute('aria-disabled', 'false')
   })
 
-  it('回答無しエラー表示後にチェックを入れると、回答無しエラーが消えて通常のバリデーションエラーに切り替わる', async () => {
+  it('回答無しエラー表示後にチェックを入れると、回答無しエラーが消えて新たなエラーも出ない', async () => {
     const user = userEvent.setup()
     renderPage()
     const store = useSurveyStore()
@@ -212,8 +219,39 @@ describe('SurveyPage', () => {
       screen.queryByText('1つ以上の項目に回答してから次へ進んでください'),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByText('チェックを入れた項目には、習熟度の選択が必須です。'),
-    ).toBeInTheDocument()
+      screen.queryByText('チェックを入れた項目には、習熟度の選択が必須です。'),
+    ).not.toBeInTheDocument()
+    expect(submitButton()).toHaveAttribute('aria-disabled', 'false')
+  })
+
+  it('送信後に新しくチェックを入れてもエラーの件数は増えない', async () => {
+    const user = userEvent.setup()
+    renderPage({ selections: makeSelections({ isChecked: true }) })
+    const store = useSurveyStore()
+
+    await user.click(submitButton())
+    expect(await screen.findByText('（1件）')).toBeInTheDocument()
+
+    store.setAnswerSelection(1, 1, 2, { isChecked: true })
+    await nextTick()
+
+    expect(screen.getByText('（1件）')).toBeInTheDocument()
+  })
+
+  it('送信時に指摘した回答IDが QuestionCard へ渡される', async () => {
+    const user = userEvent.setup()
+    renderPage({ selections: makeSelections({ isChecked: true }) })
+
+    const firstQuestion = screen.getByRole('button', { name: '質問1に回答する' })
+    expect(firstQuestion).toHaveAttribute('data-flagged', '')
+
+    await user.click(submitButton())
+
+    expect(firstQuestion).toHaveAttribute('data-flagged', '1')
+    expect(screen.getByRole('button', { name: '質問2に回答する' })).toHaveAttribute(
+      'data-flagged',
+      '',
+    )
   })
 
   it('QuestionCard から update:answer が発火すると setAnswerSelection が呼ばれる', async () => {

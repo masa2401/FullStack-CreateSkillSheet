@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faCopy, faHouse, faLightbulb } from '@fortawesome/free-regular-svg-icons'
+import { faCopy, faHouse } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft,
   faArrowRight,
@@ -26,7 +26,6 @@ library.add(
   faPen,
   faTriangleExclamation,
   faCircleExclamation,
-  faLightbulb,
   faArrowRight,
   faArrowLeft,
   faPrint,

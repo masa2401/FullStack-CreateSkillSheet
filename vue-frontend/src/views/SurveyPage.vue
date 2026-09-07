@@ -20,7 +20,7 @@ const store = useSurveyStore()
 const { goToResult } = useAppNavigation()
 
 const { mergedCategories } = useMergedSurvey()
-const { validationErrors, validate, isSubmitDisabled, hasAttemptedSubmit } =
+const { validationErrors, validate, isSubmitDisabled, hasAttemptedSubmit, flaggedAnswerIdsOf } =
   useSurveyValidation(mergedCategories)
 
 const noAnswersError = computed(() => hasAttemptedSubmit.value && !store.hasAnswers)
@@ -104,6 +104,7 @@ const handleSubmit = async (): Promise<void> => {
             :key="question.id"
             :question="question"
             :question-number="index + 1"
+            :flagged-answer-ids="flaggedAnswerIdsOf(category.id, question.id)"
             @update:answer="
               handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
             "

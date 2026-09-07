@@ -15,9 +15,10 @@ interface Props {
   label: string
   isChecked: boolean
   value?: StarLevel
+  isFlagged?: boolean
 }
 
-const { answerId, label, isChecked, value } = defineProps<Props>()
+const { answerId, label, isChecked, value, isFlagged = false } = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:answer': [
@@ -66,7 +67,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
     >
       <div
         v-if="isChecked"
-        class="mt-2 rounded-xl border bg-card p-4"
+        class="mt-2 ml-6 rounded-xl bg-muted p-4"
       >
         <RadioGroup
           :model-value="value"
@@ -86,11 +87,10 @@ const handleLevelChange = (level: AcceptableValue): void => {
           </RadioGroupItem>
         </RadioGroup>
         <span
-          v-if="!value"
-          class="mt-2 block text-center text-sm font-semibold text-amber-500 motion-safe:animate-pulse"
-          role="alert"
+          v-if="!value && isFlagged"
+          class="mt-2 block animate-shake text-center text-sm font-semibold text-destructive"
         >
-          <font-awesome-icon icon="fa-regular fa-lightbulb" />
+          <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
           習熟度を選択してください
         </span>
       </div>
