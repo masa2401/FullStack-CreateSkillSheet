@@ -76,6 +76,7 @@ const handlePdfDownload = (): void => {
         animation-type="bounce"
         icon="fa-solid fa-arrow-up-right-from-square"
         label="結果を印刷/共有"
+        variant="secondary"
         inactive
         @click="goToNameInput"
       />
@@ -94,6 +95,7 @@ const handlePdfDownload = (): void => {
         animation-type="bounce"
         icon="fa-solid fa-arrow-up-right-from-square"
         label="結果を印刷/共有"
+        variant="secondary"
       />
     </DropdownMenuTrigger>
     <DropdownMenuContent

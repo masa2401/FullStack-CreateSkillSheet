@@ -44,8 +44,8 @@ const handleLevelChange = (level: AcceptableValue): void => {
 </script>
 
 <template>
-  <div class="border-l-4 pl-4">
-    <div class="flex items-center gap-2 py-2">
+  <div class="rounded-xl bg-muted p-4">
+    <div class="flex items-center gap-2">
       <Checkbox
         :id="checkboxId"
         :model-value="isChecked"
@@ -67,7 +67,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
     >
       <div
         v-if="isChecked"
-        class="mt-2 ml-6 rounded-xl bg-muted p-4"
+        class="mt-3"
       >
         <RadioGroup
           :model-value="value"

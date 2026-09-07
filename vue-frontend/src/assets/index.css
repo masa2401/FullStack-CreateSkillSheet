@@ -44,26 +44,13 @@
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
   --color-rating: var(--rating);
+  --color-field: var(--field);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -91,36 +78,28 @@
   --background: #fdf8fa; /* surface */
   --foreground: #484648; /* onSurfaceVariant。onSurface は対比が強すぎるため一段落とす */
   --card: #f7f2f4; /* surfaceContainerLow */
-  --card-foreground: #484648; /* --foreground と同値 */
-  --popover: #f1edee; /* surfaceContainer */
-  --popover-foreground: #484648; /* --foreground と同値 */
+  --card-foreground: var(--foreground); /* 連動。カード内と本文で文字色をずらさない */
+  --popover: #f1edee; /* surfaceContainer。--muted と同値だが独立（浮動要素と面内パネル） */
+  --popover-foreground: var(--foreground); /* 連動 */
   --primary: #615c6b; /* primary */
-  --primary-foreground: #fdf8fa; /* neutral tone98。MD3 の onPrimary は #ffffff だが純白を避ける */
-  --secondary: #e7e0eb; /* secondaryContainer */
-  --secondary-foreground: #49454e; /* onSecondaryContainer */
-  --muted: #ebe7e9; /* surfaceContainerHigh */
-  --muted-foreground: #6a6769; /* neutralVariant tone44。--muted 上で 4.56:1 を確保できる下限 */
+  --primary-foreground: #fdf8fa; /* neutral tone98。MD3 の onPrimary は #ffffff だが純白を避ける。
+                                    --background と同値だが独立。--primary を変えたらこちらだけ動かす */
+  /* --secondary は ui/button の secondary variant のみが参照する。
+     AnimatedIconButton の variant="secondary" は outline へ写像されるため、アプリからは到達しない。 */
+  --secondary: var(--accent); /* 連動 */
+  --secondary-foreground: var(--accent-foreground); /* 連動 */
+  --muted: #f1edee; /* surfaceContainer */
+  --muted-foreground: #6a6769; /* neutralVariant tone44。副次テキスト用に本文を弱めた色。
+                                  使用面は --card（5.05:1）/ --background（5.32:1）/ --field（4.56:1） */
   --accent: #e7e0eb; /* secondaryContainer */
   --accent-foreground: #49454e; /* onSecondaryContainer */
+  --field: #ebe7e9; /* surfaceContainerHigh。編集可能な入力欄の塗り。枠線は --input */
   --destructive: #ba1a1a; /* error */
   --success: #006d43; /* 独自ロール。緑を seed へ harmonize した tone40 / chroma48 */
   --rating: #fe9a00; /* 独自ロール。評価の星専用。淡い金色を優先し MD3 パレット外の値を採用 */
   --border: #c9c5c7; /* outlineVariant */
-  --input: #c9c5c7; /* outlineVariant */
+  --input: #c9c5c7; /* outlineVariant。--border と同値だが独立（面の区切りとフォーム部品の枠） */
   --ring: #797678; /* outline */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: #f7f2f4; /* surfaceContainerLow */
-  --sidebar-foreground: #484648; /* --foreground と同値 */
-  --sidebar-primary: #615c6b; /* primary */
-  --sidebar-primary-foreground: #fdf8fa; /* --primary-foreground と同値 */
-  --sidebar-accent: #e7e0eb; /* secondaryContainer */
-  --sidebar-accent-foreground: #49454e; /* onSecondaryContainer */
-  --sidebar-border: #c9c5c7; /* outlineVariant */
-  --sidebar-ring: #797678; /* outline */
 }
 
 .dark {
@@ -128,36 +107,21 @@
   --background: #141314; /* surface */
   --foreground: #c9c5c7; /* neutralVariant tone80。onSurface は対比が強すぎるため一段落とす */
   --card: #1c1b1d; /* surfaceContainerLow */
-  --card-foreground: #c9c5c7; /* --foreground と同値 */
-  --popover: #201f21; /* surfaceContainer */
-  --popover-foreground: #c9c5c7; /* --foreground と同値 */
+  --popover: #201f21; /* surfaceContainer。--muted と同値だが独立 */
   --primary: #cbc3d5; /* primary */
   --primary-foreground: #322e3c; /* onPrimary */
-  --secondary: #49454e; /* secondaryContainer */
-  --secondary-foreground: #e7e0eb; /* onSecondaryContainer */
-  --muted: #2b292b; /* surfaceContainerHigh */
-  --muted-foreground: #939092; /* neutralVariant tone60。--muted 上で 4.57:1 */
+  --muted: #201f21; /* surfaceContainer */
+  --muted-foreground: #939092; /* neutralVariant tone60。--card 5.43:1 / --background 5.86:1 / --field 4.57:1。
+                                  --ring と同値だが独立 */
   --accent: #49454e; /* secondaryContainer */
   --accent-foreground: #e7e0eb; /* onSecondaryContainer */
+  --field: #2b292b; /* surfaceContainerHigh */
   --destructive: #ffb4ab; /* error */
   --success: #a8d0b5; /* 独自ロール。緑を seed へ harmonize した tone80 / chroma48 */
   --rating: #bc7318; /* 独自ロール。暗い面ではまぶしさを避けるため、あえてライトより低い tone55 */
   --border: #484648; /* outlineVariant */
-  --input: #484648; /* outlineVariant */
+  --input: #484648; /* outlineVariant。--border と同値だが独立 */
   --ring: #939092; /* outline */
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #1c1b1d; /* surfaceContainerLow */
-  --sidebar-foreground: #c9c5c7; /* --foreground と同値 */
-  --sidebar-primary: #cbc3d5; /* primary */
-  --sidebar-primary-foreground: #322e3c; /* onPrimary */
-  --sidebar-accent: #49454e; /* secondaryContainer */
-  --sidebar-accent-foreground: #e7e0eb; /* onSecondaryContainer */
-  --sidebar-border: #484648; /* outlineVariant */
-  --sidebar-ring: #939092; /* outline */
 }
 
 @layer base {
