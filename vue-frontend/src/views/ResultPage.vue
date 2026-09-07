@@ -198,7 +198,7 @@ const errorMessage = computed(() => {
                   <span class="font-medium">{{ answer.label }}</span>
                   <span class="flex shrink-0 items-center max-sm:justify-between">
                     <span
-                      class="text-lg text-amber-500 dark:text-amber-400 print:text-base print:text-current print:[print-color-adjust:exact]"
+                      class="text-lg text-rating print:text-base print:text-current print:[print-color-adjust:exact]"
                     >
                       {{ LEVEL_LABELS[(answer.value ?? 0) - 1]?.stars }}
                     </span>

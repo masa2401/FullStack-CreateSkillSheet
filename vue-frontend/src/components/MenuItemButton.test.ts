@@ -40,14 +40,19 @@ describe('MenuItemButton', () => {
     expect(await findMenuItem()).toHaveTextContent('ラベル')
   })
 
-  it('variant が success のとき success 用のクラスが付く', async () => {
+  it('variant が success のとき data-feedback が success になる', async () => {
     renderMenuItem({ variant: 'success' })
-    expect(await findMenuItem()).toHaveClass('text-emerald-700')
+    expect(await findMenuItem()).toHaveAttribute('data-feedback', 'success')
   })
 
-  it('variant が error のとき error 用のクラスが付く', async () => {
+  it('variant が error のとき data-feedback が error になる', async () => {
     renderMenuItem({ variant: 'error' })
-    expect(await findMenuItem()).toHaveClass('text-red-600')
+    expect(await findMenuItem()).toHaveAttribute('data-feedback', 'error')
+  })
+
+  it('variant が default のとき data-feedback が付かない', async () => {
+    renderMenuItem({ variant: 'default' })
+    expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
   })
 
   it('disabled が true のとき data-disabled が付く', async () => {

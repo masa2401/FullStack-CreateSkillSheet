@@ -62,6 +62,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-rating: var(--rating);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -87,20 +89,22 @@
   /* 以下は Material Design 3 の SchemeNeutral（seed #6750a4）が生成する light スキーム。
      コメントは対応する MD3 のカラーロール名。 */
   --background: #fdf8fa; /* surface */
-  --foreground: #1c1b1d; /* onSurface */
+  --foreground: #484648; /* onSurfaceVariant。onSurface は対比が強すぎるため一段落とす */
   --card: #f7f2f4; /* surfaceContainerLow */
-  --card-foreground: #1c1b1d; /* onSurface */
+  --card-foreground: #484648; /* --foreground と同値 */
   --popover: #f1edee; /* surfaceContainer */
-  --popover-foreground: #1c1b1d; /* onSurface */
+  --popover-foreground: #484648; /* --foreground と同値 */
   --primary: #615c6b; /* primary */
-  --primary-foreground: #ffffff; /* onPrimary */
+  --primary-foreground: #fdf8fa; /* neutral tone98。MD3 の onPrimary は #ffffff だが純白を避ける */
   --secondary: #e7e0eb; /* secondaryContainer */
   --secondary-foreground: #49454e; /* onSecondaryContainer */
   --muted: #ebe7e9; /* surfaceContainerHigh */
-  --muted-foreground: #484648; /* onSurfaceVariant */
+  --muted-foreground: #6a6769; /* neutralVariant tone44。--muted 上で 4.56:1 を確保できる下限 */
   --accent: #e7e0eb; /* secondaryContainer */
   --accent-foreground: #49454e; /* onSecondaryContainer */
   --destructive: #ba1a1a; /* error */
+  --success: #006d43; /* 独自ロール。緑を seed へ harmonize した tone40 / chroma48 */
+  --rating: #fe9a00; /* 独自ロール。評価の星専用。淡い金色を優先し MD3 パレット外の値を採用 */
   --border: #c9c5c7; /* outlineVariant */
   --input: #c9c5c7; /* outlineVariant */
   --ring: #797678; /* outline */
@@ -110,9 +114,9 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: #f7f2f4; /* surfaceContainerLow */
-  --sidebar-foreground: #1c1b1d; /* onSurface */
+  --sidebar-foreground: #484648; /* --foreground と同値 */
   --sidebar-primary: #615c6b; /* primary */
-  --sidebar-primary-foreground: #ffffff; /* onPrimary */
+  --sidebar-primary-foreground: #fdf8fa; /* --primary-foreground と同値 */
   --sidebar-accent: #e7e0eb; /* secondaryContainer */
   --sidebar-accent-foreground: #49454e; /* onSecondaryContainer */
   --sidebar-border: #c9c5c7; /* outlineVariant */
@@ -122,20 +126,22 @@
 .dark {
   /* Material Design 3 の SchemeNeutral（seed #6750a4）が生成する dark スキーム。 */
   --background: #141314; /* surface */
-  --foreground: #e6e1e3; /* onSurface */
+  --foreground: #c9c5c7; /* neutralVariant tone80。onSurface は対比が強すぎるため一段落とす */
   --card: #1c1b1d; /* surfaceContainerLow */
-  --card-foreground: #e6e1e3; /* onSurface */
+  --card-foreground: #c9c5c7; /* --foreground と同値 */
   --popover: #201f21; /* surfaceContainer */
-  --popover-foreground: #e6e1e3; /* onSurface */
+  --popover-foreground: #c9c5c7; /* --foreground と同値 */
   --primary: #cbc3d5; /* primary */
   --primary-foreground: #322e3c; /* onPrimary */
   --secondary: #49454e; /* secondaryContainer */
   --secondary-foreground: #e7e0eb; /* onSecondaryContainer */
   --muted: #2b292b; /* surfaceContainerHigh */
-  --muted-foreground: #c9c5c7; /* onSurfaceVariant */
+  --muted-foreground: #939092; /* neutralVariant tone60。--muted 上で 4.57:1 */
   --accent: #49454e; /* secondaryContainer */
   --accent-foreground: #e7e0eb; /* onSecondaryContainer */
   --destructive: #ffb4ab; /* error */
+  --success: #a8d0b5; /* 独自ロール。緑を seed へ harmonize した tone80 / chroma48 */
+  --rating: #bc7318; /* 独自ロール。暗い面ではまぶしさを避けるため、あえてライトより低い tone55 */
   --border: #484648; /* outlineVariant */
   --input: #484648; /* outlineVariant */
   --ring: #939092; /* outline */
@@ -145,7 +151,7 @@
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #1c1b1d; /* surfaceContainerLow */
-  --sidebar-foreground: #e6e1e3; /* onSurface */
+  --sidebar-foreground: #c9c5c7; /* --foreground と同値 */
   --sidebar-primary: #cbc3d5; /* primary */
   --sidebar-primary-foreground: #322e3c; /* onPrimary */
   --sidebar-accent: #49454e; /* secondaryContainer */

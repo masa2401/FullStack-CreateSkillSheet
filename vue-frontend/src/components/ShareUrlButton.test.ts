@@ -71,14 +71,14 @@ describe('ShareUrlButton', () => {
       vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false)
     })
 
-    it('コピー成功時に success 用のクラスが付与される', async () => {
+    it('コピー成功時に data-feedback が success になる', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(true)
       const user = userEvent.setup()
       renderButton()
 
       await user.click(await findMenuItem())
 
-      expect(await findMenuItem()).toHaveClass('text-emerald-700')
+      expect(await findMenuItem()).toHaveAttribute('data-feedback', 'success')
     })
 
     it('コピー成功時に createShareUrl が呼ばれる', async () => {
@@ -92,14 +92,14 @@ describe('ShareUrlButton', () => {
       expect(createShareUrlSpy).toHaveBeenCalled()
     })
 
-    it('コピー失敗時は success 用のクラスが付与されない', async () => {
+    it('コピー失敗時は data-feedback が付かない', async () => {
       vi.spyOn(shareUtils, 'copyToClipboard').mockResolvedValue(false)
       const user = userEvent.setup()
       renderButton()
 
       await user.click(await findMenuItem())
 
-      expect(await findMenuItem()).not.toHaveClass('text-emerald-700')
+      expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
     })
   })
 
@@ -149,7 +149,7 @@ describe('ShareUrlButton', () => {
       await user.click(await findMenuItem())
 
       const menuItem = await findMenuItem()
-      expect(menuItem).toHaveClass('text-emerald-700')
+      expect(menuItem).toHaveAttribute('data-feedback', 'success')
       expect(menuItem).toHaveTextContent('コピー完了')
     })
   })

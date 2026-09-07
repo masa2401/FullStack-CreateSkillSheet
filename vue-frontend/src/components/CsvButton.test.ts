@@ -55,21 +55,21 @@ describe('CsvButton', () => {
     expect(await findMenuItem()).toHaveTextContent('CSVとして保存')
   })
 
-  it('初期状態では success 用のクラスがない', async () => {
+  it('初期状態では data-feedback が付かない', async () => {
     renderButton()
-    expect(await findMenuItem()).not.toHaveClass('text-emerald-700')
+    expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
   })
 
   // ─── ダウンロード成功 ──────────────────────────────────────────
 
-  it('ダウンロード成功時に success 用のクラスが付与される', async () => {
+  it('ダウンロード成功時に data-feedback が success になる', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
     const user = userEvent.setup()
     renderButton()
 
     await user.click(await findMenuItem())
 
-    expect(await findMenuItem()).toHaveClass('text-emerald-700')
+    expect(await findMenuItem()).toHaveAttribute('data-feedback', 'success')
   })
 
   it('ダウンロード成功時に「ダウンロード完了」と表示される', async () => {
@@ -82,14 +82,14 @@ describe('CsvButton', () => {
     expect(await findMenuItem()).toHaveTextContent('ダウンロード完了')
   })
 
-  it('ダウンロード失敗時は success 用のクラスが付与されない', async () => {
+  it('ダウンロード失敗時は data-feedback が付かない', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
     const user = userEvent.setup()
     renderButton()
 
     await user.click(await findMenuItem())
 
-    expect(await findMenuItem()).not.toHaveClass('text-emerald-700')
+    expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
   })
 
   // ─── 自動クローズ ──────────────────────────────────────────────
