@@ -4,7 +4,7 @@ import { computed, nextTick } from 'vue'
 import { Check } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
-import QuestionCard from '@/components/QuestionCard.vue'
+import QuestionSection from '@/components/QuestionSection.vue'
 import ValidationError from '@/components/ValidationError.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -101,7 +101,7 @@ const handleSubmit = async (): Promise<void> => {
             </div>
           </CardHeader>
           <CardContent class="space-y-8">
-            <QuestionCard
+            <QuestionSection
               v-for="(question, index) in category.questions"
               :key="question.id"
               :question="question"

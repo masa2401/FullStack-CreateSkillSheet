@@ -2,7 +2,7 @@ import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 
-import QuestionCard from './QuestionCard.vue'
+import QuestionSection from './QuestionSection.vue'
 
 /**
  * `@testing-library/vue` には `findComponent` が無いため、
@@ -33,34 +33,34 @@ const mockQuestion = {
   ],
 }
 
-const renderQuestionCard = (propsOverrides = {}) =>
-  render(QuestionCard, {
+const renderQuestionSection = (propsOverrides = {}) =>
+  render(QuestionSection, {
     props: { question: mockQuestion, questionNumber: 1, ...propsOverrides },
     global: { stubs: { AnswerItem: ANSWER_ITEM_STUB } },
   })
 
 const answerButton = (label: string) => screen.getByRole('button', { name: label })
 
-describe('QuestionCard', () => {
+describe('QuestionSection', () => {
   // ─── 表示 ────────────────────────────────────────────────────
 
   it('タイトルが Q番号付きで表示される', () => {
-    renderQuestionCard()
+    renderQuestionSection()
     expect(screen.getByText('Q1. テスト質問')).toBeInTheDocument()
   })
 
   it('questionNumber に応じて Q番号が変わる', () => {
-    renderQuestionCard({ questionNumber: 5 })
+    renderQuestionSection({ questionNumber: 5 })
     expect(screen.getByText('Q5. テスト質問')).toBeInTheDocument()
   })
 
   it('設問文が表示される', () => {
-    renderQuestionCard()
+    renderQuestionSection()
     expect(screen.getByText('当てはまるものを選択してください。')).toBeInTheDocument()
   })
 
   it('回答の数だけ AnswerItem が表示される', () => {
-    renderQuestionCard()
+    renderQuestionSection()
     expect(screen.getAllByRole('button')).toHaveLength(2)
   })
 
@@ -68,7 +68,7 @@ describe('QuestionCard', () => {
 
   it('AnswerItem から update:answer を受け取ると update:answer を emit する', async () => {
     const user = userEvent.setup()
-    const { emitted } = renderQuestionCard()
+    const { emitted } = renderQuestionSection()
 
     await user.click(answerButton('回答B'))
 
@@ -78,13 +78,13 @@ describe('QuestionCard', () => {
   // ─── flaggedAnswerIds の伝播 ──────────────────────────────────
 
   it('flaggedAnswerIds 未指定なら、どの AnswerItem も指摘済みにならない', () => {
-    renderQuestionCard()
+    renderQuestionSection()
     expect(answerButton('回答A')).toHaveAttribute('data-flagged', 'false')
     expect(answerButton('回答B')).toHaveAttribute('data-flagged', 'false')
   })
 
   it('flaggedAnswerIds に含まれる回答だけが指摘済みになる', () => {
-    renderQuestionCard({ flaggedAnswerIds: [2] })
+    renderQuestionSection({ flaggedAnswerIds: [2] })
     expect(answerButton('回答A')).toHaveAttribute('data-flagged', 'false')
     expect(answerButton('回答B')).toHaveAttribute('data-flagged', 'true')
   })

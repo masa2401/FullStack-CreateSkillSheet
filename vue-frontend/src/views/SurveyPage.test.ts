@@ -87,7 +87,7 @@ describe('SurveyPage', () => {
         ],
         stubs: {
           'font-awesome-icon': true,
-          QuestionCard: {
+          QuestionSection: {
             props: {
               question: Object,
               questionNumber: Number,
@@ -238,7 +238,7 @@ describe('SurveyPage', () => {
     expect(screen.getByText('（1件）')).toBeInTheDocument()
   })
 
-  it('送信時に指摘した回答IDが QuestionCard へ渡される', async () => {
+  it('送信時に指摘した回答IDが QuestionSection へ渡される', async () => {
     const user = userEvent.setup()
     renderPage({ selections: makeSelections({ isChecked: true }) })
 
@@ -254,7 +254,7 @@ describe('SurveyPage', () => {
     )
   })
 
-  it('QuestionCard から update:answer が発火すると setAnswerSelection が呼ばれる', async () => {
+  it('QuestionSection から update:answer が発火すると setAnswerSelection が呼ばれる', async () => {
     const user = userEvent.setup()
     renderPage()
     const store = useSurveyStore()

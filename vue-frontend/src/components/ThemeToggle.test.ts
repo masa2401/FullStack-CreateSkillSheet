@@ -1,7 +1,18 @@
-import { mount } from '@vue/test-utils'
+import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import ThemeToggle from './ThemeToggle.vue'
+
+/**
+ * 初期テーマは実行環境の設定に依存するため、固定値では検証しない。
+ * `<html>` の `dark` クラス（`useColorMode` が書き込む実体）を真とし、
+ * ボタンの表示がそれに追従しているかを見る。
+ */
+const isDarkApplied = (): boolean => document.documentElement.classList.contains('dark')
+
+const expectedLabel = (): string =>
+  isDarkApplied() ? 'ライトテーマに切り替える' : 'ダークテーマに切り替える'
 
 describe('ThemeToggle', () => {
   beforeEach(() => {
@@ -14,24 +25,23 @@ describe('ThemeToggle', () => {
   })
 
   it('クリックで配色が切り替わり、aria-pressed が追従する', async () => {
-    const wrapper = mount(ThemeToggle)
-    const button = wrapper.find('button')
-    const before = button.attributes('aria-pressed')
+    const user = userEvent.setup()
+    render(ThemeToggle)
+    const wasDark = isDarkApplied()
 
-    await button.trigger('click')
+    await user.click(screen.getByRole('button'))
 
-    expect(wrapper.find('button').attributes('aria-pressed')).not.toBe(before)
-    expect(document.documentElement.classList.contains('dark')).toBe(
-      wrapper.find('button').attributes('aria-pressed') === 'true',
-    )
+    expect(isDarkApplied()).toBe(!wasDark)
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', String(isDarkApplied()))
   })
 
-  it('現在の配色に応じて aria-label が切り替わる', async () => {
-    const wrapper = mount(ThemeToggle)
-    const labelBefore = wrapper.find('button').attributes('aria-label')
+  it('アクセシブル名が現在の配色に応じた切り替え先を示す', async () => {
+    const user = userEvent.setup()
+    render(ThemeToggle)
+    expect(screen.getByRole('button', { name: expectedLabel() })).toBeInTheDocument()
 
-    await wrapper.find('button').trigger('click')
+    await user.click(screen.getByRole('button'))
 
-    expect(wrapper.find('button').attributes('aria-label')).not.toBe(labelBefore)
+    expect(screen.getByRole('button', { name: expectedLabel() })).toBeInTheDocument()
   })
 })

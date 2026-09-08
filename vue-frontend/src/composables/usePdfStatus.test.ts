@@ -1,11 +1,11 @@
-import { ref } from 'vue'
+import { type Ref, ref } from 'vue'
 
-import { flushPromises } from '@vue/test-utils'
+import { type VueWrapper, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as apiUtils from '@/utils/api'
 
-import { usePdfStatus } from './usePdfStatus'
+import { type UsePdfStatusReturn, usePdfStatus } from './usePdfStatus'
 
 const INITIAL_DELAY_MS = 10_000
 const FAST_INTERVAL_MS = 3_000
@@ -17,25 +17,46 @@ const advanceToFirstPoll = async () => {
   await flushPromises()
 }
 
+const mountedWrappers: VueWrapper[] = []
+
+/**
+ * `usePdfStatus` は `onUnmounted` で後片付けを登録するため、
+ * コンポーネントの `setup` の中で呼ぶ必要がある。
+ * setup の外で呼ぶと Vue が警告を出したうえで登録自体が行われず、
+ * アンマウント時にタイマーが止まる経路が検証できない。
+ */
+const mountPdfStatus = (sheetId: Ref<string | null>) => {
+  let api!: UsePdfStatusReturn
+  const wrapper = mount({
+    setup() {
+      api = usePdfStatus(sheetId)
+      return () => null
+    },
+  })
+  mountedWrappers.push(wrapper)
+  return { wrapper, ...api }
+}
+
 describe('usePdfStatus', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
   afterEach(() => {
+    mountedWrappers.splice(0).forEach((wrapper) => wrapper.unmount())
     vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
   it('sheetId が null の間は waiting のまま', () => {
     const sheetId = ref<string | null>(null)
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     expect(state.value).toBe('waiting')
   })
 
   it('sheetId が設定されると generating に遷移する', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockReturnValue(new Promise(() => {}))
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await flushPromises()
     expect(state.value).toBe('generating')
   })
@@ -45,7 +66,7 @@ describe('usePdfStatus', () => {
       .spyOn(apiUtils, 'fetchPdfStatus')
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    usePdfStatus(sheetId)
+    mountPdfStatus(sheetId)
     await flushPromises()
     expect(fetchSpy).not.toHaveBeenCalled()
 
@@ -59,7 +80,7 @@ describe('usePdfStatus', () => {
       downloadUrl: 'https://example.com/skill.pdf',
     })
     const sheetId = ref<string | null>('sheet-1')
-    const { state, downloadUrl } = usePdfStatus(sheetId)
+    const { state, downloadUrl } = mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(state.value).toBe('ready')
     expect(downloadUrl.value).toBe('https://example.com/skill.pdf')
@@ -70,7 +91,7 @@ describe('usePdfStatus', () => {
       .spyOn(apiUtils, 'fetchPdfStatus')
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    usePdfStatus(sheetId)
+    mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(fetchSpy).toHaveBeenCalledTimes(1)
 
@@ -84,7 +105,7 @@ describe('usePdfStatus', () => {
   it('progress は経過時間に応じて 0 から 100 まで進む', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    const { progress } = usePdfStatus(sheetId)
+    const { progress } = mountPdfStatus(sheetId)
     await flushPromises()
     expect(progress.value).toBe(0)
 
@@ -101,7 +122,7 @@ describe('usePdfStatus', () => {
   it('SLOW_THRESHOLD_MS を超えると slow に遷移する', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(state.value).toBe('generating')
 
@@ -113,7 +134,7 @@ describe('usePdfStatus', () => {
   it('TIMEOUT_MS を超えても ready にならない場合は error になる', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await flushPromises()
 
     vi.advanceTimersByTime(TIMEOUT_MS)
@@ -126,7 +147,7 @@ describe('usePdfStatus', () => {
   it('fetchPdfStatus が null を返す場合は error になる', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue(null)
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(state.value).toBe('error')
   })
@@ -134,7 +155,7 @@ describe('usePdfStatus', () => {
   it('fetchPdfStatus が例外を投げた場合は error になる', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockRejectedValue(new Error('network error'))
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(state.value).toBe('error')
   })
@@ -148,7 +169,7 @@ describe('usePdfStatus', () => {
         }),
     )
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(state.value).toBe('generating')
 
@@ -168,7 +189,7 @@ describe('usePdfStatus', () => {
         }),
     )
     const sheetId = ref<string | null>('sheet-1')
-    const { state } = usePdfStatus(sheetId)
+    const { state } = mountPdfStatus(sheetId)
     await advanceToFirstPoll()
 
     sheetId.value = 'sheet-2'
@@ -183,7 +204,7 @@ describe('usePdfStatus', () => {
       .spyOn(apiUtils, 'fetchPdfStatus')
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    usePdfStatus(sheetId)
+    mountPdfStatus(sheetId)
     await advanceToFirstPoll()
     expect(fetchSpy).toHaveBeenCalledTimes(1)
 
@@ -199,13 +220,48 @@ describe('usePdfStatus', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
+  // ─── アンマウント時の後片付け ────────────────────
+
+  it('アンマウントするとポーリングが止まる', async () => {
+    const fetchSpy = vi
+      .spyOn(apiUtils, 'fetchPdfStatus')
+      .mockResolvedValue({ status: 'generating' })
+    const sheetId = ref<string | null>('sheet-1')
+    const { wrapper } = mountPdfStatus(sheetId)
+    await advanceToFirstPoll()
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+    wrapper.unmount()
+    fetchSpy.mockClear()
+
+    vi.advanceTimersByTime(FAST_INTERVAL_MS * 3)
+    await flushPromises()
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('アンマウントすると進捗の更新も止まる', async () => {
+    vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
+    const sheetId = ref<string | null>('sheet-1')
+    const { wrapper, progress } = mountPdfStatus(sheetId)
+    vi.advanceTimersByTime(SLOW_THRESHOLD_MS / 4)
+    await flushPromises()
+    const progressBeforeUnmount = progress.value
+    expect(progressBeforeUnmount).toBeGreaterThan(0)
+
+    wrapper.unmount()
+
+    vi.advanceTimersByTime(SLOW_THRESHOLD_MS / 2)
+    await flushPromises()
+    expect(progress.value).toBe(progressBeforeUnmount)
+  })
+
   // ─── retry ──────────────────────────────────────
 
   describe('retry', () => {
     it('sheetId が null の場合は何もしない', async () => {
       const regenerateSpy = vi.spyOn(apiUtils, 'regeneratePdf')
       const sheetId = ref<string | null>(null)
-      const { retry, state } = usePdfStatus(sheetId)
+      const { retry, state } = mountPdfStatus(sheetId)
 
       await retry()
 
@@ -219,7 +275,7 @@ describe('usePdfStatus', () => {
         .mockResolvedValue({ status: 'generating' })
       vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue(true)
       const sheetId = ref<string | null>('sheet-1')
-      const { state, progress, retry } = usePdfStatus(sheetId)
+      const { state, progress, retry } = mountPdfStatus(sheetId)
       await advanceToFirstPoll()
       fetchSpy.mockClear()
 
@@ -240,7 +296,7 @@ describe('usePdfStatus', () => {
       vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
       vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue(false)
       const sheetId = ref<string | null>('sheet-1')
-      const { state, retry } = usePdfStatus(sheetId)
+      const { state, retry } = mountPdfStatus(sheetId)
       await advanceToFirstPoll()
 
       await retry()
@@ -251,7 +307,7 @@ describe('usePdfStatus', () => {
       vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
       vi.spyOn(apiUtils, 'regeneratePdf').mockRejectedValue(new Error('network error'))
       const sheetId = ref<string | null>('sheet-1')
-      const { retry, state } = usePdfStatus(sheetId)
+      const { retry, state } = mountPdfStatus(sheetId)
       await advanceToFirstPoll()
 
       await retry()
@@ -273,7 +329,7 @@ describe('usePdfStatus', () => {
         }),
       )
       const sheetId = ref<string | null>('sheet-1')
-      const { retry, state } = usePdfStatus(sheetId)
+      const { retry, state } = mountPdfStatus(sheetId)
       await flushPromises()
 
       const retryPromise = retry()
@@ -294,7 +350,7 @@ describe('usePdfStatus', () => {
         }),
       )
       const sheetId = ref<string | null>('sheet-1')
-      const { retry, state } = usePdfStatus(sheetId)
+      const { retry, state } = mountPdfStatus(sheetId)
       await flushPromises()
 
       const retryPromise = retry()

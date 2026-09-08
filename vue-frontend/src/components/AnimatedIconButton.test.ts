@@ -1,48 +1,51 @@
-import { mount } from '@vue/test-utils'
+import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 
 import AnimatedIconButton from './AnimatedIconButton.vue'
 
 const baseProps = { icon: 'fa-solid fa-check', label: 'テストボタン' }
 
+/**
+ * アイコンがアクセシブル名に混ざらないこと（span の `aria-hidden`）を
+ * 実際に検証するため、スタブはテキストを持たせる。
+ * `true` による既定スタブはテキストを持たないので、この検証が空振りする。
+ */
+const ICON_STUB = { template: '<i>アイコン</i>' }
+
+const renderButton = (attrs: Record<string, unknown> = {}) =>
+  render(AnimatedIconButton, {
+    props: baseProps,
+    attrs,
+    global: { stubs: { 'font-awesome-icon': ICON_STUB } },
+  })
+
+const button = () => screen.getByRole('button', { name: 'テストボタン' })
+
 describe('AnimatedIconButton', () => {
-  it('ラベルが表示される', () => {
-    const wrapper = mount(AnimatedIconButton, {
-      props: baseProps,
-      stubs: { 'font-awesome-icon': true },
-    })
-    expect(wrapper.find('.button-text').text()).toBe('テストボタン')
+  it('label がボタンのアクセシブル名になる（アイコンは名前に混ざらない）', () => {
+    renderButton()
+    expect(button()).toBeInTheDocument()
   })
 
   it('親が渡した click ハンドラがネイティブイベント付きで呼ばれる', async () => {
+    const user = userEvent.setup()
     const onClick = vi.fn()
-    const wrapper = mount(AnimatedIconButton, {
-      props: baseProps,
-      attrs: { onClick },
-      stubs: { 'font-awesome-icon': true },
-    })
+    renderButton({ onClick })
 
-    await wrapper.find('button').trigger('click')
+    await user.click(button())
 
     expect(onClick).toHaveBeenCalledOnce()
     expect(onClick.mock.calls[0]?.[0]).toMatchObject({ type: 'click' })
   })
 
   it('aria-disabled 属性が実際の button 要素まで到達する（非ゲスト時は "false"）', () => {
-    const wrapper = mount(AnimatedIconButton, {
-      props: baseProps,
-      attrs: { 'aria-disabled': false },
-      stubs: { 'font-awesome-icon': true },
-    })
-    expect(wrapper.find('button').attributes('aria-disabled')).toBe('false')
+    renderButton({ 'aria-disabled': false })
+    expect(button()).toHaveAttribute('aria-disabled', 'false')
   })
 
   it('aria-disabled="true" を渡すと button 要素まで到達する', () => {
-    const wrapper = mount(AnimatedIconButton, {
-      props: baseProps,
-      attrs: { 'aria-disabled': true },
-      stubs: { 'font-awesome-icon': true },
-    })
-    expect(wrapper.find('button').attributes('aria-disabled')).toBe('true')
+    renderButton({ 'aria-disabled': true })
+    expect(button()).toHaveAttribute('aria-disabled', 'true')
   })
 })
