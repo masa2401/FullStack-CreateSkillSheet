@@ -18,7 +18,7 @@ const handleTitleClick = () => {
 </script>
 
 <template>
-  <header class="border-b bg-card print:hidden">
+  <header class="border-b print:hidden">
     <div
       class="relative mx-auto flex h-14 w-full max-w-5xl items-center justify-center px-4 sm:h-16 sm:px-6"
     >

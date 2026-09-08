@@ -44,7 +44,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
 </script>
 
 <template>
-  <div class="rounded-xl bg-muted p-4">
+  <div class="rounded-xl bg-muted p-4 ring-1 ring-border">
     <div class="flex items-center gap-2">
       <Checkbox
         :id="checkboxId"
@@ -80,7 +80,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
             :key="level"
             :value="level"
             :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`"
-            class="flex min-w-20 flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none data-[state=checked]:scale-105 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+            class="flex min-w-20 flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border-2 bg-field p-2 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none data-[state=checked]:scale-105 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
           >
             <span class="text-xl font-bold">{{ level }}</span>
             <span class="text-xs opacity-80">{{ '★'.repeat(level) }}</span>

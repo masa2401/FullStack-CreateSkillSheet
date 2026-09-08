@@ -7,7 +7,7 @@ import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import QuestionCard from '@/components/QuestionCard.vue'
 import ValidationError from '@/components/ValidationError.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyValidation } from '@/composables/useSurveyValidation'
@@ -87,29 +87,32 @@ const handleSubmit = async (): Promise<void> => {
     >
       <section
         v-if="category.isChecked"
-        class="mt-10"
+        class="mt-8 space-y-6"
       >
-        <div class="mb-4 flex items-center justify-center gap-2">
-          <component
-            :is="resolveCategoryIcon(category.key)"
-            class="size-8 shrink-0"
-            aria-hidden="true"
-          />
-          <h2 class="text-xl font-bold sm:text-2xl">{{ category.label }}</h2>
-        </div>
-
-        <div class="space-y-4">
-          <QuestionCard
-            v-for="(question, index) in category.questions"
-            :key="question.id"
-            :question="question"
-            :question-number="index + 1"
-            :flagged-answer-ids="flaggedAnswerIdsOf(category.id, question.id)"
-            @update:answer="
-              handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
-            "
-          />
-        </div>
+        <Card>
+          <CardHeader>
+            <div class="flex items-center justify-center gap-2">
+              <component
+                :is="resolveCategoryIcon(category.key)"
+                class="size-8 shrink-0"
+                aria-hidden="true"
+              />
+              <h2 class="text-xl font-bold sm:text-2xl">{{ category.label }}</h2>
+            </div>
+          </CardHeader>
+          <CardContent class="space-y-8">
+            <QuestionCard
+              v-for="(question, index) in category.questions"
+              :key="question.id"
+              :question="question"
+              :question-number="index + 1"
+              :flagged-answer-ids="flaggedAnswerIdsOf(category.id, question.id)"
+              @update:answer="
+                handleAnswerUpdate(category.id, question.id, $event.answerId, $event.patch)
+              "
+            />
+          </CardContent>
+        </Card>
       </section>
     </template>
 

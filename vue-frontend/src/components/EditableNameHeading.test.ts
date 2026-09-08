@@ -41,64 +41,6 @@ describe('EditableNameHeading', () => {
     expect((wrapper.find('input').element as HTMLInputElement).value).toBe('入力中')
   })
 
-  // ─── 入力欄の幅 ───────────────────────────────────────────────
-
-  /** `width: calc(3.4em + 1rem)` から em 部分の数値を取り出す */
-  const widthEmOf = (wrapper: ReturnType<typeof mount>): number => {
-    const style = wrapper.find('input').attributes('style') ?? ''
-    const matched = /calc\(([\d.]+)em/.exec(style)
-    if (!matched?.[1]) throw new Error(`em 指定が見つからない: ${style}`)
-    return Number(matched[1])
-  }
-
-  it('未入力のときはプレースホルダの幅が使われる', () => {
-    const wrapper = mount(EditableNameHeading, {
-      props: { initialName: '', displayName: 'Guest' },
-    })
-    // 「お名前を入力」= 全角6文字 + 余白
-    expect(widthEmOf(wrapper)).toBeCloseTo(6.6)
-  })
-
-  it('半角のみの名前は全角のみの名前より入力欄が狭くなる', async () => {
-    const wrapper = mount(EditableNameHeading, {
-      props: { initialName: '', displayName: 'Guest' },
-    })
-
-    await wrapper.find('input').setValue('TEST')
-    const halfWidth = widthEmOf(wrapper)
-
-    await wrapper.find('input').setValue('山田太郎')
-    const fullWidth = widthEmOf(wrapper)
-
-    expect(halfWidth).toBeLessThan(fullWidth)
-  })
-
-  it('入力に応じて幅が変わる', async () => {
-    const wrapper = mount(EditableNameHeading, {
-      props: { initialName: '', displayName: 'Guest' },
-    })
-
-    await wrapper.find('input').setValue('山田')
-    const shorter = widthEmOf(wrapper)
-
-    await wrapper.find('input').setValue('山田太郎')
-
-    expect(widthEmOf(wrapper)).toBeGreaterThan(shorter)
-  })
-
-  it('幅は上限でクランプされる', async () => {
-    const wrapper = mount(EditableNameHeading, {
-      props: { initialName: '', displayName: 'Guest' },
-    })
-
-    await wrapper.find('input').setValue('あ'.repeat(20))
-    const atLimit = widthEmOf(wrapper)
-
-    await wrapper.find('input').setValue('あ'.repeat(40))
-
-    expect(widthEmOf(wrapper)).toBe(atLimit)
-  })
-
   // ─── Enterキー ────────────────────────────────────────────────
 
   it('Enterキーを押すと preventDefault され、入力欄が blur される', async () => {

@@ -73,13 +73,17 @@
 
 :root {
   --radius: 0.625rem;
-  /* 以下は Material Design 3 の SchemeNeutral（seed #6750a4）が生成する light スキーム。
-     コメントは対応する MD3 のカラーロール名。 */
-  --background: #fdf8fa; /* surface */
-  --foreground: #484648; /* onSurfaceVariant。onSurface は対比が強すぎるため一段落とす */
-  --card: #f7f2f4; /* surfaceContainerLow */
+  /* 値は Material Design 3 の SchemeNeutral（seed #6750a4）の neutral トーナルパレットから採る。
+     どの tone をどのロールに割り当てるかは MD3 のロール表ではなく、次の自前の規則による。
+       ページの枠組み（背景・ヘッダー・フッター）＝ 暗い側
+       浮いている面（カード・ポップオーバー・ボタン）＝ 明るい側
+       沈む面（入力欄・チップ）＝ ページ背景と同じ tone へ戻る
+     ライトとダークで向きが揃うため、面の関係がモードによって反転しない。 */
+  --background: #f1edee; /* tone94。ページの枠組み */
+  --foreground: #484648; /* neutral tone30。onSurface 相当だと対比が強すぎるため一段落とす */
+  --card: #fdf8fa; /* tone98。浮いている面。--card 上の本文は 8.90:1 */
   --card-foreground: var(--foreground); /* 連動。カード内と本文で文字色をずらさない */
-  --popover: #f1edee; /* surfaceContainer。--muted と同値だが独立（浮動要素と面内パネル） */
+  --popover: #fdf8fa; /* tone98。--card と同値だが独立（浮動要素と面内の板） */
   --popover-foreground: var(--foreground); /* 連動 */
   --primary: #615c6b; /* primary */
   --primary-foreground: #fdf8fa; /* neutral tone98。MD3 の onPrimary は #ffffff だが純白を避ける。
@@ -88,12 +92,13 @@
      AnimatedIconButton の variant="secondary" は outline へ写像されるため、アプリからは到達しない。 */
   --secondary: var(--accent); /* 連動 */
   --secondary-foreground: var(--accent-foreground); /* 連動 */
-  --muted: #f1edee; /* surfaceContainer */
-  --muted-foreground: #6a6769; /* neutralVariant tone44。副次テキスト用に本文を弱めた色。
-                                  使用面は --card（5.05:1）/ --background（5.32:1）/ --field（4.56:1） */
-  --accent: #e7e0eb; /* secondaryContainer */
-  --accent-foreground: #49454e; /* onSecondaryContainer */
-  --field: #ebe7e9; /* surfaceContainerHigh。編集可能な入力欄の塗り。枠線は --input */
+  --muted: #fdf8fa; /* tone98。AnswerItem のパネル。--card と同値だが独立。
+                       カードとの区切りは塗りではなく ring-1 ring-border が担う */
+  --muted-foreground: #6a6769; /* neutral tone44。副次テキスト用に本文を弱めた色。
+                                  使用面は --card（5.32:1）/ --background（4.81:1）/ --field（4.81:1） */
+  --accent: #e7e0eb; /* secondaryContainer 由来。Skeleton の塗りとゴーストボタンの hover */
+  --accent-foreground: #49454e;
+  --field: #f1edee; /* tone94。沈む面（入力欄とチップの塗り）。枠線は --input */
   --destructive: #ba1a1a; /* error */
   --success: #006d43; /* 独自ロール。緑を seed へ harmonize した tone40 / chroma48 */
   --rating: #fe9a00; /* 独自ロール。評価の星専用。淡い金色を優先し MD3 パレット外の値を採用 */
@@ -103,19 +108,19 @@
 }
 
 .dark {
-  /* Material Design 3 の SchemeNeutral（seed #6750a4）が生成する dark スキーム。 */
-  --background: #141314; /* surface */
-  --foreground: #c9c5c7; /* neutralVariant tone80。onSurface は対比が強すぎるため一段落とす */
-  --card: #1c1b1d; /* surfaceContainerLow */
-  --popover: #201f21; /* surfaceContainer。--muted と同値だが独立 */
+  /* light と同じ規則。ページの枠組みが最も暗く、浮いている面が明るい側、沈む面は背景へ戻る。 */
+  --background: #141314; /* tone6。ページの枠組み */
+  --foreground: #c9c5c7; /* neutral tone80。onSurface 相当だと対比が強すぎるため一段落とす */
+  --card: #201f21; /* tone12。浮いている面。--card 上の本文は 9.61:1 */
+  --popover: #201f21; /* tone12。--card と同値だが独立 */
   --primary: #cbc3d5; /* primary */
   --primary-foreground: #322e3c; /* onPrimary */
-  --muted: #201f21; /* surfaceContainer */
-  --muted-foreground: #939092; /* neutralVariant tone60。--card 5.43:1 / --background 5.86:1 / --field 4.57:1。
+  --muted: #201f21; /* tone12。AnswerItem のパネル。--card と同値だが独立 */
+  --muted-foreground: #939092; /* neutral tone60。--card 5.19:1 / --background 5.86:1 / --field 5.86:1。
                                   --ring と同値だが独立 */
-  --accent: #49454e; /* secondaryContainer */
-  --accent-foreground: #e7e0eb; /* onSecondaryContainer */
-  --field: #2b292b; /* surfaceContainerHigh */
+  --accent: #49454e; /* secondaryContainer 由来。Skeleton の塗りとゴーストボタンの hover */
+  --accent-foreground: #e7e0eb;
+  --field: #141314; /* tone6。沈む面（入力欄とチップの塗り）。--background と同値だが独立 */
   --destructive: #ffb4ab; /* error */
   --success: #a8d0b5; /* 独自ロール。緑を seed へ harmonize した tone80 / chroma48 */
   --rating: #bc7318; /* 独自ロール。暗い面ではまぶしさを避けるため、あえてライトより低い tone55 */

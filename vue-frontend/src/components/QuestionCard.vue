@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { MergedQuestion, StarLevel } from '@/types'
 
 import AnswerItem from './AnswerItem.vue'
@@ -20,14 +19,12 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle class="text-lg leading-relaxed font-semibold">
-        Q{{ questionNumber }}. {{ question.title }}
-      </CardTitle>
-      <CardDescription>{{ question.prompt }}</CardDescription>
-    </CardHeader>
-    <CardContent class="flex flex-col gap-4">
+  <section>
+    <h3 class="text-lg leading-relaxed font-semibold">
+      Q{{ questionNumber }}. {{ question.title }}
+    </h3>
+    <p class="text-sm text-muted-foreground">{{ question.prompt }}</p>
+    <div class="mt-4 flex flex-col gap-4">
       <AnswerItem
         v-for="answer in question.answers"
         :key="answer.id"
@@ -38,6 +35,6 @@ const emit = defineEmits<{
         :is-flagged="flaggedAnswerIds.includes(answer.id)"
         @update:answer="emit('update:answer', $event)"
       />
-    </CardContent>
-  </Card>
+    </div>
+  </section>
 </template>
