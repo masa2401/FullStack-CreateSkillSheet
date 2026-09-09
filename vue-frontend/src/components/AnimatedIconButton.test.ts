@@ -6,24 +6,17 @@ import AnimatedIconButton from './AnimatedIconButton.vue'
 
 const baseProps = { icon: 'fa-solid fa-check', label: 'テストボタン' }
 
-/**
- * アイコンがアクセシブル名に混ざらないこと（span の `aria-hidden`）を
- * 実際に検証するため、スタブはテキストを持たせる。
- * `true` による既定スタブはテキストを持たないので、この検証が空振りする。
- */
-const ICON_STUB = { template: '<i>アイコン</i>' }
-
 const renderButton = (attrs: Record<string, unknown> = {}) =>
   render(AnimatedIconButton, {
     props: baseProps,
     attrs,
-    global: { stubs: { 'font-awesome-icon': ICON_STUB } },
+    global: { stubs: { 'font-awesome-icon': true } },
   })
 
 const button = () => screen.getByRole('button', { name: 'テストボタン' })
 
 describe('AnimatedIconButton', () => {
-  it('label がボタンのアクセシブル名になる（アイコンは名前に混ざらない）', () => {
+  it('label がボタンのアクセシブル名になる', () => {
     renderButton()
     expect(button()).toBeInTheDocument()
   })

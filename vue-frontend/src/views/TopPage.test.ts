@@ -1,7 +1,8 @@
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { createTestingPinia } from '@pinia/testing'
-import { flushPromises, mount } from '@vue/test-utils'
+import userEvent from '@testing-library/user-event'
+import { render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useSurveyStore } from '@/stores/useSurveyStore.ts'
@@ -18,11 +19,20 @@ const buildRouter = () =>
     ],
   })
 
-const initialSelections = [
+/**
+ * `createTestingPinia` の `initialState` は値を参照のまま取り込む。
+ * 使い回すとテスト内の更新が配列の中身に残り、次のテストへ持ち越される。
+ * 呼び出しごとに作り直すこと。
+ */
+const buildSelections = () => [
   { categoryId: 1, isChecked: true, questions: [] },
   { categoryId: 2, isChecked: false, questions: [] },
   { categoryId: 3, isChecked: false, questions: [] },
 ]
+
+const engineerCheckbox = () => screen.getByRole('checkbox', { name: 'プログラマ / ITエンジニア' })
+
+const designerCheckbox = () => screen.getByRole('checkbox', { name: 'デザイナー / 動画制作' })
 
 describe('TopPage', () => {
   let router: ReturnType<typeof buildRouter>
@@ -32,8 +42,8 @@ describe('TopPage', () => {
     await router.push(ROUTES.TOP)
   })
 
-  const createWrapper = (surveyState: Record<string, unknown> = {}) =>
-    mount(TopPage, {
+  const renderTopPage = (surveyState: Record<string, unknown> = {}) =>
+    render(TopPage, {
       global: {
         plugins: [
           router,
@@ -42,7 +52,7 @@ describe('TopPage', () => {
             initialState: {
               survey: {
                 userName: '',
-                selections: initialSelections,
+                selections: buildSelections(),
                 ...surveyState,
               },
             },
@@ -55,51 +65,64 @@ describe('TopPage', () => {
   // ─── カテゴリ選択 ────────────────────────────────────────────────
 
   it('エンジニアカードにチェックを入れると選択状態になる', async () => {
-    const wrapper = createWrapper()
-    const [enginnerCheckbox] = wrapper.findAll('input[type="checkbox"]')
-    await enginnerCheckbox!.setValue(true)
-    expect((enginnerCheckbox!.element as HTMLInputElement).checked).toBe(true)
+    const user = userEvent.setup()
+    renderTopPage()
+
+    await user.click(engineerCheckbox())
+
+    expect(engineerCheckbox()).toBeChecked()
   })
 
   it('デザイナーカードにチェックを入れると選択状態になる', async () => {
-    const wrapper = createWrapper()
-    const checkbox = wrapper.findAll('input[type="checkbox"]')[1]!
-    await checkbox.setValue(true)
-    expect((checkbox.element as HTMLInputElement).checked).toBe(true)
+    const user = userEvent.setup()
+    renderTopPage()
+
+    await user.click(designerCheckbox())
+
+    expect(designerCheckbox()).toBeChecked()
   })
 
   it('エンジニアカードをチェックすると store の selections が更新される', async () => {
-    const wrapper = createWrapper()
+    const user = userEvent.setup()
+    renderTopPage()
     const store = useSurveyStore()
-    await wrapper.findAll('input[type="checkbox"]')[0]!.setValue(true)
+
+    await user.click(engineerCheckbox())
+
     expect(store.selections.find((s) => s.categoryId === 2)?.isChecked).toBe(true)
   })
 
   it('両カードを同時に選択できる', async () => {
-    const wrapper = createWrapper()
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
-    await checkboxes[0]!.setValue(true)
-    await checkboxes[1]!.setValue(true)
-    expect((checkboxes[0]!.element as HTMLInputElement).checked).toBe(true)
-    expect((checkboxes[1]!.element as HTMLInputElement).checked).toBe(true)
+    const user = userEvent.setup()
+    renderTopPage()
+
+    await user.click(engineerCheckbox())
+    await user.click(designerCheckbox())
+
+    expect(engineerCheckbox()).toBeChecked()
+    expect(designerCheckbox()).toBeChecked()
   })
 
   it('チェック済みカードのチェックを外すと選択状態が解除される', async () => {
-    const engineerCheckedSelections = initialSelections.map((s) =>
+    const user = userEvent.setup()
+    const engineerCheckedSelections = buildSelections().map((s) =>
       s.categoryId === 2 ? { ...s, isChecked: true } : s,
     )
-    const wrapper = createWrapper({ selections: engineerCheckedSelections })
-    const checkbox = wrapper.findAll('input[type="checkbox"]')[0]!
-    await checkbox.setValue(false)
-    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
+    renderTopPage({ selections: engineerCheckedSelections })
+
+    await user.click(engineerCheckbox())
+
+    expect(engineerCheckbox()).not.toBeChecked()
   })
 
   // ─── ページ遷移 ────────────────────────────────────────────────
 
   it('「アンケートを開始」ボタンをクリックすると /survey へ遷移する', async () => {
-    const wrapper = createWrapper()
-    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY)
+    const user = userEvent.setup()
+    renderTopPage()
+
+    await user.click(screen.getByRole('button', { name: 'アンケートを開始' }))
+
+    await waitFor(() => expect(router.currentRoute.value.path).toBe(ROUTES.SURVEY))
   })
 })

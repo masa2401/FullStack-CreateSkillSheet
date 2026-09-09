@@ -1,5 +1,5 @@
 import userEvent from '@testing-library/user-event'
-import { render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import EditableNameHeading from './EditableNameHeading.vue'
@@ -46,25 +46,24 @@ describe('EditableNameHeading', () => {
 
   // ─── Enterキー ────────────────────────────────────────────────
 
-  it('Enterキーを押すと入力欄からフォーカスが外れる', async () => {
-    const user = userEvent.setup()
+  it('Enterキーを押すと入力欄が blur される', async () => {
     renderHeading()
+    const input = nameInput()
+    const blurSpy = vi.spyOn(input, 'blur')
 
-    await user.click(nameInput())
-    expect(nameInput()).toHaveFocus()
+    await fireEvent.keyDown(input, { key: 'Enter' })
 
-    await user.keyboard('{Enter}')
-    expect(nameInput()).not.toHaveFocus()
+    expect(blurSpy).toHaveBeenCalledOnce()
   })
 
-  it('Enter以外のキーではフォーカスが外れない', async () => {
-    const user = userEvent.setup()
+  it('Enter以外のキーでは blur されない', async () => {
     renderHeading()
+    const input = nameInput()
+    const blurSpy = vi.spyOn(input, 'blur')
 
-    await user.click(nameInput())
-    await user.keyboard('a')
+    await fireEvent.keyDown(input, { key: 'a' })
 
-    expect(nameInput()).toHaveFocus()
+    expect(blurSpy).not.toHaveBeenCalled()
   })
 
   // ─── コミットフロー（デバウンス） ──────────────────────────────────
