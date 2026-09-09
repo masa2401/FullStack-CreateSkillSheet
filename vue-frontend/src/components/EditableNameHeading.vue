@@ -68,7 +68,7 @@ watch(showEditButton, (visible) => {
     <div
       class="flex min-w-0 flex-wrap items-baseline justify-center gap-1 text-3xl font-extrabold sm:text-4xl print:text-2xl"
     >
-      <div class="grid max-w-full min-w-0">
+      <div class="grid max-w-full min-w-0 items-baseline">
         <!-- 入力値の複製。visibility:hidden なので見えないまま場所を占有し、この幅がグリッドの
              列幅＝入力欄の幅になる。フォントは preflight の font:inherit で input と一致する -->
         <span
