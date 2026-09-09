@@ -35,6 +35,13 @@ export default defineConfig([
   {
     ...vitest.configs.recommended,
     files: ['src/**/*.{test,spec}.ts'],
+    rules: {
+      ...vitest.configs.recommended.rules,
+      // Reka UI を差し替えるスタブを1ファイルに複数定義する。1ファイル1コンポーネントの前提が当てはまらない
+      'vue/one-component-per-file': 'off',
+      // スタブの props は本番の API ではない。既定値を置くと「未指定」と「既定値」の区別が消える
+      'vue/require-default-prop': 'off',
+    },
   },
 
   {

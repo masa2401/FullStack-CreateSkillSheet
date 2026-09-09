@@ -144,15 +144,10 @@ test.describe('PDF生成', () => {
 
 test.describe('ゲストゲート', () => {
   test('名前未入力の共有・印刷ボタンはホバーで理由が提示され、クリックしてもメニューが開かない', async ({
-    topPage,
-    surveyPage,
     resultPage,
   }) => {
-    await topPage.goto()
-    await topPage.submit()
-    await surveyPage.checkAnswer('Slack')
-    await surveyPage.selectLevel(3)
-    await surveyPage.submit()
+    // 検証対象はゲスト時のボタンの挙動のみ。userName が空文字ならゲスト状態で到着する。
+    await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
     await resultPage.shareButton.hover()
     await expect(resultPage.guestHint).toBeVisible()
@@ -165,15 +160,10 @@ test.describe('ゲストゲート', () => {
   })
 
   test('ボタンを押すと名前入力欄へ誘導され、入力後は共有・印刷メニューが開けるようになる', async ({
-    topPage,
-    surveyPage,
     resultPage,
   }) => {
-    await topPage.goto()
-    await topPage.submit()
-    await surveyPage.checkAnswer('Slack')
-    await surveyPage.selectLevel(3)
-    await surveyPage.submit()
+    // 検証対象はゲストゲートの解除のみ。userName が空文字ならゲスト状態で到着する。
+    await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
     await resultPage.clickShareButtonAsGuest()
     await expect(resultPage.page.getByRole('menu')).toHaveCount(0)

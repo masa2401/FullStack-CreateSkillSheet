@@ -1,4 +1,5 @@
 import { expect, test } from './fixture'
+import { buildMinimalSurveyState } from './testData'
 
 test.describe('ページ遷移フロー', () => {
   test('名前入力からアンケート回答、結果表示まで一連の操作ができる', async ({
@@ -54,15 +55,11 @@ test.describe('ページ遷移フロー', () => {
 
 test.describe('名前の再編集', () => {
   test('確定した名前は「名前を編集する」から再編集でき、2回目の確定は編集ボタンを経由せず即ロックされる', async ({
-    topPage,
-    surveyPage,
     resultPage,
   }) => {
-    await topPage.goto()
-    await topPage.submit()
-    await surveyPage.checkAnswer('Slack')
-    await surveyPage.selectLevel(3)
-    await surveyPage.submit()
+    // 検証対象は名前の再編集のみ。ここまでの遷移は前提条件を作っているだけなので直接投入する。
+    // userName は空文字。名前未入力で到着した状態（useNameCommit の editing フェーズ）になる。
+    await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
     await resultPage.fillName('山田太郎')
     await expect(resultPage.heading).toContainText('山田太郎')
