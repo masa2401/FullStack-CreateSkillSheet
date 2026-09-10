@@ -119,8 +119,15 @@ const errorMessage = computed(() => {
 </script>
 
 <template>
+  <!--
+    `data-pdf-ready` / `data-pdf-error` は AWS Lambda（aws-lambda/src/index.ts）の
+    PDF生成が描画完了を判定するための契約属性。Puppeteer はこの2つだけを見るため、
+    レイアウト都合でクラス名や構造を変えても壊れない。属性名の変更・削除を行う場合は
+    Lambda 側も同時に変更すること。
+  -->
   <div
     v-if="pageStatus.type !== 'error'"
+    :data-pdf-ready="pageStatus.type === 'ready' || undefined"
     class="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14 print:max-w-none print:p-0"
   >
     <Card class="print:break-inside-avoid print:rounded-none print:shadow-none">
@@ -249,8 +256,10 @@ const errorMessage = computed(() => {
     </div>
   </div>
 
+  <!-- 単一ルートの子コンポーネントのため、`data-pdf-error` はルート要素へフォールスルーする -->
   <StatePanel
     v-else
+    data-pdf-error
     :title="errorTitle"
   >
     <template #icon>

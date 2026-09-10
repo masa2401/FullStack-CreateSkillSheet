@@ -93,11 +93,30 @@ export const handler = async (
   try {
     const page = await browser.newPage();
 
+    // PDFはライトモード固定にする。フロントは配色の選択が localStorage に無い場合
+    // prefers-color-scheme に従うため、遷移前にライトを明示しておく。
+    // （Lambdaのブラウザは毎回まっさらな状態で起動するので localStorage は常に空）
+    await page.emulateMediaFeatures([
+      { name: 'prefers-color-scheme', value: 'light' },
+    ]);
+
     // 結果ページへ遷移し、データ取得（バックエンドAPI呼び出し）を含めて描画が終わるまで待つ
     await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 20000 });
 
-    // ローディング状態のまま描画されていないかを確認する簡易ガード
-    await page.waitForSelector('.page-container', { timeout: 10000 });
+    // 描画完了の判定は、フロントが公開する2つの契約属性のみに依存する。
+    //   data-pdf-ready : シートの描画が完了した
+    //   data-pdf-error : 期限切れ・未存在などでシートを描画できなかった
+    // 定義元は vue-frontend/src/views/ResultPage.vue。
+    // レイアウト都合のクラス名に依存すると、デザイン変更でPDF生成が壊れるため使わない。
+    await page.waitForSelector('[data-pdf-ready], [data-pdf-error]', {
+      timeout: 10000,
+    });
+
+    if ((await page.$('[data-pdf-error]')) !== null) {
+      throw new Error(
+        `シートを描画できませんでした（期限切れ／未存在の可能性）: id=${id}`,
+      );
+    }
 
     // 印刷用CSS（@media print）を適用させる
     await page.emulateMediaType('print');
