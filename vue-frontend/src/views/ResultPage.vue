@@ -143,7 +143,9 @@ const errorMessage = computed(() => {
             @commit="handleNameCommitted"
           />
         </div>
-        <ul class="mx-auto w-fit space-y-1 text-sm text-muted-foreground">
+        <ul
+          class="mx-auto grid w-fit gap-1 text-sm text-muted-foreground md:grid-flow-col md:grid-rows-3 md:gap-x-8 print:grid-flow-col print:grid-rows-3 print:gap-x-8"
+        >
           <li
             v-for="level in LEVEL_LABELS"
             :key="level.stars"
@@ -214,7 +216,7 @@ const errorMessage = computed(() => {
 
     <div
       data-slot="result-actions"
-      class="mt-10 flex flex-wrap justify-center gap-4 max-sm:flex-col print:hidden"
+      class="mt-10 flex flex-wrap justify-center gap-4 max-sm:mx-auto max-sm:w-fit max-sm:flex-col print:hidden"
     >
       <template v-if="!isSharedView">
         <AnimatedIconButton

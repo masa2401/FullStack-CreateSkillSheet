@@ -18,7 +18,7 @@ defineOptions({ inheritAttrs: false })
     size="lg"
     :variant="variant === 'primary' ? 'default' : 'outline'"
     :inactive="inactive"
-    :class="['action-button max-md:w-full', variant === 'primary' ? 'flex-row-reverse' : '']"
+    :class="['action-button', variant === 'primary' ? 'flex-row-reverse' : '']"
   >
     <span
       class="button-icon text-[1.1rem]"

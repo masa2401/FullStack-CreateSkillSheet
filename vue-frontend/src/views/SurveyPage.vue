@@ -70,7 +70,9 @@ const handleSubmit = async (): Promise<void> => {
           />
           以下の質問で該当する項目を選択後、習熟度を5段階で選択してください。
         </p>
-        <ul class="mx-auto w-fit space-y-1 text-sm text-muted-foreground">
+        <ul
+          class="mx-auto grid w-fit gap-1 text-sm text-muted-foreground md:grid-flow-col md:grid-rows-3 md:gap-x-8"
+        >
           <li
             v-for="level in LEVEL_LABELS"
             :key="level.stars"

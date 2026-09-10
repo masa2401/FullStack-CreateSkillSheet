@@ -9,7 +9,7 @@ const { isDark, toggleTheme } = useTheme()
 
 <template>
   <AppButton
-    variant="ghost"
+    variant="outline"
     size="icon"
     :aria-label="isDark ? 'ライトテーマに切り替える' : 'ダークテーマに切り替える'"
     :aria-pressed="isDark"

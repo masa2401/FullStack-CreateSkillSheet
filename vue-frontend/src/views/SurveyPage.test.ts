@@ -109,7 +109,7 @@ describe('SurveyPage', () => {
 
   it('isChecked = true のカテゴリセクションが表示される', () => {
     renderPage()
-    expect(screen.getByRole('heading', { level: 2, name: '共通' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: '共通スキル' })).toBeInTheDocument()
   })
 
   it('isChecked = false のカテゴリセクションは表示されない', () => {
@@ -127,12 +127,12 @@ describe('SurveyPage', () => {
     })
 
     const headings = screen.getAllByRole('heading', { level: 2 }).map((el) => el.textContent)
-    expect(headings).toEqual(['共通', 'プログラマ / ITエンジニア'])
+    expect(headings).toEqual(['共通スキル', 'プログラマ / ITエンジニア'])
   })
 
   it('カテゴリ名が表示される', () => {
     renderPage()
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('共通')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('共通スキル')
   })
 
   // ─── バリデーション ───────────────────────────────────────────────

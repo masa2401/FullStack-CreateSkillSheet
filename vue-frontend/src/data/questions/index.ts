@@ -7,7 +7,7 @@ export const CATEGORY_MASTERS: CategoryMaster[] = [
   {
     id: 1,
     key: 'common',
-    label: '共通',
+    label: '共通スキル',
     description: '全ユーザーが回答する項目',
     isCheckedByDefault: true,
     questions: commonQuestions,

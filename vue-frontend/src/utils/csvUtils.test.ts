@@ -82,7 +82,7 @@ describe('convertToCSV', () => {
     ]
     const csv = convertToCSV('マルチユーザー', selectionsMultiAnswer)
     const lines = csv.split('\r\n')
-    const categoryLines = lines.filter((l) => l.includes('共通'))
+    const categoryLines = lines.filter((l) => l.includes('共通スキル'))
     expect(categoryLines).toHaveLength(1)
   })
 
@@ -96,7 +96,7 @@ describe('convertToCSV', () => {
     ]
     const csv = convertToCSV('空ユーザー', emptySelections)
     expect(csv).toContain('空ユーザー')
-    expect(csv).not.toContain('共通')
+    expect(csv).not.toContain('共通スキル')
   })
 
   it('改行を含むユーザー名はクォートで囲まれる', () => {

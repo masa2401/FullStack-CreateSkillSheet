@@ -20,9 +20,13 @@ const handleTitleClick = () => {
 <template>
   <header class="border-b print:hidden">
     <div
-      class="relative mx-auto flex h-14 w-full max-w-5xl items-center justify-center px-4 sm:h-16 sm:px-6"
+      class="mx-auto flex w-full max-w-5xl items-center justify-center gap-2 px-4 py-4 sm:gap-3 sm:px-6 sm:py-5"
     >
-      <h1 class="min-w-0">
+      <div
+        class="size-9 shrink-0"
+        aria-hidden="true"
+      />
+      <h1 class="flex min-w-0">
         <button
           type="button"
           class="inline-flex items-center gap-2 rounded-md text-lg font-bold text-foreground transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:text-xl"
@@ -36,7 +40,7 @@ const handleTitleClick = () => {
           <span class="truncate">スキルシート制作ページ</span>
         </button>
       </h1>
-      <ThemeToggle class="absolute top-1/2 right-4 -translate-y-1/2 sm:right-6" />
+      <ThemeToggle />
     </div>
   </header>
 </template>

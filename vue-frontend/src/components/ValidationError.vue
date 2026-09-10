@@ -55,24 +55,29 @@ const groupedErrors = computed<GroupedError[]>(() => {
       v-if="isVisible"
       :id="messageId"
       variant="destructive"
-      class="mt-8 animate-shake"
+      class="mx-auto mt-8 flex w-fit animate-shake flex-col items-stretch"
       role="alert"
       aria-live="assertive"
       tabindex="-1"
     >
-      <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-      <AlertTitle class="text-lg font-bold">入力エラー</AlertTitle>
+      <div class="flex items-center justify-center gap-2">
+        <font-awesome-icon
+          icon="fa-solid fa-triangle-exclamation"
+          class="text-lg"
+        />
+        <AlertTitle class="text-lg font-bold">入力エラー</AlertTitle>
+      </div>
       <AlertDescription>
         <slot name="description"></slot>
         <ul class="mt-2 flex list-none flex-col gap-1">
           <li
             v-for="(group, index) in groupedErrors"
             :key="index"
-            class="flex items-baseline gap-2"
+            class="flex items-start gap-2"
           >
             <font-awesome-icon
               icon="fa-solid fa-circle-exclamation"
-              class="shrink-0 text-sm"
+              class="mt-0.5 shrink-0 text-sm"
             />
             <span class="flex flex-col">
               <span class="flex flex-wrap items-center gap-1">

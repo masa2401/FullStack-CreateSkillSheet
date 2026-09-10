@@ -142,7 +142,7 @@ describe('ResultPage', () => {
     const { container } = renderPage()
     await waitForReady()
 
-    expect(screen.getByText('共通')).toBeInTheDocument()
+    expect(screen.getByText('共通スキル')).toBeInTheDocument()
     expect(container.querySelectorAll('[data-slot="card-title"]')).toHaveLength(1)
   })
 
