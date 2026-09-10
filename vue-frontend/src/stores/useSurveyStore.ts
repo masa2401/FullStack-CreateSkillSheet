@@ -22,28 +22,22 @@ export const useSurveyStore = defineStore(
 
     function buildQuestionsForCategory(categoryId: number): QuestionSelection[] {
       const master = CATEGORY_MASTERS.find((m) => m.id === categoryId)!
-      return master.questions.map(
-        (q): QuestionSelection => ({
-          questionId: q.id,
-          answers: q.answers.map(
-            (a): AnswerSelection => ({
-              answerId: a.id,
-              isChecked: false,
-              value: undefined,
-            }),
-          ),
-        }),
-      )
+      return master.questions.map((q): QuestionSelection => ({
+        questionId: q.id,
+        answers: q.answers.map((a): AnswerSelection => ({
+          answerId: a.id,
+          isChecked: false,
+          value: undefined,
+        })),
+      }))
     }
 
     function buildInitialSelections(): CategorySelection[] {
-      return CATEGORY_MASTERS.map(
-        (master): CategorySelection => ({
-          categoryId: master.id,
-          isChecked: master.isCheckedByDefault,
-          questions: buildQuestionsForCategory(master.id),
-        }),
-      )
+      return CATEGORY_MASTERS.map((master): CategorySelection => ({
+        categoryId: master.id,
+        isChecked: master.isCheckedByDefault,
+        questions: buildQuestionsForCategory(master.id),
+      }))
     }
 
     // ─── Getters ───────────────────────────────────────────────────

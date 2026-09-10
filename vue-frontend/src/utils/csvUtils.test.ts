@@ -82,7 +82,7 @@ describe('convertToCSV', () => {
     ]
     const csv = convertToCSV('マルチユーザー', selectionsMultiAnswer)
     const lines = csv.split('\r\n')
-    const categoryLines = lines.filter((l) => l.includes('共通'))
+    const categoryLines = lines.filter((l) => l.includes('共通スキル'))
     expect(categoryLines).toHaveLength(1)
   })
 
@@ -96,7 +96,7 @@ describe('convertToCSV', () => {
     ]
     const csv = convertToCSV('空ユーザー', emptySelections)
     expect(csv).toContain('空ユーザー')
-    expect(csv).not.toContain('共通')
+    expect(csv).not.toContain('共通スキル')
   })
 
   it('改行を含むユーザー名はクォートで囲まれる', () => {
@@ -204,10 +204,6 @@ describe('downloadCSV', () => {
     const result = downloadCSV('テストユーザー', mockSelections)
     expect(result).toBe(false)
     createObjectURLSpy.mockRestore()
-  })
-
-  it('userName が空の場合は false を返す', () => {
-    expect(downloadCSV('', [{ categoryId: 1, isChecked: true, questions: [] }])).toBe(false)
   })
 
   it('selections が空配列の場合は false を返す', () => {

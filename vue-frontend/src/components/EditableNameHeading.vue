@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
+import { SquarePen } from '@lucide/vue'
+
+import AppButton from '@/components/AppButton.vue'
 import { useNameCommit } from '@/composables/useNameCommit'
 
 interface Props {
@@ -17,11 +20,11 @@ const emit = defineEmits<{
 }>()
 
 const NAME_MAX_LENGTH = 20
+const NAME_PLACEHOLDER = 'お名前を入力'
 
 const {
   draft: nameDraft,
   isEditable: isNameEditable,
-  isLocked: isNameLocked,
   showEditButton,
   editableWindowMs,
   requestCommit: commitNameDraft,
@@ -30,10 +33,6 @@ const {
 } = useNameCommit(props.initialName, {
   onCommit: (name) => emit('commit', name),
 })
-
-const nameInputSize = computed(
-  () => Math.min(Math.max(nameDraft.value.length, 6), NAME_MAX_LENGTH) + 2,
-)
 
 const handleNameFocus = (): void => cancelNameCommit()
 
@@ -45,9 +44,6 @@ const handleNameKeydown = (event: KeyboardEvent): void => {
   ;(event.target as HTMLInputElement).blur()
 }
 
-// ─── 編集可能期間の残量プログレスバー ──────────────────────────────
-// committedフェーズ開始時に100%で描画したのち、次フレーム以降に0%へ切り替えることで
-// CSS transitionによる幅アニメーションを発火させる（毎フレームのJS更新は行わない）
 const isEditProgressCollapsed = ref<boolean>(false)
 
 watch(showEditButton, (visible) => {
@@ -62,206 +58,65 @@ watch(showEditButton, (visible) => {
 </script>
 <template>
   <h2
-    class="user-name-heading"
+    data-slot="user-name-heading"
+    class="sr-only"
     aria-live="polite"
   >
     {{ displayName }} 様のスキルシート
   </h2>
-  <div class="name-editor">
-    <div class="name-input-wrapper">
-      <input
-        v-model="nameDraft"
-        type="text"
-        class="page-title-input"
-        :class="{ 'is-locked': isNameLocked, 'is-editable-hint': isNameEditable }"
-        :readonly="!isNameEditable"
-        :maxlength="NAME_MAX_LENGTH"
-        :size="nameInputSize"
-        :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
-        placeholder="お名前を入力"
-        @focus="handleNameFocus"
-        @blur="handleNameBlur"
-        @keydown="handleNameKeydown"
-      />
-      <span
-        class="title-suffix"
-        aria-hidden="true"
-        >様のスキルシート</span
-      >
+  <div class="flex min-w-0 flex-col items-center gap-2">
+    <div
+      class="flex min-w-0 flex-wrap items-baseline justify-center gap-1 text-3xl font-extrabold sm:text-4xl print:text-2xl"
+    >
+      <div class="grid max-w-full min-w-0 items-baseline">
+        <!-- 入力値の複製。visibility:hidden なので見えないまま場所を占有し、この幅がグリッドの
+             列幅＝入力欄の幅になる。フォントは preflight の font:inherit で input と一致する -->
+        <span
+          class="invisible col-start-1 row-start-1 overflow-hidden px-2 whitespace-pre"
+          aria-hidden="true"
+          >{{ nameDraft || NAME_PLACEHOLDER }}</span
+        >
+        <input
+          v-model="nameDraft"
+          type="text"
+          data-slot="name-input"
+          size="1"
+          class="col-start-1 row-start-1 w-full min-w-0 rounded-lg border-b-2 border-dashed border-transparent bg-field px-2 text-center transition-colors placeholder:text-muted-foreground read-only:cursor-default read-only:bg-transparent hover:border-ring read-only:hover:border-transparent focus:border-ring read-only:focus:border-transparent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none print:break-after-avoid print:border-none print:ring-0"
+          :readonly="!isNameEditable"
+          :maxlength="NAME_MAX_LENGTH"
+          :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
+          :placeholder="NAME_PLACEHOLDER"
+          @focus="handleNameFocus"
+          @blur="handleNameBlur"
+          @keydown="handleNameKeydown"
+        />
+      </div>
+      <span aria-hidden="true">様のスキルシート</span>
     </div>
     <div
       v-if="showEditButton"
-      class="edit-controls"
+      class="flex items-center justify-center gap-2 print:hidden"
     >
-      <button
-        type="button"
-        class="edit-name-button"
+      <AppButton
+        data-slot="edit-name-button"
+        variant="outline"
+        size="sm"
         @click="startNameEdit"
       >
+        <SquarePen aria-hidden="true" />
         名前を編集する
-      </button>
+      </AppButton>
       <div
-        class="edit-progress-track"
+        class="h-1 w-20 shrink-0 overflow-hidden rounded-full bg-primary/20"
         aria-hidden="true"
       >
         <div
-          class="edit-progress-fill"
-          :class="{ 'is-collapsed': isEditProgressCollapsed }"
+          data-slot="edit-progress-fill"
+          class="h-full bg-primary transition-[width] ease-linear"
+          :class="isEditProgressCollapsed ? 'w-0' : 'w-full'"
           :style="{ transitionDuration: `${editableWindowMs}ms` }"
         ></div>
       </div>
     </div>
   </div>
 </template>
-<style scoped>
-.user-name-heading {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.name-editor {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  min-width: 0;
-}
-
-.name-input-wrapper {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  position: relative;
-  min-width: 0;
-}
-
-.page-title-input {
-  font-family: inherit;
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #483c32;
-  text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-  text-align: center;
-  background: transparent;
-  border: none;
-  border-bottom: 2px dashed transparent;
-  padding: 0 var(--p-4, 0.5rem);
-  transition:
-    border-color 0.2s,
-    background-color 0.3s ease;
-  border-radius: 8px;
-  min-width: 0;
-}
-
-.page-title-input.is-editable-hint {
-  background-color: rgba(211, 198, 166, 0.35);
-}
-
-.page-title-input:not(.is-locked):hover,
-.page-title-input:not(.is-locked):focus {
-  border-bottom-color: #d3c6a6;
-}
-
-.page-title-input:focus {
-  outline: none;
-}
-
-.page-title-input.is-locked {
-  cursor: default;
-}
-
-.page-title-input::placeholder {
-  color: rgba(72, 60, 50, 0.35);
-}
-
-.title-suffix {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #483c32;
-  text-shadow: 0 2px 4px rgba(211, 198, 166, 0.3);
-}
-
-.edit-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--p-4, 0.5rem);
-}
-
-.edit-name-button {
-  display: inline-block;
-  text-align: center;
-  background: none;
-  border: none;
-  color: #7c6a58;
-  font-size: 0.9rem;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-}
-
-.edit-name-button:hover,
-.edit-name-button:focus-visible {
-  color: #483c32;
-}
-
-.edit-progress-track {
-  width: 80px;
-  height: 4px;
-  background: rgba(72, 60, 50, 0.15);
-  border-radius: 2px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.edit-progress-fill {
-  width: 100%;
-  height: 100%;
-  background: #483c32;
-  transition-property: width;
-  transition-timing-function: linear;
-}
-
-.edit-progress-fill.is-collapsed {
-  width: 0%;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .edit-progress-fill {
-    transition: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-title-input,
-  .title-suffix {
-    font-size: 2rem;
-  }
-}
-
-@media print {
-  .page-title-input,
-  .title-suffix {
-    font-size: 1.8rem;
-    text-shadow: none;
-    break-after: avoid;
-  }
-
-  .page-title-input {
-    border: none !important;
-  }
-
-  .edit-controls {
-    display: none !important;
-  }
-}
-</style>

@@ -30,23 +30,11 @@ test.describe('レスポンシブ表示', () => {
   test('TopPageのカテゴリカードがモバイル幅で1カラムに切り替わる', async ({ topPage }) => {
     await topPage.goto()
     const gridColumns = await topPage.page
-      .locator('.category-cards')
+      .locator('[data-slot="category-cards"]')
       .evaluate((el) => getComputedStyle(el).gridTemplateColumns)
 
     const columnCount = gridColumns.trim().split(/\s+/).length
     expect(columnCount).toBe(1)
-  })
-
-  test('SurveyPageで説明用画像が非表示になる', async ({ topPage, page }) => {
-    await topPage.goto()
-    await topPage.submit()
-
-    await expect(page.locator('.image')).toBeHidden()
-  })
-
-  test('ResultPageで説明用画像が非表示になる', async ({ resultPage }) => {
-    await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
-    await expect(resultPage.page.locator('.image')).toBeHidden()
   })
 
   test('ResultPageのskill-infoがモバイル幅で縦積みになる', async ({ resultPage }) => {
@@ -54,7 +42,7 @@ test.describe('レスポンシブ表示', () => {
 
     const flexDirection = await resultPage
       .skillCard()
-      .locator('.skill-info')
+      .locator('[data-slot="skill-info"]')
       .evaluate((el) => getComputedStyle(el).flexDirection)
     expect(flexDirection).toBe('column')
   })

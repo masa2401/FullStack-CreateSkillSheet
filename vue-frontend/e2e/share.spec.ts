@@ -42,7 +42,7 @@ test.describe('共有URL（ID方式）', () => {
     await resultPage.openShareMenu()
     await resultPage.copyUrl()
 
-    await expect(page.getByRole('button', { name: 'コピー完了' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'コピー完了' })).toBeVisible()
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toContain('id=clip-id-1')
   })
@@ -67,7 +67,7 @@ test.describe('共有URL（ID方式）', () => {
     await resultPage.openShareMenu()
     await resultPage.copyUrl()
 
-    await expect(page.getByRole('button', { name: 'コピー完了' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'コピー完了' })).toBeVisible()
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toContain('#/result?data=')
   })
@@ -106,8 +106,10 @@ test.describe('PDF生成', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await resultPage.openShareMenu()
 
-    await expect(page.getByRole('button', { name: 'PDFを準備中...' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+    // 生成中は Progress が子として描画され、その値がアクセシブル名の末尾に入る
+    // （例: "PDFを準備中... 42"）。値は時間で変わるため前方一致で照合する。
+    await expect(page.getByRole('menuitem', { name: /PDFを準備中/ })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'PDFをダウンロード' })).toBeVisible({
       timeout: 6000,
     })
   })
@@ -124,7 +126,7 @@ test.describe('PDF生成', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await resultPage.openShareMenu()
 
-    await expect(page.getByRole('button', { name: /再試行/ })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: /再試行/ })).toBeVisible()
 
     await mockPdfRegenerate(page, 'saved-id-2')
     await page.unroute('**/api/pdf/saved-id-2/status')
@@ -133,44 +135,38 @@ test.describe('PDF生成', () => {
       { status: 'ready', downloadUrl: 'https://example.com/x.pdf' },
     ])
 
-    await page.getByRole('button', { name: /再試行/ }).click()
-    await expect(page.getByRole('button', { name: 'PDFをダウンロード' })).toBeVisible({
+    await page.getByRole('menuitem', { name: /再試行/ }).click()
+    await expect(page.getByRole('menuitem', { name: 'PDFをダウンロード' })).toBeVisible({
       timeout: 6000,
     })
   })
 })
 
 test.describe('ゲストゲート', () => {
-  test('名前未入力のままResultPageに到達すると、共有・印刷ボタンはメニューを開かずツールチップでブロックされる', async ({
-    topPage,
-    surveyPage,
+  test('名前未入力の共有・印刷ボタンはホバーで理由が提示され、クリックしてもメニューが開かない', async ({
     resultPage,
   }) => {
-    await topPage.goto()
-    await topPage.submit()
-    await surveyPage.checkAnswer('Slack')
-    await surveyPage.selectLevel(3)
-    await surveyPage.submit()
+    // 検証対象はゲスト時のボタンの挙動のみ。userName が空文字ならゲスト状態で到着する。
+    await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
-    await resultPage.shareButton.dispatchEvent('click')
+    await resultPage.shareButton.hover()
+    await expect(resultPage.guestHint).toBeVisible()
+    await expect(resultPage.guestHint).toContainText(
+      'お名前を入力すると、印刷・共有機能が利用できます',
+    )
 
-    await expect(resultPage.page.getByRole('tooltip')).toBeVisible()
+    await resultPage.clickShareButtonAsGuest()
     await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
   })
 
-  test('ツールチップから名前を入力すると、以降は共有・印刷メニューが開けるようになる', async ({
-    topPage,
-    surveyPage,
+  test('ボタンを押すと名前入力欄へ誘導され、入力後は共有・印刷メニューが開けるようになる', async ({
     resultPage,
   }) => {
-    await topPage.goto()
-    await topPage.submit()
-    await surveyPage.checkAnswer('Slack')
-    await surveyPage.selectLevel(3)
-    await surveyPage.submit()
+    // 検証対象はゲストゲートの解除のみ。userName が空文字ならゲスト状態で到着する。
+    await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
-    await resultPage.shareButton.dispatchEvent('click')
-    await resultPage.page.getByRole('button', { name: 'お名前を入力する' }).click()
+    await resultPage.clickShareButtonAsGuest()
+    await expect(resultPage.page.getByRole('menu')).toHaveCount(0)
 
     await resultPage.fillName('山田太郎')
 

@@ -14,8 +14,8 @@ test.describe('印刷スタイル', () => {
     await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
     await resultPage.page.emulateMedia({ media: 'print' })
 
-    await expect(page.locator('header.header')).toBeHidden()
-    await expect(page.locator('footer.footer')).toBeHidden()
+    await expect(page.locator('header')).toBeHidden()
+    await expect(page.locator('footer')).toBeHidden()
   })
 
   test('印刷時、スキルカードにbreak-inside: avoidが適用される', async ({ resultPage, page }) => {
@@ -23,7 +23,7 @@ test.describe('印刷スタイル', () => {
 
     await resultPage.page.emulateMedia({ media: 'print' })
     const breakInside = await page
-      .locator('.skill-card')
+      .locator('[data-slot="skill-card"]')
       .first()
       .evaluate((el) => getComputedStyle(el).breakInside)
     expect(breakInside).toBe('avoid')
@@ -37,6 +37,6 @@ test.describe('印刷スタイル', () => {
       window.print = () => (window as unknown as { __print: () => void }).__print()
     })
     await resultPage.print()
-    expect(printCalls.length).toBe(1)
+    expect(printCalls).toHaveLength(1)
   })
 })

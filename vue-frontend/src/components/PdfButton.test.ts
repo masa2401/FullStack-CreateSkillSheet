@@ -1,68 +1,110 @@
-import { ref } from 'vue'
+import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/vue'
+import { describe, expect, it } from 'vitest'
 
-import { createTestingPinia } from '@pinia/testing'
-import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import { type PdfGenerationState, usePdfStatus } from '@/composables/usePdfStatus'
+import type { PdfGenerationState } from '@/composables/usePdfStatus'
 
 import PdfButton from './PdfButton.vue'
 
-vi.mock('@/composables/usePdfStatus')
-
-const mockRetry = vi.fn()
-
-const createWrapper = (state: PdfGenerationState, downloadUrl = '') => {
-  vi.mocked(usePdfStatus).mockReturnValue({
-    state: ref(state),
-    downloadUrl: ref(downloadUrl),
-    retry: mockRetry,
-  })
-
-  return mount(PdfButton, {
-    global: {
-      plugins: [createTestingPinia({ initialState: { survey: { savedSheetId: 'sheet-1' } } })],
-      stubs: { 'font-awesome-icon': true },
-    },
-  })
+/**
+ * `MenuItemButton` は `DropdownMenuItem` 由来で `MenuRoot` のコンテキストを要求する。
+ * ここで検証したいのは state から表示・変種・可否への対応付けなので、
+ * 受け取った props を DOM 属性として出すクリック駆動のスタブへ差し替える。
+ *
+ * `disabled` をネイティブの `disabled` として出すとクリック自体が届かなくなり、
+ * `PdfButton` 側のガードを検証できないため `data-disabled` として出す。
+ */
+const MENU_ITEM_STUB = {
+  props: {
+    icon: String,
+    text: String,
+    variant: String,
+    spin: Boolean,
+    disabled: Boolean,
+    closeOnSelect: Boolean,
+  },
+  emits: ['click'],
+  template: `<button
+      :data-variant="variant"
+      :data-disabled="disabled || undefined"
+      @click="$emit('click')"
+    >{{ text }}<slot /></button>`,
 }
 
+const renderPdfButton = (state: PdfGenerationState, progress = 0) =>
+  render(PdfButton, {
+    props: { state, progress },
+    global: { stubs: { MenuItemButton: MENU_ITEM_STUB } },
+  })
+
+const menuItem = () => screen.getByRole('button')
+
+const progressBar = () => screen.queryByRole('progressbar', { name: 'PDFの生成状況' })
+
 describe('PdfButton', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
+  // ─── 生成中 ─────────────────────────────────────
+
+  it('generating 状態では「PDFを準備中...」と進捗バーが表示され、選択できない', () => {
+    renderPdfButton('generating', 42)
+
+    expect(menuItem()).toHaveTextContent('PDFを準備中...')
+    expect(progressBar()).toHaveAttribute('aria-valuenow', '42')
+    expect(menuItem()).toHaveAttribute('data-disabled')
   })
 
-  it('generating 状態では disabled になる', () => {
-    const wrapper = createWrapper('generating')
-    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(true)
+  it('slow 状態では文言が切り替わり、バーは表示されたままになる', () => {
+    renderPdfButton('slow', 100)
+
+    expect(menuItem()).toHaveTextContent('PDF処理に時間がかかっています...')
+    expect(progressBar()).toBeInTheDocument()
   })
 
-  it('generating 状態でクリックしても何も起きない', async () => {
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
-    const wrapper = createWrapper('generating')
-    await wrapper.get('button').trigger('click')
-    expect(openSpy).not.toHaveBeenCalled()
-    expect(mockRetry).not.toHaveBeenCalled()
+  it('生成中にクリックしても download / retry は emit されない', async () => {
+    const user = userEvent.setup()
+    const { emitted } = renderPdfButton('generating', 10)
+
+    await user.click(menuItem())
+
+    expect(emitted().download).toBeFalsy()
+    expect(emitted().retry).toBeFalsy()
   })
 
-  it('ready 状態では「PDFをダウンロード」と表示される', () => {
-    const wrapper = createWrapper('ready', 'https://example.com/x.pdf')
-    expect(wrapper.find('button').text()).toBe('PDFをダウンロード')
-    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(false)
+  // ─── 完了 ───────────────────────────────────────
+
+  it('ready 状態では「PDFをダウンロード」と表示され、バーは消える', () => {
+    renderPdfButton('ready')
+
+    expect(menuItem()).toHaveTextContent('PDFをダウンロード')
+    expect(progressBar()).not.toBeInTheDocument()
+    expect(menuItem()).toHaveAttribute('data-variant', 'success')
+    expect(menuItem()).not.toHaveAttribute('data-disabled')
   })
 
-  it('ready 状態でクリックすると window.open が呼ばれ done が emit される', async () => {
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
-    const wrapper = createWrapper('ready', 'https://example.com/x.pdf')
-    await wrapper.find('button').trigger('click')
-    expect(openSpy).toHaveBeenCalledWith('https://example.com/x.pdf', '_blank')
-    expect(wrapper.emitted('done')).toBeTruthy()
+  it('ready 状態でクリックすると download が emit される', async () => {
+    const user = userEvent.setup()
+    const { emitted } = renderPdfButton('ready')
+
+    await user.click(menuItem())
+
+    expect(emitted().download).toBeTruthy()
   })
 
-  it('error 状態では再試行表示になりクリックで retry が呼ばれる', async () => {
-    const wrapper = createWrapper('error')
-    expect(wrapper.find('button').text()).toContain('再試行')
-    await wrapper.find('button').trigger('click')
-    expect(mockRetry).toHaveBeenCalledOnce()
+  // ─── 失敗 ───────────────────────────────────────
+
+  it('error 状態では再試行の文言になり、バーは消える', () => {
+    renderPdfButton('error')
+
+    expect(menuItem()).toHaveTextContent('PDF生成に失敗（再試行）')
+    expect(progressBar()).not.toBeInTheDocument()
+    expect(menuItem()).toHaveAttribute('data-variant', 'error')
+  })
+
+  it('error 状態でクリックすると retry が emit される', async () => {
+    const user = userEvent.setup()
+    const { emitted } = renderPdfButton('error')
+
+    await user.click(menuItem())
+
+    expect(emitted().retry).toBeTruthy()
   })
 })

@@ -16,8 +16,8 @@ export type MergedQuestion = {
 
 export type MergedCategory = {
   id: number
+  key: string
   label: string
-  icon: string
   isChecked: boolean
   questions: MergedQuestion[]
 }

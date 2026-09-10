@@ -32,6 +32,7 @@ const variant = computed(() => (downloadSuccess.value ? 'success' : 'default'))
     :icon="icon"
     :text="text"
     :variant="variant"
+    :close-on-select="false"
     @click="handleDownloadCSV"
   />
 </template>

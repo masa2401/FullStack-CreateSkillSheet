@@ -1,38 +1,71 @@
-import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
+
+import userEvent from '@testing-library/user-event'
+import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import MenuItemButton from './MenuItemButton.vue'
 
-const createWrappper = (props = {}) =>
-  mount(MenuItemButton, {
-    props: { icon: 'fa-solid fa-check', text: 'テスト', ...props },
+const Host = defineComponent({
+  components: { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, MenuItemButton },
+  props: { itemProps: { type: Object, required: true } },
+  emits: ['item-click'],
+  template: `
+    <DropdownMenu :open="true">
+      <DropdownMenuTrigger>開く</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <MenuItemButton v-bind="itemProps" @click="$emit('item-click')" />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  `,
+})
+
+const renderMenuItem = (props = {}) =>
+  render(Host, {
+    props: { itemProps: { icon: 'fa-solid fa-check', text: 'テスト', ...props } },
     global: { stubs: { 'font-awesome-icon': true } },
   })
 
+const findMenuItem = () => screen.findByRole('menuitem')
+
 describe('MenuItemButton', () => {
-  it('text が表示される', () => {
-    const wrapper = createWrappper({ text: 'ラベル' })
-    expect(wrapper.find('button').text()).toBe('ラベル')
+  it('text が表示される', async () => {
+    renderMenuItem({ text: 'ラベル' })
+    expect(await findMenuItem()).toHaveTextContent('ラベル')
   })
 
-  it('variant が success のとき success クラスが付く', () => {
-    const wrapper = createWrappper({ variant: 'success' })
-    expect(wrapper.find('button').classes()).toContain('success')
+  it('variant が success のとき data-feedback が success になる', async () => {
+    renderMenuItem({ variant: 'success' })
+    expect(await findMenuItem()).toHaveAttribute('data-feedback', 'success')
   })
 
-  it('variant が error のとき error クラスが付く', () => {
-    const wrapper = createWrappper({ variant: 'error' })
-    expect(wrapper.find('button').classes()).toContain('error')
+  it('variant が error のとき data-feedback が error になる', async () => {
+    renderMenuItem({ variant: 'error' })
+    expect(await findMenuItem()).toHaveAttribute('data-feedback', 'error')
   })
 
-  it('disabled が true のとき disabled 属性が付く', () => {
-    const wrapper = createWrappper({ disabled: true })
-    expect((wrapper.find('button').element as HTMLButtonElement).disabled).toBe(true)
+  it('variant が default のとき data-feedback が付かない', async () => {
+    renderMenuItem({ variant: 'default' })
+    expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
   })
 
-  it('クリック時に click イベントが emit される', async () => {
-    const wrapper = createWrappper()
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.emitted('click')).toBeTruthy()
+  it('disabled が true のとき data-disabled が付く', async () => {
+    renderMenuItem({ disabled: true })
+    expect(await findMenuItem()).toHaveAttribute('data-disabled')
+  })
+
+  it('選択時に click イベントが emit される', async () => {
+    const user = userEvent.setup()
+    const { emitted } = renderMenuItem()
+
+    await user.click(await findMenuItem())
+
+    expect(emitted('item-click')).toBeTruthy()
   })
 })

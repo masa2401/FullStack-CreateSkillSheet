@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import { useId } from 'vue'
+
+import type { AcceptableValue } from 'reka-ui'
+import { RadioGroupItem } from 'reka-ui'
+
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { RadioGroup } from '@/components/ui/radio-group'
 import type { StarLevel } from '@/types'
 import { LEVEL_LABELS } from '@/utils/constants'
 
@@ -7,9 +15,10 @@ interface Props {
   label: string
   isChecked: boolean
   value?: StarLevel
+  isFlagged?: boolean
 }
 
-const props = defineProps<Props>()
+const { answerId, label, isChecked, value, isFlagged = false } = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:answer': [
@@ -17,221 +26,74 @@ const emit = defineEmits<{
   ]
 }>()
 
-// チェックボックスの変更
-const handleCheckChange = (e: Event) => {
-  const target = e.target as HTMLInputElement
+const checkboxId = useId()
+
+const handleCheckChange = (checked: boolean | 'indeterminate'): void => {
   emit('update:answer', {
-    answerId: props.answerId,
-    patch: {
-      isChecked: target.checked,
-    },
+    answerId,
+    patch: { isChecked: checked === true },
   })
 }
 
-// 習熟度の変更
-const handleLevelChange = (level: StarLevel) => {
+const handleLevelChange = (level: AcceptableValue): void => {
   emit('update:answer', {
-    answerId: props.answerId,
-    patch: { value: level },
+    answerId,
+    patch: { value: Number(level) as StarLevel },
   })
 }
 </script>
 
 <template>
-  <div class="answer-item">
-    <label class="checkbox-label">
-      <input
-        type="checkbox"
-        :checked="isChecked"
-        @change="handleCheckChange"
-        class="custom-checkbox"
+  <div class="rounded-xl bg-muted p-4 ring-1 ring-border">
+    <div class="flex items-center gap-2">
+      <Checkbox
+        :id="checkboxId"
+        :model-value="isChecked"
+        @update:model-value="handleCheckChange"
       />
-      <span class="checkbox-text">{{ label }}</span>
-    </label>
+      <Label
+        :for="checkboxId"
+        class="flex-1 cursor-pointer text-base leading-relaxed font-normal"
+      >
+        {{ label }}
+      </Label>
+    </div>
 
-    <transition name="slide-fade">
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="-translate-y-2.5 opacity-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-to-class="-translate-y-2.5 opacity-0"
+    >
       <div
         v-if="isChecked"
-        class="level-selector"
+        class="mt-3"
       >
-        <div class="level-buttons">
-          <label
+        <RadioGroup
+          :model-value="value"
+          class="flex flex-wrap gap-2"
+          :aria-label="`${label} の習熟度`"
+          @update:model-value="handleLevelChange"
+        >
+          <RadioGroupItem
             v-for="level in LEVEL_LABELS.length"
             :key="level"
-            class="level-button"
+            :value="level"
             :aria-label="`習熟度 ${level}: ${LEVEL_LABELS[level - 1]!.text}`"
+            class="flex min-w-20 flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border-2 border-ring bg-field p-2 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none data-[state=checked]:scale-105 data-[state=checked]:border-chip data-[state=checked]:bg-chip data-[state=checked]:text-chip-foreground"
           >
-            <input
-              type="radio"
-              :checked="value === level"
-              @change="handleLevelChange(level as StarLevel)"
-              class="level-radio"
-              :aria-label="`${level}段階`"
-            />
-            <span class="level-number">{{ level }}</span>
-            <span class="level-stars">{{ '★'.repeat(level) }}</span>
-          </label>
-        </div>
+            <span class="text-xl font-bold">{{ level }}</span>
+            <span class="text-xs">{{ '★'.repeat(level) }}</span>
+          </RadioGroupItem>
+        </RadioGroup>
         <span
-          v-if="!value"
-          class="warning-text"
-          role="alert"
+          v-if="!value && isFlagged"
+          class="mt-2 block animate-shake text-center text-sm font-bold text-destructive"
         >
-          <font-awesome-icon icon="fa-regular fa-lightbulb" />
+          <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
           習熟度を選択してください
         </span>
       </div>
     </transition>
   </div>
 </template>
-
-<style scoped>
-.answer-item {
-  border-left: 4px solid #d3c6a6;
-  padding-left: var(--p-8, 1rem);
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  cursor: pointer;
-  font-size: 1rem;
-  color: #444;
-  padding: var(--p-4, 0.5rem) 0;
-}
-
-.custom-checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #483c32;
-}
-
-.checkbox-text {
-  flex: 1;
-  line-height: 1.5;
-}
-
-.level-selector {
-  margin-top: var(--p-4, 0.5rem);
-  padding: var(--p-8, 1rem);
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  border: 1px solid #d3c6a6;
-}
-
-.level-buttons {
-  display: flex;
-  gap: var(--p-4, 0.5rem);
-  margin-bottom: var(--p-4, 0.5rem);
-  flex-wrap: wrap;
-}
-
-.level-button {
-  flex: 1;
-  min-width: 80px;
-  padding: var(--p-4, 0.5rem);
-  background: #ffffff;
-  border: 2px solid #d3c6a6;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-}
-
-.level-button:hover {
-  border-color: #483c32;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(72, 60, 50, 0.15);
-}
-
-.level-button:has(.level-radio:checked) {
-  background: #483c32;
-  border-color: #483c32;
-  color: #ffffff;
-  transform: scale(1.05);
-}
-
-.level-radio {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.level-number {
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.level-stars {
-  font-size: 0.75rem;
-  opacity: 0.8;
-}
-
-.warning-text {
-  color: #f59e0b;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-align: center;
-  display: block;
-  animation: pulse 2s infinite;
-}
-
-.slide-fade-enter-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-leave-active {
-  transition: all 0.2s ease;
-}
-
-.slide-fade-enter-from {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-
-.slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.6;
-  }
-}
-
-@media (max-width: 768px) {
-  .level-buttons {
-    gap: var(--p-4, 0.5rem);
-  }
-
-  .level-button {
-    min-width: 60px;
-    padding: var(--p-4, 0.5rem);
-  }
-
-  .level-number {
-    font-size: 1rem;
-  }
-
-  .level-stars {
-    font-size: 0.65rem;
-  }
-}
-</style>

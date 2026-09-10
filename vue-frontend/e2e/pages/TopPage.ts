@@ -18,7 +18,9 @@ export class TopPage {
   }
 
   categoryCard(categoryLabel: string): Locator {
-    return this.categoryCheckbox(categoryLabel).locator('..')
+    return this.page
+      .locator('[data-slot="category-card"]')
+      .filter({ has: this.categoryCheckbox(categoryLabel) })
   }
 
   async selectCategory(categoryLabel: string): Promise<void> {

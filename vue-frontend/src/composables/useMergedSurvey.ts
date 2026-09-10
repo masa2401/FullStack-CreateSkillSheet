@@ -12,8 +12,8 @@ export const useMergedSurvey = () => {
       const master = CATEGORY_MASTER_BY_ID.get(sel.categoryId)!
       return {
         id: master.id,
+        key: master.key,
         label: master.label,
-        icon: master.icon,
         isChecked: sel.isChecked,
         questions: sel.questions.map((qSel) => {
           const questionDef = master.questions.find((q) => q.id === qSel.questionId)!

@@ -1,77 +1,46 @@
 <script setup lang="ts">
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+
 interface Props {
   icon: string
   text: string
   variant?: 'default' | 'success' | 'error'
   spin?: boolean
   disabled?: boolean
+  closeOnSelect?: boolean
 }
 
-const { variant = 'default', spin = false, disabled = false } = defineProps<Props>()
+const {
+  variant = 'default',
+  spin = false,
+  disabled = false,
+  closeOnSelect = true,
+} = defineProps<Props>()
 
 const emit = defineEmits<{ click: [] }>()
+
+const handleSelect = (event: Event): void => {
+  if (!closeOnSelect) event.preventDefault()
+  emit('click')
+}
 </script>
 
 <template>
-  <button
-    type="button"
-    @click="emit('click')"
-    class="menu-item"
-    :class="{ success: variant === 'success', error: variant === 'error' }"
+  <DropdownMenuItem
     :disabled="disabled"
+    :data-feedback="variant === 'default' ? undefined : variant"
+    class="w-full flex-col items-stretch gap-1 px-3 py-2 data-[feedback=error]:text-destructive data-[feedback=error]:focus:text-destructive data-[feedback=success]:text-success data-[feedback=success]:focus:text-success data-[feedback=error]:[&_svg]:text-destructive! data-[feedback=success]:[&_svg]:text-success!"
+    @select="handleSelect"
   >
-    <span class="menu-icon">
-      <font-awesome-icon
-        :icon="icon"
-        :spin="spin"
-      />
+    <span class="flex w-full items-center gap-2 text-base font-bold">
+      <span class="menu-icon">
+        <font-awesome-icon
+          :icon="icon"
+          :spin="spin"
+        />
+      </span>
+      <span class="text-left">{{ text }}</span>
     </span>
-    <span class="menu-text">{{ text }}</span>
-  </button>
+    <slot />
+  </DropdownMenuItem>
 </template>
-
-<style scoped>
-.menu-item {
-  width: 100%;
-  padding: var(--p-8, 1rem);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  gap: var(--p-4, 0.5rem);
-  border-radius: 10px;
-  transition: all 0.2s;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #483c32;
-}
-
-.menu-item:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.menu-item:hover:not(:disabled) {
-  background: #f5f5f5;
-}
-
-.menu-item.success {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.menu-item.error {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.menu-icon {
-  font-size: 1rem;
-}
-
-.menu-text {
-  text-align: left;
-}
-</style>

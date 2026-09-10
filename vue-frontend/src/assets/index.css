@@ -1,0 +1,162 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* index.html の <link> で読み込む Noto Sans JP を既定のサンセリフにする。
+     Tailwind の preflight が html に var(--font-sans) を適用する。 */
+  --font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+
+  /* @theme 内に置いた @keyframes は --animate-* に対応するユーティリティとして出力される。
+     Tailwind 既定のキーフレーム名（pulse / bounce / spin / ping）と衝突させないこと。 */
+  --animate-shake: shake 0.5s ease;
+  --animate-check-pop: check-pop 0.3s ease;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    25% {
+      transform: translateX(-5px);
+    }
+
+    75% {
+      transform: translateX(5px);
+    }
+  }
+
+  @keyframes check-pop {
+    0% {
+      transform: scale(0);
+    }
+
+    50% {
+      transform: scale(1.2);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+@theme inline {
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-rating: var(--rating);
+  --color-field: var(--field);
+  --color-chip-foreground: var(--chip-foreground);
+  --color-chip: var(--chip);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  /* 値は Material Design 3 の SchemeTonalSpot（seed #3f5b8c）の neutral トーナルパレットから採る。
+     SchemeNeutral は neutral chroma が 2 しかなく、seed の色相を変えても面がほとんど動かない。
+     面にも青みを乗せるため chroma 6 の SchemeTonalSpot を使う。
+     どの tone をどのロールに割り当てるかは MD3 のロール表ではなく、次の自前の規則による。
+       ページの枠組み（背景・ヘッダー・フッター）＝ 暗い側
+       浮いている面（カード・ポップオーバー・ボタン）＝ 明るい側
+       沈む面（入力欄・チップ）＝ ページ背景と同じ tone へ戻る
+     ライトとダークで向きが揃うため、面の関係がモードによって反転しない。 */
+  --background: #ededf4; /* tone94。ページの枠組み */
+  --foreground: #45474c; /* neutral tone30。onSurface 相当だと対比が強すぎるため一段落とす */
+  --card: #f9f9ff; /* tone98。浮いている面。--card 上の本文は 8.86:1 */
+  --card-foreground: var(--foreground); /* 連動。カード内と本文で文字色をずらさない */
+  --popover: #f9f9ff; /* tone98。--card と同値だが独立（浮動要素と面内の板） */
+  --popover-foreground: var(--foreground); /* 連動 */
+  --primary: #425e91; /* primary */
+  --primary-foreground: #f9f9ff; /* neutral tone98。MD3 の onPrimary は #ffffff だが純白を避ける。
+                                    --card と同値だが独立。--primary を変えたらこちらだけ動かす */
+  /* --secondary は ui/button の secondary variant のみが参照する。
+     AnimatedIconButton の variant="secondary" は outline へ写像されるため、アプリからは到達しない。 */
+  --secondary: var(--accent); /* 連動 */
+  --secondary-foreground: var(--accent-foreground); /* 連動 */
+  --muted: #f9f9ff; /* tone98。AnswerItem のパネル。--card と同値だが独立。
+                       カードとの区切りは塗りではなく ring-1 ring-border が担う */
+  --muted-foreground: #66686e; /* neutral tone44。副次テキスト用に本文を弱めた色。
+                                  使用面は --card（5.31:1）/ --background（4.78:1）/ --field（4.78:1） */
+  --accent: #dae2f9; /* secondaryContainer 由来。Skeleton の塗りとゴーストボタンの hover */
+  --accent-foreground: #3e4759;
+  --field: #ededf4; /* tone94。沈む面（入力欄とチップの塗り）。枠線は --input */
+  --chip: #5b77ab; /* 独自ロール。AnswerItem の5段階評価チップの選択時の塗り。primary tone50 */
+  --chip-foreground: #f9f9ff; /* neutral tone98。--chip 上で 4.29:1 */
+  --destructive: #ba1a1a; /* error */
+  --success: #006d43; /* 独自ロール。緑を seed へ harmonize した chroma48 の tone40 */
+  --rating: #ff964e; /* 独自ロール。評価の星専用。amber を seed へ harmonize した tone72 */
+  --border: #c4c6d0; /* outlineVariant */
+  --input: #c4c6d0; /* outlineVariant。--border と同値だが独立（面の区切りとフォーム部品の枠） */
+  --ring: #74777f; /* outline */
+}
+
+.dark {
+  /* light と同じ規則。ページの枠組みが最も暗く、浮いている面が明るい側、沈む面は背景へ戻る。 */
+  --background: #111318; /* tone6。ページの枠組み */
+  --foreground: #c6c6cd; /* neutral tone80。onSurface 相当だと対比が強すぎるため一段落とす */
+  --card: #1e2025; /* tone12。浮いている面。--card 上の本文は 9.59:1 */
+  --popover: #1e2025; /* tone12。--card と同値だが独立 */
+  --primary: #abc7ff; /* primary */
+  --primary-foreground: #0c305f; /* onPrimary */
+  --muted: #1e2025; /* tone12。AnswerItem のパネル。--card と同値だが独立 */
+  --muted-foreground: #8f9097; /* neutral tone60。
+                                  --card 5.13:1 / --background 5.84:1 / --field 5.84:1 */
+  --accent: #3e4759; /* secondaryContainer 由来。Skeleton の塗りとゴーストボタンの hover */
+  --accent-foreground: #dae2f9;
+  --field: #111318; /* tone6。沈む面（入力欄とチップの塗り）。--background と同値だが独立 */
+  --chip: #8face3; /* 独自ロール。AnswerItem の5段階評価チップの選択時の塗り。primary tone70 */
+  --chip-foreground: #0c305f; /* primary tone20。--chip 上で 5.72:1 */
+  --destructive: #ffb4ab; /* error */
+  --success: #a8d0b5; /* 独自ロール。緑を seed へ harmonize した chroma24 の tone80 */
+  --rating: #c46d2f; /* 独自ロール。暗い面ではまぶしさを避けるため、あえてライトより低い tone55 */
+  --border: #44474e; /* outlineVariant */
+  --input: #44474e; /* outlineVariant。--border と同値だが独立 */
+  --ring: #8e9099; /* outline。ダークでは --muted-foreground と近いが別の値 */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-sans text-foreground;
+  }
+}
+
+/* OS 側でモーション低減が有効な場合、アニメーションと transition を実質無効化する。
+   0 ではなく 0.01ms にすることで transitionend / animationend は発火し、
+   Vue の <transition> がフェーズを正しく完了できる。
+   なお JS で指定する scrollTo / scrollIntoView の behavior: 'smooth' には効かない。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

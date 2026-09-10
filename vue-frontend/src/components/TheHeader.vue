@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 
+import { SquarePen } from '@lucide/vue'
+
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { ROUTES } from '@/utils/constants'
 
@@ -15,70 +18,29 @@ const handleTitleClick = () => {
 </script>
 
 <template>
-  <header class="header">
-    <h1>
-      <button
-        class="title"
-        @click="handleTitleClick"
-        @keydown.enter="handleTitleClick"
-        @keydown.space.prevent="handleTitleClick"
-        tabindex="0"
-        :aria-label="`スキルシート制作ページ（${route.path !== ROUTES.TOP ? 'トップページへ戻る' : 'TOPページ'}）`"
-      >
-        <span class="icon">
-          <font-awesome-icon icon="fa-solid fa-pen-to-square" />
-        </span>
-        スキルシート制作ページ
-      </button>
-    </h1>
+  <header class="border-b print:hidden">
+    <div
+      class="mx-auto flex w-full max-w-5xl items-center justify-center gap-2 px-4 py-4 sm:gap-3 sm:px-6 sm:py-5"
+    >
+      <div
+        class="size-9 shrink-0"
+        aria-hidden="true"
+      />
+      <h1 class="flex min-w-0">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-md text-lg font-bold text-foreground transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:text-xl"
+          :aria-label="`スキルシート制作ページ（${route.path !== ROUTES.TOP ? 'トップページへ戻る' : 'TOPページ'}）`"
+          @click="handleTitleClick"
+        >
+          <SquarePen
+            class="size-5 shrink-0 sm:size-6"
+            aria-hidden="true"
+          />
+          <span class="truncate">スキルシート制作ページ</span>
+        </button>
+      </h1>
+      <ThemeToggle />
+    </div>
   </header>
 </template>
-
-<style scoped>
-.header {
-  background: linear-gradient(135deg, #483c32 0%, #5a4a3e 100%);
-  padding: var(--p-12, 1.5rem) 0;
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.2);
-  overflow: hidden;
-}
-
-.title {
-  width: 100%;
-  margin: 0;
-  text-align: center;
-  color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.2s;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background: transparent;
-  border: transparent;
-}
-
-.title:hover {
-  transform: scale(1.02);
-}
-
-.icon {
-  font-size: 1.8rem;
-  display: inline-block;
-  vertical-align: baseline;
-}
-
-@media (max-width: 768px) {
-  .title {
-    font-size: 1.2rem;
-  }
-
-  .icon {
-    font-size: 1.5rem;
-  }
-}
-
-@media print {
-  .header {
-    display: none !important;
-  }
-}
-</style>

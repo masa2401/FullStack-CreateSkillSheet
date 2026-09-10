@@ -19,8 +19,12 @@ export class SurveyPage {
     return this.page.getByRole('checkbox', { name: label })
   }
 
+  /**
+   * 習熟度のラジオ。`src/components/AnswerItem.vue` の `RadioGroupItem` が
+   * `aria-label="習熟度 3: 期待どおりにできる"` の形で名前を持つため、前方一致で拾う。
+   */
   levelRadio(level: StarLevel): Locator {
-    return this.page.getByRole('radio', { name: `${level}段階` }).first()
+    return this.page.getByRole('radio', { name: new RegExp(`^習熟度 ${level}:`) }).first()
   }
 
   async checkAnswer(label: string): Promise<void> {
@@ -28,7 +32,7 @@ export class SurveyPage {
   }
 
   async selectLevel(level: StarLevel): Promise<void> {
-    await this.levelRadio(level).locator('..').click()
+    await this.levelRadio(level).click()
   }
 
   async submit(): Promise<void> {

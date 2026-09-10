@@ -1,7 +1,10 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
 
+import { Check, Lightbulb, MousePointer } from '@lucide/vue'
+
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { CATEGORY_MASTERS } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -23,295 +26,112 @@ const { goToSurvey } = useAppNavigation()
 </script>
 
 <template>
-  <div class="page-container">
-    <div class="main-content">
-      <div class="welcome-card">
-        <p class="card-description">
-          これからいくつかの質問を行います。<br />
-          質問に回答後、あなたのスキルシートが出力されます。
-        </p>
-      </div>
-      <div class="input-group">
-        <div class="category-section">
-          <h3 class="section-title">
-            <span class="title-icon">
-              <font-awesome-icon icon="fa-regular fa-hand-pointer" />
-            </span>
-            該当するカテゴリを選択してください(複数選択可)
+  <div class="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
+    <section>
+      <h2 class="flex items-start justify-center gap-2 text-center text-lg font-bold">
+        <MousePointer
+          class="mt-1 size-5 shrink-0"
+          aria-hidden="true"
+        />
+        該当するカテゴリを選択してください(複数選択可)
+      </h2>
+
+      <div
+        data-slot="category-cards"
+        class="mt-8 grid gap-4 sm:grid-cols-2"
+      >
+        <label
+          data-slot="category-card"
+          class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input bg-card px-6 pt-6 pb-8 text-center shadow-sm transition-colors hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50"
+        >
+          <input
+            v-model="engineerChecked"
+            type="checkbox"
+            class="sr-only"
+            aria-describedby="engineer-desc"
+            :aria-label="engineerMaster.label"
+          />
+          <component
+            :is="resolveCategoryIcon(engineerMaster.key)"
+            class="size-14"
+            aria-hidden="true"
+          />
+          <h3
+            data-slot="category-card-title"
+            class="text-lg font-bold"
+          >
+            {{ engineerMaster.label }}
           </h3>
-          <div class="category-cards">
-            <label class="category-card">
-              <input
-                type="checkbox"
-                class="category-checkbox"
-                v-model="engineerChecked"
-                aria-describedby="engineer-desc"
-                :aria-label="engineerMaster.label"
-              />
-              <div class="card-content">
-                <div class="card-icon-large">
-                  <font-awesome-icon :icon="engineerMaster.icon" />
-                </div>
-                <h4 class="card-category-title">{{ engineerMaster.label }}</h4>
-                <p
-                  id="engineer-desc"
-                  class="card-category-desc"
-                >
-                  {{ engineerMaster.description }}
-                </p>
-                <div class="check-indicator">
-                  <span
-                    v-if="engineerChecked"
-                    class="check-mark"
-                  >
-                    <font-awesome-icon icon="fa-solid fa-check" />
-                  </span>
-                </div>
-              </div>
-            </label>
-            <label class="category-card">
-              <input
-                type="checkbox"
-                class="category-checkbox"
-                v-model="designerChecked"
-                aria-describedby="designer-desc"
-                :aria-label="designerMaster.label"
-              />
-              <div class="card-content">
-                <div class="card-icon-large">
-                  <font-awesome-icon :icon="designerMaster.icon" />
-                </div>
-                <h4 class="card-category-title">{{ designerMaster.label }}</h4>
-                <p
-                  id="designer-desc"
-                  class="card-category-desc"
-                >
-                  {{ designerMaster.description }}
-                </p>
-                <div class="check-indicator">
-                  <span
-                    v-if="designerChecked"
-                    class="check-mark"
-                  >
-                    <font-awesome-icon icon="fa-solid fa-check" />
-                  </span>
-                </div>
-              </div>
-            </label>
-          </div>
-          <p class="hint-text">
-            <font-awesome-icon icon="fa-regular fa-lightbulb" />
-            どちらも選択しない場合は、共通の質問のみ表示されます
+          <p
+            id="engineer-desc"
+            data-slot="category-card-description"
+            class="text-sm leading-relaxed text-muted-foreground group-has-[:checked]:text-primary-foreground"
+          >
+            {{ engineerMaster.description }}
           </p>
-        </div>
+          <span
+            v-if="engineerChecked"
+            class="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
+            aria-hidden="true"
+          >
+            <Check class="size-6 animate-check-pop" />
+          </span>
+        </label>
+        <label
+          data-slot="category-card"
+          class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input bg-card px-6 pt-6 pb-8 text-center shadow-sm transition-colors hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50"
+        >
+          <input
+            v-model="designerChecked"
+            type="checkbox"
+            class="sr-only"
+            aria-describedby="designer-desc"
+            :aria-label="designerMaster.label"
+          />
+          <component
+            :is="resolveCategoryIcon(designerMaster.key)"
+            class="size-14"
+            aria-hidden="true"
+          />
+          <h3
+            data-slot="category-card-title"
+            class="text-lg font-bold"
+          >
+            {{ designerMaster.label }}
+          </h3>
+          <p
+            id="designer-desc"
+            data-slot="category-card-description"
+            class="text-sm leading-relaxed text-muted-foreground group-has-[:checked]:text-primary-foreground"
+          >
+            {{ designerMaster.description }}
+          </p>
+          <span
+            v-if="designerChecked"
+            class="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm"
+            aria-hidden="true"
+          >
+            <Check class="size-6 animate-check-pop" />
+          </span>
+        </label>
       </div>
 
-      <div class="button-section">
-        <AnimatedIconButton
-          icon="fa-solid fa-arrow-right"
-          label="アンケートを開始"
-          animation-type="bounce"
-          @click="goToSurvey"
+      <p class="mt-6 flex items-start justify-center gap-2 text-sm text-muted-foreground">
+        <Lightbulb
+          class="mt-0.5 size-4 shrink-0"
+          aria-hidden="true"
         />
-      </div>
+        どちらも選択しない場合は、共通の質問のみ表示されます
+      </p>
+    </section>
+
+    <div class="mt-10 flex justify-center">
+      <AnimatedIconButton
+        icon="fa-solid fa-arrow-right"
+        label="アンケートを開始"
+        animation-type="bounce"
+        @click="goToSurvey"
+      />
     </div>
   </div>
 </template>
-
-<style scoped>
-.page-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #d3c6a6 0%, #e8dcc8 100%);
-}
-
-.main-content {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: var(--p-24, 3rem) var(--p-8, 1rem);
-}
-
-.welcome-card {
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  padding: var(--p-12, 1.5rem);
-  text-align: center;
-  margin-bottom: var(--p-16, 2rem);
-  box-shadow: 0 4px 12px rgba(72, 60, 50, 0.15);
-  border: 1px solid rgba(219, 214, 211, 0.1);
-}
-
-.card-description {
-  color: #666;
-  font-size: 1.2rem;
-  line-height: 1.8;
-  margin: 0;
-}
-
-.input-group {
-  background: #ffffff;
-  border-radius: var(--radius, 12px);
-  padding: var(--p-16, 2rem) var(--p-20, 2.5rem);
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.1);
-}
-
-.section-title {
-  font-size: 1.2rem;
-  color: #483c32;
-  margin: 0 0 var(--p-4, 0.5rem);
-  font-weight: 700;
-  text-align: center;
-}
-
-.title-icon {
-  font-size: 1.5rem;
-}
-
-.category-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--p-8, 1rem);
-  margin-bottom: var(--p-12, 1.5rem);
-}
-
-.category-card {
-  position: relative;
-  background: #ffffff;
-  border: 3px solid #d3c6a6;
-  border-radius: var(--radius, 12px);
-  padding: var(--p-16, 2rem);
-  cursor: pointer;
-  transition: all 0.3s;
-  display: block;
-}
-
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(72, 60, 50, 0.15);
-  border-color: #483c32;
-}
-
-.category-card:has(.category-checkbox:checked) {
-  background: linear-gradient(135deg, #483c32 0%, #5a4a3e 100%);
-  border-color: #483c32;
-  transform: scale(1.02);
-  box-shadow: 0 8px 24px rgba(72, 60, 50, 0.3);
-}
-
-.category-card:focus-within {
-  outline: 3px solid #483c32;
-  outline-offset: 2px;
-}
-
-.category-card:has(.category-checkbox:checked) .card-category-title,
-.category-card:has(.category-checkbox:checked) .card-category-desc,
-.category-card:has(.category-checkbox:checked) .card-icon-large {
-  color: #ffffff;
-}
-
-.category-checkbox {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.card-content {
-  text-align: center;
-}
-
-.card-icon-large {
-  color: #483c32;
-  font-size: 3.5rem;
-  margin-bottom: var(--p-8, 1rem);
-}
-
-.card-category-title {
-  font-size: 1.3rem;
-  color: #483c32;
-  margin: 0 0 var(--p-4, 0.5rem);
-  font-weight: 700;
-}
-
-.card-category-desc {
-  font-size: 0.95rem;
-  color: #666;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.check-indicator {
-  position: absolute;
-  top: var(--p-8, 1rem);
-  right: var(--p-8, 1rem);
-  width: 40px;
-  height: 40px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(72, 60, 50, 0.15);
-}
-
-.check-mark {
-  font-size: 1.5rem;
-  color: #22c55e;
-  font-weight: bold;
-  animation: checkPop 0.3s ease;
-}
-
-@keyframes checkPop {
-  0% {
-    transform: scale(0);
-  }
-
-  50% {
-    transform: scale(1.2);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-.hint-text {
-  text-align: center;
-  color: #666;
-  font-size: 0.95rem;
-  margin: 0;
-  line-height: 1.6;
-}
-
-.button-section {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--p-24, 3rem);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .category-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome-card,
-  .input-group {
-    padding: var(--p-12, 1.5rem);
-  }
-}
-</style>

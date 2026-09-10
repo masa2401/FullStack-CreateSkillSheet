@@ -68,14 +68,12 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
   })
 
   const isEditable = computed(() => phase.value === 'editing')
-  const isLocked = computed(() => phase.value === 'locked')
   const showEditButton = computed(() => phase.value === 'committed')
 
   return {
     phase,
     draft,
     isEditable,
-    isLocked,
     showEditButton,
     editableWindowMs,
     requestCommit,

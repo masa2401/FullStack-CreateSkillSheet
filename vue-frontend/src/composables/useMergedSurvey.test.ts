@@ -12,12 +12,12 @@ describe('useMergedSurvey', () => {
 
   it('マスターデータと結合してカテゴリの label が解決される', () => {
     const { mergedCategories } = useMergedSurvey()
-    expect(mergedCategories.value[0]!.label).toBe('共通')
+    expect(mergedCategories.value[0]!.label).toBe('共通スキル')
   })
 
-  it('マスターデータと結合してカテゴリの icon が解決される', () => {
+  it('マスターデータと結合してカテゴリの key が解決される', () => {
     const { mergedCategories } = useMergedSurvey()
-    expect(mergedCategories.value[0]!.icon).toBe('fa-solid fa-briefcase')
+    expect(mergedCategories.value[0]!.key).toBe('common')
   })
 
   it('初期状態では全カテゴリが mergedCategories に含まれる', () => {
@@ -29,7 +29,7 @@ describe('useMergedSurvey', () => {
     const { mergedCategories } = useMergedSurvey()
     const checkedCategories = mergedCategories.value.filter((c) => c.isChecked)
     expect(checkedCategories).toHaveLength(1)
-    expect(checkedCategories[0]!.label).toBe('共通')
+    expect(checkedCategories[0]!.label).toBe('共通スキル')
   })
 
   it('setCategoryChecked でカテゴリの isChecked が反映される', () => {

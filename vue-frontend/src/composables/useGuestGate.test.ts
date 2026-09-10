@@ -1,5 +1,3 @@
-import { type Ref, nextTick, ref } from 'vue'
-
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -7,191 +5,152 @@ import { useSurveyStore } from '@/stores/useSurveyStore'
 
 import { useGuestGate } from './useGuestGate'
 
+const stubMatchMedia = (prefersReducedMotion: boolean): void => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: prefersReducedMotion && query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+    })),
+  )
+}
+
+const mountNameInput = (): HTMLInputElement => {
+  const input = document.createElement('input')
+  input.setAttribute('data-slot', 'name-input')
+  document.body.appendChild(input)
+  return input
+}
+
 describe('useGuestGate', () => {
-  let containerRef: Ref<HTMLElement | null>
+  let scrollToSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
     setActivePinia(createPinia())
-    containerRef = ref(document.createElement('div'))
-    document.body.appendChild(containerRef.value!)
+    scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    containerRef.value?.remove()
+    vi.unstubAllGlobals()
+    document.body.innerHTML = ''
   })
 
   // ─── isGuest ────────────────────────────────────────────────
 
   describe('isGuest', () => {
     it('userName が空の場合 true になる', () => {
-      const { isGuest } = useGuestGate(containerRef)
+      const { isGuest } = useGuestGate()
       expect(isGuest.value).toBe(true)
     })
 
     it('userName が空白のみの場合も true になる（trim後で判定）', () => {
       const store = useSurveyStore()
       store.setUserName('   ')
-      const { isGuest } = useGuestGate(containerRef)
+      const { isGuest } = useGuestGate()
       expect(isGuest.value).toBe(true)
     })
 
     it('userName が設定されている場合 false になる', () => {
       const store = useSurveyStore()
       store.setUserName('山田太郎')
-      const { isGuest } = useGuestGate(containerRef)
+      const { isGuest } = useGuestGate()
       expect(isGuest.value).toBe(false)
+    })
+  })
+
+  // ─── goToNameInput ──────────────────────────────────────────
+
+  describe('goToNameInput', () => {
+    it('name-input へ preventScroll 付きでフォーカスする', () => {
+      const input = mountNameInput()
+      const focusSpy = vi.spyOn(input, 'focus')
+      const { goToNameInput } = useGuestGate()
+
+      goToNameInput()
+
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true })
+    })
+
+    it('ページ最上部へスクロールする', () => {
+      mountNameInput()
+      const { goToNameInput } = useGuestGate()
+
+      goToNameInput()
+
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+    })
+
+    it('name-input が存在しなくても例外にならず、スクロールは行われる', () => {
+      const { goToNameInput } = useGuestGate()
+
+      expect(() => goToNameInput()).not.toThrow()
+      expect(scrollToSpy).toHaveBeenCalledOnce()
+    })
+  })
+
+  // ─── スクロール挙動（prefers-reduced-motion） ───────────────
+
+  describe('スクロール挙動', () => {
+    it('モーション低減が有効な場合は behavior が auto になる', () => {
+      stubMatchMedia(true)
+      const { goToNameInput } = useGuestGate()
+
+      goToNameInput()
+
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'auto' })
+    })
+
+    it('モーション低減が無効な場合は behavior が smooth になる', () => {
+      stubMatchMedia(false)
+      const { goToNameInput } = useGuestGate()
+
+      goToNameInput()
+
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+    })
+
+    it('matchMedia が未実装の環境でも behavior は smooth になる', () => {
+      vi.stubGlobal('matchMedia', undefined)
+      const { goToNameInput } = useGuestGate()
+
+      goToNameInput()
+
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     })
   })
 
   // ─── guard ──────────────────────────────────────────────────
 
   describe('guard', () => {
-    it('ゲスト時はツールチップを表示するのみで action は実行しない', () => {
-      const { isTooltipVisible, guard } = useGuestGate(containerRef)
+    it('ゲスト時は action を実行せず、名前入力欄へ誘導する', () => {
+      const input = mountNameInput()
+      const focusSpy = vi.spyOn(input, 'focus')
+      const { guard } = useGuestGate()
       const action = vi.fn()
 
       guard(action)
 
       expect(action).not.toHaveBeenCalled()
-      expect(isTooltipVisible.value).toBe(true)
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true })
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     })
 
-    it('非ゲスト時は action を実行し、ツールチップは表示しない', () => {
+    it('非ゲスト時は action を実行し、スクロールは起きない', () => {
       const store = useSurveyStore()
       store.setUserName('山田太郎')
-      const { isTooltipVisible, guard } = useGuestGate(containerRef)
+      const { guard } = useGuestGate()
       const action = vi.fn()
 
       guard(action)
 
       expect(action).toHaveBeenCalledOnce()
-      expect(isTooltipVisible.value).toBe(false)
-    })
-  })
-
-  // ─── handleMouseEnter / handleFocusIn ──────────────────────
-
-  describe('handleMouseEnter / handleFocusIn', () => {
-    it('ゲスト時、handleMouseEnter でツールチップが表示される', () => {
-      const { isTooltipVisible, handleMouseEnter } = useGuestGate(containerRef)
-      handleMouseEnter()
-      expect(isTooltipVisible.value).toBe(true)
-    })
-
-    it('ゲスト時、handleFocusIn でツールチップが表示される', () => {
-      const { isTooltipVisible, handleFocusIn } = useGuestGate(containerRef)
-      handleFocusIn()
-      expect(isTooltipVisible.value).toBe(true)
-    })
-
-    it('非ゲスト時は handleMouseEnter / handleFocusIn で何も起きない', () => {
-      const store = useSurveyStore()
-      store.setUserName('山田太郎')
-      const { isTooltipVisible, handleMouseEnter, handleFocusIn } = useGuestGate(containerRef)
-
-      handleMouseEnter()
-      expect(isTooltipVisible.value).toBe(false)
-
-      handleFocusIn()
-      expect(isTooltipVisible.value).toBe(false)
-    })
-  })
-
-  // ─── handleMouseLeave / handleFocusOut（遅延） ───────────────
-
-  describe('handleMouseLeave / handleFocusOut', () => {
-    beforeEach(() => vi.useFakeTimers())
-    afterEach(() => vi.useRealTimers())
-
-    it('150ms 経過後にツールチップが非表示になる', () => {
-      const { isTooltipVisible, handleMouseEnter, handleMouseLeave } = useGuestGate(containerRef)
-      handleMouseEnter()
-      handleMouseLeave()
-
-      expect(isTooltipVisible.value).toBe(true)
-      vi.advanceTimersByTime(150)
-      expect(isTooltipVisible.value).toBe(false)
-    })
-
-    it('handleFocusOut でも同様に150ms経過後に非表示になる', () => {
-      const { isTooltipVisible, handleFocusIn, handleFocusOut } = useGuestGate(containerRef)
-      handleFocusIn()
-      handleFocusOut()
-
-      expect(isTooltipVisible.value).toBe(true)
-      vi.advanceTimersByTime(150)
-      expect(isTooltipVisible.value).toBe(false)
-    })
-
-    it('遅延中に再度 handleMouseEnter が呼ばれるとタイマーがキャンセルされ非表示にならない', () => {
-      const { isTooltipVisible, handleMouseEnter, handleMouseLeave } = useGuestGate(containerRef)
-      handleMouseEnter()
-      handleMouseLeave()
-      vi.advanceTimersByTime(100)
-
-      handleMouseEnter()
-      vi.advanceTimersByTime(100)
-
-      expect(isTooltipVisible.value).toBe(true)
-    })
-
-    it('非ゲスト時は handleMouseLeave で何も起きない', () => {
-      const store = useSurveyStore()
-      store.setUserName('山田太郎')
-      const { isTooltipVisible, handleMouseLeave } = useGuestGate(containerRef)
-
-      handleMouseLeave()
-      vi.advanceTimersByTime(150)
-
-      expect(isTooltipVisible.value).toBe(false)
-    })
-  })
-
-  // ─── goToNameInput ──────────────────────────────────────────
-
-  it('goToNameInput は scrollTo を呼び、ツールチップを閉じる', () => {
-    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
-    const { isTooltipVisible, handleMouseEnter, goToNameInput } = useGuestGate(containerRef)
-    handleMouseEnter()
-
-    goToNameInput()
-
-    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
-    expect(isTooltipVisible.value).toBe(false)
-  })
-
-  // ─── 外側クリック ──────────────────────────────────────────
-
-  it('containerRef の外側をクリックするとツールチップが非表示になる', async () => {
-    const { isTooltipVisible, handleMouseEnter } = useGuestGate(containerRef)
-    handleMouseEnter()
-    expect(isTooltipVisible.value).toBe(true)
-
-    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    await nextTick()
-
-    expect(isTooltipVisible.value).toBe(false)
-  })
-
-  // ─── Escキー ────────────────────────────────────────────────
-
-  describe('Escキー', () => {
-    it('ツールチップ表示中に Esc キーで非表示になる', () => {
-      const { isTooltipVisible, handleMouseEnter } = useGuestGate(containerRef)
-      handleMouseEnter()
-
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-
-      expect(isTooltipVisible.value).toBe(false)
-    })
-
-    it('ツールチップが非表示のときに Esc キーを押しても何も起きない', () => {
-      const { isTooltipVisible } = useGuestGate(containerRef)
-
-      expect(() => {
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-      }).not.toThrow()
-      expect(isTooltipVisible.value).toBe(false)
+      expect(scrollToSpy).not.toHaveBeenCalled()
     })
   })
 })

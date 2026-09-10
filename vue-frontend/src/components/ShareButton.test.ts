@@ -1,17 +1,79 @@
-import { nextTick } from 'vue'
+import { type InjectionKey, type Ref, defineComponent, inject, provide, ref, toRef } from 'vue'
 
 import { createTestingPinia } from '@pinia/testing'
-import { flushPromises, mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { render, screen, waitFor } from '@testing-library/vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useSurveyStore } from '@/stores/useSurveyStore.ts'
 import * as apiUtils from '@/utils/api'
 
-import MenuItemButton from './MenuItemButton.vue'
 import ShareButton from './ShareButton.vue'
 
-const createWrapper = (initialState: Record<string, unknown> = {}) =>
-  mount(ShareButton, {
+vi.mock('@/composables/usePdfStatus', () => ({
+  usePdfStatus: () => ({
+    state: ref('waiting'),
+    downloadUrl: ref(''),
+    progress: ref(0),
+    retry: vi.fn(),
+  }),
+}))
+
+/**
+ * このテストが見るのは `ShareButton` 自身の状態遷移と配線だけ。
+ * Reka UI が実際に開くか、Portal されるか、`as-child` の入れ子が成立するか、
+ * ツールチップがホバーで出るかは見た目・実挙動なので e2e（`e2e/share.spec.ts`）の担当。
+ *
+ * ただし開閉状態を prop から覗くのは避け、`open` を受けて
+ * メニューの中身を出し分けるスタブにして DOM で観測できるようにしている。
+ */
+const MENU_OPEN: InjectionKey<Ref<boolean>> = Symbol('menu-open')
+const MENU_REQUEST_OPEN: InjectionKey<(open: boolean) => void> = Symbol('menu-request-open')
+
+const DROPDOWN_MENU_STUB = defineComponent({
+  props: { open: Boolean },
+  emits: ['update:open'],
+  setup(props, { emit }) {
+    provide(MENU_OPEN, toRef(props, 'open'))
+    provide(MENU_REQUEST_OPEN, (open: boolean) => emit('update:open', open))
+  },
+  template: '<div><slot /></div>',
+})
+
+const DROPDOWN_MENU_TRIGGER_STUB = defineComponent({
+  setup() {
+    const isOpen = inject(MENU_OPEN, ref(false))
+    const requestOpen = inject(MENU_REQUEST_OPEN, () => {})
+    return { toggle: () => requestOpen(!isOpen.value) }
+  },
+  template: '<div @click="toggle"><slot /></div>',
+})
+
+const DROPDOWN_MENU_CONTENT_STUB = defineComponent({
+  inheritAttrs: false,
+  setup() {
+    return { isOpen: inject(MENU_OPEN, ref(false)) }
+  },
+  template: '<div v-if="isOpen" role="menu"><slot /></div>',
+})
+
+const PASS_THROUGH_STUB = { template: '<div><slot /></div>' }
+
+const MENU_ITEM_STUB = defineComponent({
+  props: { icon: String, text: String },
+  emits: ['click'],
+  template: '<button type="button" @click="$emit(\'click\')">{{ text }}</button>',
+})
+
+/** 子ボタンは自前のテストを持つ。ここでは在席と done を返せることだけ分かればよい */
+const doneButtonStub = (label: string) =>
+  defineComponent({
+    emits: ['done'],
+    template: `<button type="button" @click="$emit('done')">${label}</button>`,
+  })
+
+const renderShareButton = (initialState: Record<string, unknown> = {}) =>
+  render(ShareButton, {
     global: {
       plugins: [
         createTestingPinia({
@@ -22,77 +84,74 @@ const createWrapper = (initialState: Record<string, unknown> = {}) =>
       ],
       stubs: {
         'font-awesome-icon': true,
-        AnimatedIconButton: {
-          name: 'AnimatedIconButton',
-          template: '<button @click="$emit(\'click\')"><slot /></button>',
-          emits: ['click'],
-        },
-        ShareUrlButton: {
-          name: 'ShareUrlButton',
-          template: '<div class="share-url-button-stub" />',
-          emits: ['done'],
-        },
-        CsvButton: {
-          name: 'CsvButton',
-          template: '<div class="csv-button-stub" />',
-          emits: ['done'],
-        },
-        PdfButton: {
-          name: 'PdfButton',
-          template: '<div class="pdf-button-stub" />',
-          emits: ['done'],
-        },
+        DropdownMenu: DROPDOWN_MENU_STUB,
+        DropdownMenuTrigger: DROPDOWN_MENU_TRIGGER_STUB,
+        DropdownMenuContent: DROPDOWN_MENU_CONTENT_STUB,
+        Tooltip: PASS_THROUGH_STUB,
+        TooltipTrigger: PASS_THROUGH_STUB,
+        TooltipContent: PASS_THROUGH_STUB,
+        MenuItemButton: MENU_ITEM_STUB,
+        CsvButton: doneButtonStub('CSVボタン'),
+        ShareUrlButton: doneButtonStub('共有URLボタン'),
+        PdfButton: doneButtonStub('PDFボタン'),
       },
     },
   })
 
+const shareTrigger = () => screen.getByRole('button', { name: '結果を印刷/共有' })
+
+const menu = () => screen.queryByRole('menu')
+
 describe('ShareButton', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false)
   })
 
-  it('初期状態ではメニューが非表示', () => {
-    const wrapper = createWrapper()
-    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+  it('初期状態ではメニューが閉じている', () => {
+    renderShareButton()
+    expect(menu()).not.toBeInTheDocument()
   })
 
-  it('ボタンクリックでメニューが表示される', async () => {
-    const wrapper = createWrapper()
-    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    expect(wrapper.find('[role="menu"]').exists()).toBe(true)
+  it('トリガーの操作でメニューの開閉状態が切り替わる', async () => {
+    const user = userEvent.setup()
+    renderShareButton()
+
+    await user.click(shareTrigger())
+    expect(menu()).toBeInTheDocument()
+
+    await user.click(shareTrigger())
+    expect(menu()).not.toBeInTheDocument()
   })
 
-  it('メニューを再度クリックすると閉じる', async () => {
-    const wrapper = createWrapper()
-    const button = wrapper.findComponent({ name: 'AnimatedIconButton' })
-    await button.trigger('click')
-    await button.trigger('click')
-    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
-  })
+  it('ShareUrlButton と CsvButton がメニュー内に描画される', async () => {
+    const user = userEvent.setup()
+    renderShareButton()
 
-  it('ShareUrlButton と CsvButton がメニュー内に表示される', async () => {
-    const wrapper = createWrapper()
-    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    expect(wrapper.find('.share-url-button-stub').exists()).toBe(true)
-    expect(wrapper.find('.csv-button-stub').exists()).toBe(true)
+    await user.click(shareTrigger())
+
+    expect(screen.getByRole('button', { name: 'CSVボタン' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '共有URLボタン' })).toBeInTheDocument()
   })
 
   it('done イベントを受け取るとメニューが閉じる', async () => {
-    const wrapper = createWrapper()
-    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    expect(wrapper.find('[role="menu"]').exists()).toBe(true)
-    wrapper.findComponent({ name: 'ShareUrlButton' }).vm.$emit('done')
-    await nextTick()
-    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+    const user = userEvent.setup()
+    renderShareButton()
+    await user.click(shareTrigger())
+
+    await user.click(screen.getByRole('button', { name: '共有URLボタン' }))
+
+    expect(menu()).not.toBeInTheDocument()
   })
 
   // ─── バックエンド無効時 ─────────────────────────────────
 
-  it('バックエンド無効時は PdfButton が表示されない', async () => {
-    const wrapper = createWrapper()
-    await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-    expect(wrapper.find('.pdf-button-stub').exists()).toBe(false)
+  it('バックエンド無効時は PdfButton が描画されない', async () => {
+    const user = userEvent.setup()
+    renderShareButton()
+
+    await user.click(shareTrigger())
+
+    expect(screen.queryByRole('button', { name: 'PDFボタン' })).not.toBeInTheDocument()
   })
 
   // ─── バックエンド有効時 ─────────────────────────────────
@@ -102,115 +161,87 @@ describe('ShareButton', () => {
       vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
     })
 
-    it('PdfButton がメニュー内に表示される', async () => {
-      const wrapper = createWrapper()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-      expect(wrapper.find('.pdf-button-stub').exists()).toBe(true)
+    it('PdfButton がメニュー内に描画される', async () => {
+      const user = userEvent.setup()
+      renderShareButton()
+
+      await user.click(shareTrigger())
+
+      expect(screen.getByRole('button', { name: 'PDFボタン' })).toBeInTheDocument()
     })
 
     it('メニューを開くと getSavedIdOrSave が呼ばれる', async () => {
-      const wrapper = createWrapper()
+      const user = userEvent.setup()
+      renderShareButton()
       const store = useSurveyStore()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-      await flushPromises()
-      expect(store.getSavedIdOrSave).toHaveBeenCalledOnce()
+
+      await user.click(shareTrigger())
+
+      await waitFor(() => expect(store.getSavedIdOrSave).toHaveBeenCalledOnce())
     })
 
     it('既に savedSheetId がある場合でも getSavedIdOrSave は呼ばれる', async () => {
-      const wrapper = createWrapper({ savedSheetId: 'already-saved-id' })
+      const user = userEvent.setup()
+      renderShareButton({ savedSheetId: 'already-saved-id' })
       const store = useSurveyStore()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-      await flushPromises()
-      expect(store.getSavedIdOrSave).toHaveBeenCalled()
+
+      await user.click(shareTrigger())
+
+      await waitFor(() => expect(store.getSavedIdOrSave).toHaveBeenCalled())
     })
 
-    it('保存に失敗してもメニュー表示は維持される', async () => {
-      const wrapper = createWrapper()
+    it('保存に失敗してもメニューは開いたままになる', async () => {
+      const user = userEvent.setup()
+      renderShareButton()
       const store = useSurveyStore()
       vi.mocked(store.getSavedIdOrSave).mockRejectedValue(new Error('保存に失敗しました'))
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-      await flushPromises()
-      expect(wrapper.find('[role="menu"]').exists()).toBe(true)
+
+      await user.click(shareTrigger())
+
+      await waitFor(() => expect(store.getSavedIdOrSave).toHaveBeenCalled())
+      expect(menu()).toBeInTheDocument()
     })
   })
 
   // ─── GuestGate ─────────────────────────────────────
+
   describe('GuestGate', () => {
-    it('クリックしてもメニューは開かず、代わりにツールチップが表示される', async () => {
-      const wrapper = createWrapper({ userName: '' })
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-      expect(wrapper.find('[role="menu"]').exists()).toBe(false)
-      expect(wrapper.find('.guest-tooltip').exists()).toBe(true)
-    })
-    it('ボタンに aria-disabled="true" が付与される（非ゲスト時は付与されない）', () => {
-      const guestWrapper = createWrapper({ userName: '' })
-      expect(
-        guestWrapper.findComponent({ name: 'AnimatedIconButton' }).attributes('aria-disabled'),
-      ).toBe('true')
+    it('ゲスト時はトリガーを押してもメニューが開かない', async () => {
+      const user = userEvent.setup()
+      vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      renderShareButton({ userName: '' })
 
-      const wrapper = createWrapper()
-      expect(
-        wrapper.findComponent({ name: 'AnimatedIconButton' }).attributes('aria-disabled'),
-      ).toBe('false')
+      await user.click(shareTrigger())
+
+      expect(menu()).not.toBeInTheDocument()
     })
 
-    describe('ホバー・フォーカスでのツールチップ表示（フェイクタイマー）', () => {
-      beforeEach(() => vi.useFakeTimers())
-      afterEach(() => vi.useRealTimers())
+    it('非ゲスト時はトリガーでメニューが開く', async () => {
+      const user = userEvent.setup()
+      renderShareButton()
 
-      it('mouseenter でツールチップが表示され、mouseleave 後にタイマー経過で非表示になる', async () => {
-        const wrapper = createWrapper({ userName: '' })
-        await wrapper.trigger('mouseenter')
-        expect(wrapper.find('.guest-tooltip').exists()).toBe(true)
+      await user.click(shareTrigger())
 
-        await wrapper.trigger('mouseleave')
-        vi.advanceTimersByTime(150)
-        await nextTick()
-        expect(wrapper.find('.guest-tooltip').exists()).toBe(false)
-      })
-
-      it('focusin でツールチップが表示され、focusout 後にタイマー経過で非表示になる', async () => {
-        const wrapper = createWrapper({ userName: '' })
-        await wrapper.trigger('focusin')
-        expect(wrapper.find('.guest-tooltip').exists()).toBe(true)
-
-        await wrapper.trigger('focusout')
-        vi.advanceTimersByTime(150)
-        await nextTick()
-        expect(wrapper.find('.guest-tooltip').exists()).toBe(false)
-      })
+      expect(menu()).toBeInTheDocument()
     })
 
-    it('「お名前を入力する」クリックで scrollTo が呼ばれ、ツールチップが閉じる', async () => {
+    it('ゲスト時はボタンクリックで名前入力欄へスクロールする', async () => {
+      const user = userEvent.setup()
       const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
-      const wrapper = createWrapper({ userName: '' })
-      await wrapper.trigger('mouseenter')
+      renderShareButton({ userName: '' })
 
-      await wrapper.find('.guest-tooltip-link').trigger('click')
+      await user.click(shareTrigger())
 
       expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
-      expect(wrapper.find('.guest-tooltip').exists()).toBe(false)
     })
 
-    it('外側クリックでツールチップが閉じる', async () => {
-      const wrapper = createWrapper({ userName: '' })
-      await wrapper.trigger('mouseenter')
-      expect(wrapper.find('.guest-tooltip').exists()).toBe(true)
+    it('ボタンに aria-disabled="true" が付与される（非ゲスト時は付与されない）', () => {
+      const { unmount } = renderShareButton({ userName: '' })
+      expect(shareTrigger()).toHaveAttribute('aria-disabled', 'true')
+      unmount()
 
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await nextTick()
-
-      expect(wrapper.find('.guest-tooltip').exists()).toBe(false)
-    })
-
-    it('Esc キーでツールチップが閉じる', async () => {
-      const wrapper = createWrapper({ userName: '' })
-      await wrapper.trigger('mouseenter')
-
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-      await nextTick()
-
-      expect(wrapper.find('.guest-tooltip').exists()).toBe(false)
+      renderShareButton()
+      expect(shareTrigger()).toHaveAttribute('aria-disabled', 'false')
     })
   })
 
@@ -218,62 +249,24 @@ describe('ShareButton', () => {
 
   describe('印刷メニュー統合', () => {
     it('メニュー内に「印刷する」が表示される', async () => {
-      const wrapper = createWrapper()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
+      const user = userEvent.setup()
+      renderShareButton()
 
-      const printItem = wrapper.findComponent(MenuItemButton)
-      expect(printItem.exists()).toBe(true)
-      expect(printItem.props('text')).toBe('印刷する')
-      expect(printItem.props('icon')).toBe('fa-solid fa-print')
+      await user.click(shareTrigger())
+
+      expect(screen.getByRole('button', { name: '印刷する' })).toBeInTheDocument()
     })
 
-    it('「印刷する」クリックで window.print が呼ばれ、メニューが閉じる', async () => {
+    it('「印刷する」の選択で window.print が呼ばれる', async () => {
+      const user = userEvent.setup()
       const printSpy = vi.fn()
       window.print = printSpy
-      const wrapper = createWrapper()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
+      renderShareButton()
+      await user.click(shareTrigger())
 
-      await wrapper.findComponent(MenuItemButton).trigger('click')
+      await user.click(screen.getByRole('button', { name: '印刷する' }))
 
       expect(printSpy).toHaveBeenCalledOnce()
-      expect(wrapper.find('[role="menu"]').exists()).toBe(false)
-    })
-  })
-
-  // ─── 共有メニュー自体の外側クリック/Esc対応 ─────────────────────────
-
-  describe('共有メニューの外側クリック/Esc対応', () => {
-    it('メニュー表示中に外側クリックで閉じる', async () => {
-      const wrapper = createWrapper()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-      expect(wrapper.find('[role="menu"]').exists()).toBe(true)
-
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await nextTick()
-
-      expect(wrapper.find('[role="menu"]').exists()).toBe(false)
-    })
-
-    it('メニュー表示中に Esc キーで閉じる', async () => {
-      const wrapper = createWrapper()
-      await wrapper.findComponent({ name: 'AnimatedIconButton' }).trigger('click')
-
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-      await nextTick()
-
-      expect(wrapper.find('[role="menu"]').exists()).toBe(false)
-    })
-
-    it('ゲスト状態でツールチップ表示中に、メニューが誤って開閉しない', async () => {
-      const wrapper = createWrapper({ userName: '' })
-      await wrapper.trigger('mouseenter')
-      expect(wrapper.find('.guest-tooltip').exists()).toBe(true)
-      expect(wrapper.find('[role="menu"]').exists()).toBe(false)
-
-      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await nextTick()
-
-      expect(wrapper.find('[role="menu"]').exists()).toBe(false)
     })
   })
 })
