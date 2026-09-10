@@ -20,9 +20,7 @@ const emit = defineEmits<{
 
 <template>
   <section>
-    <h3 class="text-lg leading-relaxed font-semibold">
-      Q{{ questionNumber }}. {{ question.title }}
-    </h3>
+    <h3 class="text-lg leading-relaxed font-bold">Q{{ questionNumber }}. {{ question.title }}</h3>
     <p class="text-sm text-muted-foreground">{{ question.prompt }}</p>
     <div class="mt-4 flex flex-col gap-4">
       <AnswerItem

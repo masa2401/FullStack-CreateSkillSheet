@@ -112,7 +112,7 @@ watch(showEditButton, (visible) => {
       >
         <div
           data-slot="edit-progress-fill"
-          class="h-full bg-primary transition-[width] ease-linear motion-reduce:transition-none"
+          class="h-full bg-primary transition-[width] ease-linear"
           :class="isEditProgressCollapsed ? 'w-0' : 'w-full'"
           :style="{ transitionDuration: `${editableWindowMs}ms` }"
         ></div>

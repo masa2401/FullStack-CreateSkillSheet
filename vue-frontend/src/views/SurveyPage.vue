@@ -138,7 +138,7 @@ const handleSubmit = async (): Promise<void> => {
       <p
         v-if="isSubmitDisabled"
         data-slot="submit-hint"
-        class="text-center text-sm font-semibold text-destructive motion-safe:animate-pulse"
+        class="animate-pulse text-center text-sm font-bold text-destructive"
       >
         <font-awesome-icon
           icon="fa-solid fa-triangle-exclamation"

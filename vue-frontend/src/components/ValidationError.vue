@@ -77,7 +77,7 @@ const groupedErrors = computed<GroupedError[]>(() => {
             <span class="flex flex-col">
               <span class="flex flex-wrap items-center gap-1">
                 <strong class="font-bold">{{ group.category }}</strong>
-                <span class="text-sm font-semibold">（{{ group.count }}件）</span>
+                <span class="text-sm font-bold">（{{ group.count }}件）</span>
               </span>
               <span
                 v-if="group.text"

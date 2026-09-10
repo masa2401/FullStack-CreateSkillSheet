@@ -180,7 +180,7 @@ const errorMessage = computed(() => {
             :key="question.id"
           >
             <h4
-              class="mb-3 leading-relaxed font-semibold print:mb-2 print:break-inside-avoid print:break-after-avoid print:text-base"
+              class="mb-3 leading-relaxed font-bold print:mb-2 print:break-inside-avoid print:break-after-avoid print:text-base"
             >
               {{ question.title }}
             </h4>

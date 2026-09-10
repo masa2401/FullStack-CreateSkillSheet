@@ -38,7 +38,7 @@ const { goToSurvey } = useAppNavigation()
     </Card>
 
     <section class="mt-10">
-      <h2 class="flex items-center justify-center gap-2 text-center text-lg font-semibold">
+      <h2 class="flex items-center justify-center gap-2 text-center text-lg font-bold">
         <MousePointerClick
           class="size-5 shrink-0"
           aria-hidden="true"

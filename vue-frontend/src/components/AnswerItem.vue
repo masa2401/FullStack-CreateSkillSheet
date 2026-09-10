@@ -88,7 +88,7 @@ const handleLevelChange = (level: AcceptableValue): void => {
         </RadioGroup>
         <span
           v-if="!value && isFlagged"
-          class="mt-2 block animate-shake text-center text-sm font-semibold text-destructive"
+          class="mt-2 block animate-shake text-center text-sm font-bold text-destructive"
         >
           <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
           習熟度を選択してください
