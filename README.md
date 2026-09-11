@@ -62,7 +62,7 @@ graph TD
     Developer[開発者]
 
     subgraph LambdaDeploy [AWS Lambdaのデプロイ]
-        LocalDocker[ローカル Docker]
+        GHALambda[GitHub Actions<br>ビルド/デプロイ]
         ECR[Amazon ECR]
         Lambda[AWS Lambda]
     end
@@ -76,9 +76,9 @@ graph TD
     end
 
     %% アプリ本体のデプロイフロー
-    Developer -->|PR作成とMainマージ| GitHub
-    GitHub -->|フロント/バックエンドテスト| GHATest
-    GHATest -->|テスト成功でデプロイ処理起動| GHADeploy
+    GHATest -->|aws-lambda配下に変更がある時のみ起動| GHALambda
+    GHALambda -->|OIDCでAWS認証しイメージPush| ECR
+    ECR -->|update-function-codeで適用| Lambda
     GHADeploy -->|DockerイメージPush| GHCR
     GHADeploy -->|Railway CLIでデプロイ実行| Railway
     GHCR -.->|イメージ参照| Railway
@@ -177,8 +177,8 @@ graph TD
 
   課題：Lambda環境でPuppeteerを安定動作させるには、依存ライブラリを含めた環境構築が必要。特に日本語フォント表示は軽量ランタイム（@sparticuz/chromium）ではシステムのfontconfigが反映されず崩れることが判明  
   検討：軽量ランタイムでのフォント埋め込み対応も試みたが、安定した日本語表示を優先し、フル版Puppeteer（Chrome for Testing）を採用する方針に転換  
-  対策：Dockerでコンテナ化し、ローカルビルド→Amazon ECR→Lambdaへ手動デプロイ  
-  結果：サーバーレス運用の仕組みを一連の流れで理解・実践（現在自動化済）
+  対策：Dockerでコンテナ化。当初はローカルビルド→Amazon ECR→Lambdaへ手動デプロイし、現在はGitHub ActionsからOIDCでAWSへ認証してECRへPush、`update-function-code`で適用する流れに自動化  
+  結果：サーバーレス運用の仕組みを手動で一通り理解したうえで、CI/CDへ載せ替え
 
 ### その他の設計判断（バックエンド／インフラ）
 

@@ -2,13 +2,37 @@ name: Build and Deploy Backend to Railway
 
 on:
   workflow_run:
-    workflows: ["Fullstack Automated Tests"]
+    workflows: ['Fullstack Automated Tests']
     types: [completed]
     branches: [main]
 
 jobs:
-  build-and-deploy:
+  flags:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      backend: ${{ steps.read.outputs.backend }}
+      lambda: ${{ steps.read.outputs.lambda }}
+    steps:
+      - name: Download deploy flags artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: deploy-flags
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read flags
+        id: read
+        run: |
+          echo "backend=$(cat backend-changed.txt)" >> "$GITHUB_OUTPUT"
+          echo "lambda=$(cat lambda-changed.txt)" >> "$GITHUB_OUTPUT"
+
+  build-and-deploy:
+    needs: flags
+    if: needs.flags.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -53,60 +77,48 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
   build-and-deploy-lambda:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: flags
+    if: needs.flags.outputs.lambda == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
-      actions: read
 
     steps:
-      - name: Download lambda-changed flag artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: lambda-changed-flag
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Read flag
-        id: flag
-        run: echo "changed=$(cat lambda-changed.txt)" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
-        if: steps.flag.outputs.changed == 'true'
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS credentials via OIDC
-        if: steps.flag.outputs.changed == 'true'
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-northeast-1
 
       - name: Log in to Amazon ECR
-        if: steps.flag.outputs.changed == 'true'
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set up Docker Buildx
-        if: steps.flag.outputs.changed == 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Build and push Lambda image
-        if: steps.flag.outputs.changed == 'true'
         uses: docker/build-push-action@v7
         with:
           context: ./aws-lambda
           file: ./aws-lambda/Dockerfile
           push: true
+          # Lambda は OCI Image Index（Manifest List）に非対応で、
+          # Docker v2 manifest しか受け付けない。buildx は既定で provenance / sbom の
+          # attestation を付け、その結果 OCI Image Index になってしまうため明示的に無効化する。
+          provenance: false
+          sbom: false
           tags: ${{ steps.ecr-login.outputs.registry }}/skillsheet-pdf-generator:latest
           cache-from: type=gha,scope=lambda
           cache-to: type=gha,mode=max,scope=lambda
 
       - name: Update Lambda function code
-        if: steps.flag.outputs.changed == 'true'
         run: |
           aws lambda update-function-code \
             --function-name skillsheet-pdf-generator \
