@@ -1,6 +1,6 @@
 {
   "name": "skillsheet-pdf-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "スキルシート結果ページをPDF化してS3にアップロードするLambda関数",
