@@ -32,8 +32,8 @@ const PRESIGNED_URL_EXPIRES_SECONDS = Number(
 const s3 = new S3Client({});
 
 /**
- * 渡されたURLが許可オリジン配下かを検証する（SSRF対策の多重防御）。
- * 検証を通過した正規化済みURL文字列を返す。
+ * 渡されたURLが許可オリジン配下かを検証する（SSRF対策の多重防御）
+ * 検証を通過した正規化済みURL文字列を返す
  */
 function assertAllowedUrl(rawUrl: string): string {
   if (!ALLOWED_ORIGIN) {
@@ -53,7 +53,7 @@ function assertAllowedUrl(rawUrl: string): string {
 }
 
 /**
- * ファイル名として安全な文字列に変換する（S3のContent-Disposition用）。
+ * ファイル名として安全な文字列に変換する（S3のContent-Disposition用）
  */
 function sanitizeFileName(name: string | undefined): string {
   if (!name) return 'skillsheet';
