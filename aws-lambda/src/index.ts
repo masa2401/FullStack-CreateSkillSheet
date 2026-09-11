@@ -60,7 +60,6 @@ function sanitizeFileName(name: string | undefined): string {
   return name.replace(/[^\w\-ぁ-んァ-ヶ一-龠々ー]/g, '_').slice(0, 50);
 }
 
-// シンプルなUUID形式チェック（S3キーとして安全に使うための最低限のバリデーション）
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -93,13 +92,22 @@ export const handler = async (
   try {
     const page = await browser.newPage();
 
-    // 結果ページへ遷移し、データ取得（バックエンドAPI呼び出し）を含めて描画が終わるまで待つ
+    await page.emulateMediaFeatures([
+      { name: 'prefers-color-scheme', value: 'light' },
+    ]);
+
     await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 20000 });
 
-    // ローディング状態のまま描画されていないかを確認する簡易ガード
-    await page.waitForSelector('.page-container', { timeout: 10000 });
+    await page.waitForSelector('[data-pdf-ready], [data-pdf-error]', {
+      timeout: 10000,
+    });
 
-    // 印刷用CSS（@media print）を適用させる
+    if ((await page.$('[data-pdf-error]')) !== null) {
+      throw new Error(
+        `シートを描画できませんでした（期限切れ／未存在の可能性）: id=${id}`,
+      );
+    }
+
     await page.emulateMediaType('print');
 
     const pdfBuffer = await page.pdf({
