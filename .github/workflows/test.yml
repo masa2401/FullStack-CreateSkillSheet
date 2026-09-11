@@ -2,14 +2,24 @@ name: Fullstack Automated Tests
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
     paths-ignore:
-      - "README.md"
+      - 'README.md'
   pull_request:
-    branches: ["main"]
+    branches: ['main']
     paths-ignore:
-      - "README.md"
+      - 'README.md'
   workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'テスト成功後に再デプロイする対象'
+        type: choice
+        default: 'none'
+        options:
+          - none
+          - backend
+          - lambda
+          - all
 
 permissions:
   contents: read
@@ -56,8 +66,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: './vue-frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -92,8 +102,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: './vue-frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -140,24 +150,44 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: "maven"
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Run Backend tests (Maven)
         run: mvn test
         working-directory: ./spring-backend
 
-  lambda-changed-flag:
+  deploy-flags:
     needs: changes
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Save flag to file
-        run: echo "${{ needs.changes.outputs.lambda }}" > lambda-changed.txt
+      - name: Save flags to files (push)
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p flags
+          echo "${{ needs.changes.outputs.backend }}" > flags/backend-changed.txt
+          echo "${{ needs.changes.outputs.lambda }}" > flags/lambda-changed.txt
 
-      - name: Upload flag as artifact
+      - name: Save flags to files (manual)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TARGET: ${{ inputs.deploy_target }}
+        run: |
+          backend=false
+          lambda=false
+          case "$TARGET" in
+            backend) backend=true ;;
+            lambda) lambda=true ;;
+            all) backend=true; lambda=true ;;
+          esac
+          mkdir -p flags
+          echo "$backend" > flags/backend-changed.txt
+          echo "$lambda" > flags/lambda-changed.txt
+
+      - name: Upload flags as artifact
         uses: actions/upload-artifact@v7
         with:
-          name: lambda-changed-flag
-          path: lambda-changed.txt
+          name: deploy-flags
+          path: flags/
