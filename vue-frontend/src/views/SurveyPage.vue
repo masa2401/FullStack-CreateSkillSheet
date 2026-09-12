@@ -63,9 +63,9 @@ const handleSubmit = async (): Promise<void> => {
   <div class="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
     <Card>
       <CardContent class="space-y-4">
-        <p class="flex items-center justify-center gap-2 text-center leading-relaxed">
+        <p class="flex items-start justify-center gap-2 text-center leading-relaxed">
           <Check
-            class="size-4 shrink-0"
+            class="mt-[5px] size-4 shrink-0"
             aria-hidden="true"
           />
           以下の質問で該当する項目を選択後、習熟度を5段階で選択してください。
