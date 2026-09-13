@@ -9,7 +9,8 @@
 ## 概要
 
 本アプリは、就職活動における自己PRや、社内メンバーの技術レベルを効率的に把握・管理することを目的としたスキルシート作成ツールです。  
-元々フロントエンド（Vue3 + TypeScript）で制作したシステムに対し、実務運用を想定した機能拡張を行うため、バックエンド（Spring Boot）およびデータベースを接続してフルスタックな構成へと刷新しました。
+元々フロントエンド（Vue3 + TypeScript）で制作したシステムに対し、実務運用を想定した機能拡張を行うため、\
+バックエンド（Spring Boot）およびデータベースを接続してフルスタックな構成へと刷新しました。
 
 [【 旧開発リポジトリ（フロントエンド） 】](https://github.com/masa2401/CreateYourSkillSheet)
 
@@ -59,7 +60,7 @@
 ### デプロイフロー
 
 ```mermaid
-graph LR
+graph TD
     Merge[mainへマージ]
     Vercel[Vercel<br>フロントエンド]
     Test[GitHub Actions<br>自動テスト]
