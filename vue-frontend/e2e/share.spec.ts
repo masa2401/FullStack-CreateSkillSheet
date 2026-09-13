@@ -142,6 +142,26 @@ test.describe('PDF生成', () => {
   })
 })
 
+test.describe('Lambdaとの連携用属性', () => {
+  test('描画が完了すると data-pdf-ready が付与される', async ({ resultPage, page }) => {
+    await resultPage.seedAndGoto(buildMinimalSurveyState('山田太郎'))
+
+    await expect(page.locator('[data-pdf-ready]')).toBeAttached()
+    await expect(page.locator('[data-pdf-error]')).toHaveCount(0)
+  })
+
+  test('シートを取得できなかった場合は data-pdf-error が付与される', async ({
+    resultPage,
+    page,
+  }) => {
+    await mockSharedSheet(page, 'expired', { userName: 'テストユーザー', expiryDays: 5 })
+    await resultPage.gotoWithId('expired-id')
+
+    await expect(page.locator('[data-pdf-error]')).toBeAttached()
+    await expect(page.locator('[data-pdf-ready]')).toHaveCount(0)
+  })
+})
+
 test.describe('ゲストゲート', () => {
   test('名前未入力の共有・印刷ボタンはホバーで理由が提示され、クリックしてもメニューが開かない', async ({
     resultPage,

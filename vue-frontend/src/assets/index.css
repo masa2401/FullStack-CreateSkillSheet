@@ -144,12 +144,12 @@
   body {
     @apply bg-background font-sans text-foreground;
   }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
-/* OS 側でモーション低減が有効な場合、アニメーションと transition を実質無効化する。
-   0 ではなく 0.01ms にすることで transitionend / animationend は発火し、
-   Vue の <transition> がフェーズを正しく完了できる。
-   なお JS で指定する scrollTo / scrollIntoView の behavior: 'smooth' には効かない。 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
