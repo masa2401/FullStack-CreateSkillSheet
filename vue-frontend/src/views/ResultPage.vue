@@ -169,7 +169,7 @@ const errorMessage = computed(() => {
       <Card
         v-for="category in displayCategories"
         :key="category.id"
-        class="gap-4 print:rounded-none print:box-decoration-clone print:py-4 print:shadow-none"
+        class="gap-4 print:block print:rounded-none print:py-4 print:[&>*+*]:mt-4"
       >
         <CardHeader>
           <div class="flex items-center justify-center gap-2">

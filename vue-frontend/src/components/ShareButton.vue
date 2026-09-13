@@ -102,7 +102,7 @@ const handlePdfDownload = (): void => {
       align="center"
       side="top"
       :side-offset="8"
-      class="min-w-[200px] print:hidden"
+      class="min-w-50 print:hidden"
     >
       <MenuItemButton
         icon="fa-solid fa-print"

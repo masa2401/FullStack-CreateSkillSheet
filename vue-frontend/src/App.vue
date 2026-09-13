@@ -9,9 +9,9 @@ usePrintColorScheme()
 
 <template>
   <TooltipProvider>
-    <div class="flex min-h-svh flex-col">
+    <div class="flex min-h-svh flex-col print:min-h-0">
       <TheHeader />
-      <main class="flex flex-1 flex-col">
+      <main class="flex flex-1 flex-col print:block">
         <router-view v-slot="{ Component }">
           <transition
             mode="out-in"
