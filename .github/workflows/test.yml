@@ -2,19 +2,19 @@ name: Fullstack Automated Tests
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
     paths-ignore:
-      - "**.md"
+      - '**.md'
   pull_request:
-    branches: ["main"]
+    branches: ['main']
     paths-ignore:
-      - "**.md"
+      - '**.md'
   workflow_dispatch:
     inputs:
       deploy_target:
-        description: "テスト成功後に再デプロイする対象"
+        description: 'テスト成功後に再デプロイする対象'
         type: choice
-        default: "none"
+        default: 'none'
         options:
           - none
           - backend
@@ -66,11 +66,23 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: './vue-frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
+        working-directory: ./vue-frontend
+
+      - name: Check install script approvals
+        run: |
+          pending=$(npm install-scripts ls)
+          stale=$(npm install-scripts prune --dry-run)
+          if [ -n "$pending" ] || [ -n "$stale" ]; then
+            [ -n "$pending" ] && echo "未承認: $pending"
+            [ -n "$stale" ] && echo "陳腐化: $stale"
+            echo "::error::allowScripts の見直しが必要です。"
+            exit 1
+          fi
         working-directory: ./vue-frontend
 
       - name: Type check
@@ -102,8 +114,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: './vue-frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -150,9 +162,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: "maven"
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Run Backend tests (Maven)
         run: mvn test
