@@ -69,20 +69,62 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './vue-frontend/package-lock.json'
 
+      # setup-node が入れる Node 24.x の同梱 npm は実行時点の解決結果に依存し、
+      # v11 になることも v12 になることもある。install-scripts は v12 のコマンドなので明示的に固定する。
+      - name: Pin npm to v12
+        run: |
+          npm i -g npm@12
+          npm --version
+
       - name: Install dependencies
         run: npm ci
         working-directory: ./vue-frontend
 
       - name: Check install script approvals
         run: |
-          pending=$(npm install-scripts ls)
-          stale=$(npm install-scripts prune --dry-run)
-          if [ -n "$pending" ] || [ -n "$stale" ]; then
-            [ -n "$pending" ] && echo "未承認: $pending"
-            [ -n "$stale" ] && echo "陳腐化: $stale"
-            echo "::error::allowScripts の見直しが必要です。"
+          pending="$RUNNER_TEMP/install-scripts-pending.json"
+          stale="$RUNNER_TEMP/install-scripts-stale.json"
+
+          ls_code=0
+          npm install-scripts ls --json > "$pending" 2>&1 || ls_code=$?
+          prune_code=0
+          npm install-scripts prune --dry-run --json > "$stale" 2>&1 || prune_code=$?
+
+          count_entries() {
+            node -e '
+              const fs = require("fs");
+              let raw = "";
+              try { raw = fs.readFileSync(process.argv[1], "utf8").trim(); } catch { process.exit(2); }
+              if (raw === "") { console.log(0); process.exit(0); }
+              let data;
+              try { data = JSON.parse(raw); } catch { process.exit(2); }
+              if (data === null) console.log(0);
+              else if (Array.isArray(data)) console.log(data.length);
+              else if (typeof data === "object") console.log(Object.keys(data).length);
+              else console.log(0);
+            ' "$1"
+          }
+
+          parse_failed=0
+          pending_count=$(count_entries "$pending") || parse_failed=1
+          stale_count=$(count_entries "$stale") || parse_failed=1
+
+          echo "npm install-scripts ls -> exit=$ls_code"
+          cat "$pending"
+          echo "npm install-scripts prune --dry-run -> exit=$prune_code"
+          cat "$stale"
+
+          if [ "$parse_failed" -ne 0 ]; then
+            echo "::error::npm install-scripts の出力を JSON として解釈できませんでした。上のログを確認してください。"
             exit 1
           fi
+
+          if [ "$pending_count" -ne 0 ] || [ "$stale_count" -ne 0 ]; then
+            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${stale_count} 件）。"
+            exit 1
+          fi
+
+          echo "allowScripts は現在の依存ツリーと一致しています。"
         working-directory: ./vue-frontend
 
       - name: Type check
@@ -169,6 +211,93 @@ jobs:
       - name: Run Backend tests (Maven)
         run: mvn test
         working-directory: ./spring-backend
+
+  lambda-build-check:
+    needs: changes
+    if: needs.changes.outputs.lambda == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/aws-lambda/.cache/puppeteer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: './aws-lambda/package-lock.json'
+
+      - name: Pin npm to v12
+        run: |
+          npm i -g npm@12
+          npm --version
+
+      # Chrome for Testing を毎回取得させたいのでキャッシュは意図的に持たない。
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./aws-lambda
+
+      - name: Check install script approvals
+        run: |
+          pending="$RUNNER_TEMP/install-scripts-pending.json"
+          stale="$RUNNER_TEMP/install-scripts-stale.json"
+
+          ls_code=0
+          npm install-scripts ls --json > "$pending" 2>&1 || ls_code=$?
+          prune_code=0
+          npm install-scripts prune --dry-run --json > "$stale" 2>&1 || prune_code=$?
+
+          count_entries() {
+            node -e '
+              const fs = require("fs");
+              let raw = "";
+              try { raw = fs.readFileSync(process.argv[1], "utf8").trim(); } catch { process.exit(2); }
+              if (raw === "") { console.log(0); process.exit(0); }
+              let data;
+              try { data = JSON.parse(raw); } catch { process.exit(2); }
+              if (data === null) console.log(0);
+              else if (Array.isArray(data)) console.log(data.length);
+              else if (typeof data === "object") console.log(Object.keys(data).length);
+              else console.log(0);
+            ' "$1"
+          }
+
+          parse_failed=0
+          pending_count=$(count_entries "$pending") || parse_failed=1
+          stale_count=$(count_entries "$stale") || parse_failed=1
+
+          echo "npm install-scripts ls -> exit=$ls_code"
+          cat "$pending"
+          echo "npm install-scripts prune --dry-run -> exit=$prune_code"
+          cat "$stale"
+
+          if [ "$parse_failed" -ne 0 ]; then
+            echo "::error::npm install-scripts の出力を JSON として解釈できませんでした。上のログを確認してください。"
+            exit 1
+          fi
+
+          if [ "$pending_count" -ne 0 ] || [ "$stale_count" -ne 0 ]; then
+            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${stale_count} 件）。"
+            exit 1
+          fi
+
+          echo "allowScripts は現在の依存ツリーと一致しています。"
+        working-directory: ./aws-lambda
+
+      # Dockerfile の COPY --from=builder /build/.cache/puppeteer が成立する条件をここで先取りする。
+      - name: Verify Chrome for Testing was downloaded
+        run: |
+          if [ ! -d "$PUPPETEER_CACHE_DIR" ] || [ -z "$(ls -A "$PUPPETEER_CACHE_DIR")" ]; then
+            echo "::error::Chrome for Testing が未取得です。puppeteer の postinstall がスキップされた可能性があります。"
+            exit 1
+          fi
+          du -sh "$PUPPETEER_CACHE_DIR"
+
+      - name: Build (tsc)
+        run: npm run build
+        working-directory: ./aws-lambda
 
   deploy-flags:
     needs: changes
