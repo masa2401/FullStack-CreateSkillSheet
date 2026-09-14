@@ -7,10 +7,10 @@ import * as apiUtils from '@/utils/api'
 
 import { type UsePdfStatusReturn, usePdfStatus } from './usePdfStatus'
 
-const INITIAL_DELAY_MS = 10_000
-const FAST_INTERVAL_MS = 3_000
-const SLOW_THRESHOLD_MS = 40_000
-const TIMEOUT_MS = 120_000
+const INITIAL_DELAY_MS = 6_000
+const FAST_INTERVAL_MS = 2_000
+const SLOW_THRESHOLD_MS = 20_000
+const TIMEOUT_MS = 60_000
 
 const advanceToFirstPoll = async () => {
   vi.advanceTimersByTime(INITIAL_DELAY_MS)

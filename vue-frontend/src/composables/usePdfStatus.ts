@@ -15,16 +15,16 @@ const durationFromEnv = (raw: unknown, fallbackMs: number): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs
 }
 
-/** Lambdaのコールドスタート（実測16秒前後）を踏まえ、初回ポーリングまで待つ時間 */
-const INITIAL_DELAY_MS = durationFromEnv(import.meta.env.VITE_PDF_INITIAL_DELAY_MS, 10_000)
+/** 初回ポーリングまで待つ時間。生成完了の実測（7秒前後）を下回らない */
+const INITIAL_DELAY_MS = durationFromEnv(import.meta.env.VITE_PDF_INITIAL_DELAY_MS, 6_000)
 /** `generating` の間のポーリング間隔 */
-const FAST_INTERVAL_MS = durationFromEnv(import.meta.env.VITE_PDF_FAST_INTERVAL_MS, 3_000)
+const FAST_INTERVAL_MS = durationFromEnv(import.meta.env.VITE_PDF_FAST_INTERVAL_MS, 2_000)
 /** `slow` に移ってからのポーリング間隔 */
 const SLOW_INTERVAL_MS = 5_000
 /** ここを超えたら `slow` へ。進捗バーが100%になる時刻でもある */
-const SLOW_THRESHOLD_MS = 40_000
-/** 通算の打ち切り時間 */
-const TIMEOUT_MS = 120_000
+const SLOW_THRESHOLD_MS = 20_000
+/** 通算の打ち切り時間。Lambda 側のタイムアウト（30秒）＋往復のマージン。 */
+const TIMEOUT_MS = 60_000
 /** 進捗バーの更新間隔 */
 const PROGRESS_TICK_MS = 200
 

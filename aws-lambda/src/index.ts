@@ -96,7 +96,10 @@ export const handler = async (
       { name: 'prefers-color-scheme', value: 'light' },
     ]);
 
-    await page.goto(targetUrl, { waitUntil: 'networkidle0', timeout: 20000 });
+    await page.goto(targetUrl, {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000,
+    });
 
     await page.waitForSelector('[data-pdf-ready], [data-pdf-error]', {
       timeout: 10000,
@@ -109,6 +112,7 @@ export const handler = async (
     }
 
     await page.emulateMediaType('print');
+    await page.evaluate(async () => await document.fonts.ready);
 
     const pdfBuffer = await page.pdf({
       format: 'A4',
