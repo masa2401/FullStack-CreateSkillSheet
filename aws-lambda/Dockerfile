@@ -1,19 +1,35 @@
-# ─── ビルドステージ：TypeScript → JavaScript へトランスパイル ───
-FROM node:24-slim AS builder
+# ─── 依存ステージ：本番依存と Chrome for Testing を取得する。
+#     package-lock.json が変わらない限り再実行されないため、
+#     ソースや tsconfig の変更で Chrome が再ダウンロードされることがない。 ───
+FROM node:24-slim AS deps
 
-RUN apt-get update && apt-get install -y unzip
+# @puppeteer/browsers は yauzl を任意の peer dependency として扱い、
+# 未インストール時は系統の unzip で Chrome の zip を展開する。削除しないこと。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PUPPETEER_CACHE_DIR=/build/.cache/puppeteer
 
 WORKDIR /build
 
-COPY package.json package-lock.json tsconfig.json ./
-RUN npm ci
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
+
+# ─── ビルドステージ：TypeScript → JavaScript へトランスパイル。
+#     tsc しか使わないため --ignore-scripts を付け、
+#     deps ステージと二重に Chrome を取得することを避ける。 ───
+FROM node:24-slim AS builder
+
+WORKDIR /build
+
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
+
+COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
-
-RUN npm ci --omit=dev
 
 
 # ─── 実行ステージ：Lambda用ベースイメージ ───
@@ -47,8 +63,8 @@ ENV PUPPETEER_CACHE_DIR=/opt/puppeteer-cache
 WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY --from=builder /build/dist ./
-COPY --from=builder /build/node_modules ./node_modules
-COPY --from=builder /build/package.json ./
-COPY --from=builder /build/.cache/puppeteer /opt/puppeteer-cache
+COPY --from=deps /build/node_modules ./node_modules
+COPY --from=deps /build/package.json ./
+COPY --from=deps /build/.cache/puppeteer /opt/puppeteer-cache
 
 CMD ["index.handler"]
