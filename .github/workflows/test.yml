@@ -82,45 +82,57 @@ jobs:
 
       - name: Check install script approvals
         run: |
-          pending="$RUNNER_TEMP/install-scripts-pending.json"
-          stale="$RUNNER_TEMP/install-scripts-stale.json"
+          pending_json="$RUNNER_TEMP/is-pending.json"
+          pending_err="$RUNNER_TEMP/is-pending.err"
+          stale_json="$RUNNER_TEMP/is-stale.json"
+          stale_err="$RUNNER_TEMP/is-stale.err"
 
           ls_code=0
-          npm install-scripts ls --json > "$pending" 2>&1 || ls_code=$?
+          npm install-scripts ls --json > "$pending_json" 2> "$pending_err" || ls_code=$?
           prune_code=0
-          npm install-scripts prune --dry-run --json > "$stale" 2>&1 || prune_code=$?
+          npm install-scripts prune --dry-run --json > "$stale_json" 2> "$stale_err" || prune_code=$?
 
-          count_entries() {
-            node -e '
-              const fs = require("fs");
-              let raw = "";
-              try { raw = fs.readFileSync(process.argv[1], "utf8").trim(); } catch { process.exit(2); }
-              if (raw === "") { console.log(0); process.exit(0); }
-              let data;
-              try { data = JSON.parse(raw); } catch { process.exit(2); }
-              if (data === null) console.log(0);
-              else if (Array.isArray(data)) console.log(data.length);
-              else if (typeof data === "object") console.log(Object.keys(data).length);
-              else console.log(0);
-            ' "$1"
+          echo "--- npm install-scripts ls --json (exit=$ls_code) ---"
+          cat "$pending_err" "$pending_json"
+          echo "--- npm install-scripts prune --dry-run --json (exit=$prune_code) ---"
+          cat "$stale_err" "$stale_json"
+
+          counts=$(node -e '
+            const fs = require("fs");
+            const load = (p) => {
+              const raw = fs.readFileSync(p, "utf8").trim();
+              return raw === "" ? null : JSON.parse(raw);
+            };
+            let pending, stale;
+            try {
+              pending = load(process.argv[1]);
+              stale = load(process.argv[2]);
+            } catch (e) {
+              console.error("JSON として解釈できませんでした: " + e.message);
+              process.exit(2);
+            }
+            const pendingList = (pending && pending.allowScripts) || [];
+            const removedList = (stale && stale.allowScripts && stale.allowScripts.removed) || [];
+            if (!Array.isArray(pendingList) || !Array.isArray(removedList)) {
+              console.error("想定外の JSON 構造です。");
+              process.exit(2);
+            }
+            console.log(pendingList.length + " " + removedList.length);
+          ' "$pending_json" "$stale_json") || {
+            echo "::error::npm install-scripts の出力を解釈できませんでした。上のログを確認してください。"
+            exit 1
           }
 
-          parse_failed=0
-          pending_count=$(count_entries "$pending") || parse_failed=1
-          stale_count=$(count_entries "$stale") || parse_failed=1
+          pending_count=${counts% *}
+          removed_count=${counts#* }
 
-          echo "npm install-scripts ls -> exit=$ls_code"
-          cat "$pending"
-          echo "npm install-scripts prune --dry-run -> exit=$prune_code"
-          cat "$stale"
-
-          if [ "$parse_failed" -ne 0 ]; then
-            echo "::error::npm install-scripts の出力を JSON として解釈できませんでした。上のログを確認してください。"
+          if [ "$pending_count" -ne 0 ] || [ "$removed_count" -ne 0 ]; then
+            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${removed_count} 件）。npm install-scripts approve --no-allow-scripts-pin <pkg> などで解消してください。"
             exit 1
           fi
 
-          if [ "$pending_count" -ne 0 ] || [ "$stale_count" -ne 0 ]; then
-            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${stale_count} 件）。"
+          if [ -s "$pending_err" ] || [ -s "$stale_err" ]; then
+            echo "::error::npm が警告を出力しました。allowScripts のキー記法を確認してください。"
             exit 1
           fi
 
@@ -241,45 +253,57 @@ jobs:
 
       - name: Check install script approvals
         run: |
-          pending="$RUNNER_TEMP/install-scripts-pending.json"
-          stale="$RUNNER_TEMP/install-scripts-stale.json"
+          pending_json="$RUNNER_TEMP/is-pending.json"
+          pending_err="$RUNNER_TEMP/is-pending.err"
+          stale_json="$RUNNER_TEMP/is-stale.json"
+          stale_err="$RUNNER_TEMP/is-stale.err"
 
           ls_code=0
-          npm install-scripts ls --json > "$pending" 2>&1 || ls_code=$?
+          npm install-scripts ls --json > "$pending_json" 2> "$pending_err" || ls_code=$?
           prune_code=0
-          npm install-scripts prune --dry-run --json > "$stale" 2>&1 || prune_code=$?
+          npm install-scripts prune --dry-run --json > "$stale_json" 2> "$stale_err" || prune_code=$?
 
-          count_entries() {
-            node -e '
-              const fs = require("fs");
-              let raw = "";
-              try { raw = fs.readFileSync(process.argv[1], "utf8").trim(); } catch { process.exit(2); }
-              if (raw === "") { console.log(0); process.exit(0); }
-              let data;
-              try { data = JSON.parse(raw); } catch { process.exit(2); }
-              if (data === null) console.log(0);
-              else if (Array.isArray(data)) console.log(data.length);
-              else if (typeof data === "object") console.log(Object.keys(data).length);
-              else console.log(0);
-            ' "$1"
+          echo "--- npm install-scripts ls --json (exit=$ls_code) ---"
+          cat "$pending_err" "$pending_json"
+          echo "--- npm install-scripts prune --dry-run --json (exit=$prune_code) ---"
+          cat "$stale_err" "$stale_json"
+
+          counts=$(node -e '
+            const fs = require("fs");
+            const load = (p) => {
+              const raw = fs.readFileSync(p, "utf8").trim();
+              return raw === "" ? null : JSON.parse(raw);
+            };
+            let pending, stale;
+            try {
+              pending = load(process.argv[1]);
+              stale = load(process.argv[2]);
+            } catch (e) {
+              console.error("JSON として解釈できませんでした: " + e.message);
+              process.exit(2);
+            }
+            const pendingList = (pending && pending.allowScripts) || [];
+            const removedList = (stale && stale.allowScripts && stale.allowScripts.removed) || [];
+            if (!Array.isArray(pendingList) || !Array.isArray(removedList)) {
+              console.error("想定外の JSON 構造です。");
+              process.exit(2);
+            }
+            console.log(pendingList.length + " " + removedList.length);
+          ' "$pending_json" "$stale_json") || {
+            echo "::error::npm install-scripts の出力を解釈できませんでした。上のログを確認してください。"
+            exit 1
           }
 
-          parse_failed=0
-          pending_count=$(count_entries "$pending") || parse_failed=1
-          stale_count=$(count_entries "$stale") || parse_failed=1
+          pending_count=${counts% *}
+          removed_count=${counts#* }
 
-          echo "npm install-scripts ls -> exit=$ls_code"
-          cat "$pending"
-          echo "npm install-scripts prune --dry-run -> exit=$prune_code"
-          cat "$stale"
-
-          if [ "$parse_failed" -ne 0 ]; then
-            echo "::error::npm install-scripts の出力を JSON として解釈できませんでした。上のログを確認してください。"
+          if [ "$pending_count" -ne 0 ] || [ "$removed_count" -ne 0 ]; then
+            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${removed_count} 件）。npm install-scripts approve --no-allow-scripts-pin <pkg> などで解消してください。"
             exit 1
           fi
 
-          if [ "$pending_count" -ne 0 ] || [ "$stale_count" -ne 0 ]; then
-            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${stale_count} 件）。"
+          if [ -s "$pending_err" ] || [ -s "$stale_err" ]; then
+            echo "::error::npm が警告を出力しました。allowScripts のキー記法を確認してください。"
             exit 1
           fi
 
