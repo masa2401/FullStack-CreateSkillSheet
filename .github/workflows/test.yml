@@ -2,19 +2,19 @@ name: Fullstack Automated Tests
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
     paths-ignore:
-      - "**.md"
+      - '**.md'
   pull_request:
-    branches: ["main"]
+    branches: ['main']
     paths-ignore:
-      - "**.md"
+      - '**.md'
   workflow_dispatch:
     inputs:
       deploy_target:
-        description: "テスト成功後に再デプロイする対象"
+        description: 'テスト成功後に再デプロイする対象'
         type: choice
-        default: "none"
+        default: 'none'
         options:
           - none
           - backend
@@ -66,11 +66,77 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: './vue-frontend/package-lock.json'
+
+      # setup-node が入れる Node 24.x の同梱 npm は実行時点の解決結果に依存し、
+      # v11 になることも v12 になることもある。install-scripts は v12 のコマンドなので明示的に固定する。
+      - name: Pin npm to v12
+        run: |
+          npm i -g npm@12
+          npm --version
 
       - name: Install dependencies
         run: npm ci
+        working-directory: ./vue-frontend
+
+      - name: Check install script approvals
+        run: |
+          pending_json="$RUNNER_TEMP/is-pending.json"
+          pending_err="$RUNNER_TEMP/is-pending.err"
+          stale_json="$RUNNER_TEMP/is-stale.json"
+          stale_err="$RUNNER_TEMP/is-stale.err"
+
+          ls_code=0
+          npm install-scripts ls --json > "$pending_json" 2> "$pending_err" || ls_code=$?
+          prune_code=0
+          npm install-scripts prune --dry-run --json > "$stale_json" 2> "$stale_err" || prune_code=$?
+
+          echo "--- npm install-scripts ls --json (exit=$ls_code) ---"
+          cat "$pending_err" "$pending_json"
+          echo "--- npm install-scripts prune --dry-run --json (exit=$prune_code) ---"
+          cat "$stale_err" "$stale_json"
+
+          counts=$(node -e '
+            const fs = require("fs");
+            const load = (p) => {
+              const raw = fs.readFileSync(p, "utf8").trim();
+              return raw === "" ? null : JSON.parse(raw);
+            };
+            let pending, stale;
+            try {
+              pending = load(process.argv[1]);
+              stale = load(process.argv[2]);
+            } catch (e) {
+              console.error("JSON として解釈できませんでした: " + e.message);
+              process.exit(2);
+            }
+            const pendingList = (pending && pending.allowScripts) || [];
+            const removedList = (stale && stale.allowScripts && stale.allowScripts.removed) || [];
+            if (!Array.isArray(pendingList) || !Array.isArray(removedList)) {
+              console.error("想定外の JSON 構造です。");
+              process.exit(2);
+            }
+            console.log(pendingList.length + " " + removedList.length);
+          ' "$pending_json" "$stale_json") || {
+            echo "::error::npm install-scripts の出力を解釈できませんでした。上のログを確認してください。"
+            exit 1
+          }
+
+          pending_count=${counts% *}
+          removed_count=${counts#* }
+
+          if [ "$pending_count" -ne 0 ] || [ "$removed_count" -ne 0 ]; then
+            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${removed_count} 件）。npm install-scripts approve --no-allow-scripts-pin <pkg> などで解消してください。"
+            exit 1
+          fi
+
+          if [ -s "$pending_err" ] || [ -s "$stale_err" ]; then
+            echo "::error::npm が警告を出力しました。allowScripts のキー記法を確認してください。"
+            exit 1
+          fi
+
+          echo "allowScripts は現在の依存ツリーと一致しています。"
         working-directory: ./vue-frontend
 
       - name: Type check
@@ -102,8 +168,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "./vue-frontend/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: './vue-frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -150,13 +216,112 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: "maven"
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Run Backend tests (Maven)
         run: mvn test
         working-directory: ./spring-backend
+
+  lambda-build-check:
+    needs: changes
+    if: needs.changes.outputs.lambda == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/aws-lambda/.cache/puppeteer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: './aws-lambda/package-lock.json'
+
+      - name: Pin npm to v12
+        run: |
+          npm i -g npm@12
+          npm --version
+
+      # Chrome for Testing を毎回取得させたいのでキャッシュは意図的に持たない。
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./aws-lambda
+
+      - name: Check install script approvals
+        run: |
+          pending_json="$RUNNER_TEMP/is-pending.json"
+          pending_err="$RUNNER_TEMP/is-pending.err"
+          stale_json="$RUNNER_TEMP/is-stale.json"
+          stale_err="$RUNNER_TEMP/is-stale.err"
+
+          ls_code=0
+          npm install-scripts ls --json > "$pending_json" 2> "$pending_err" || ls_code=$?
+          prune_code=0
+          npm install-scripts prune --dry-run --json > "$stale_json" 2> "$stale_err" || prune_code=$?
+
+          echo "--- npm install-scripts ls --json (exit=$ls_code) ---"
+          cat "$pending_err" "$pending_json"
+          echo "--- npm install-scripts prune --dry-run --json (exit=$prune_code) ---"
+          cat "$stale_err" "$stale_json"
+
+          counts=$(node -e '
+            const fs = require("fs");
+            const load = (p) => {
+              const raw = fs.readFileSync(p, "utf8").trim();
+              return raw === "" ? null : JSON.parse(raw);
+            };
+            let pending, stale;
+            try {
+              pending = load(process.argv[1]);
+              stale = load(process.argv[2]);
+            } catch (e) {
+              console.error("JSON として解釈できませんでした: " + e.message);
+              process.exit(2);
+            }
+            const pendingList = (pending && pending.allowScripts) || [];
+            const removedList = (stale && stale.allowScripts && stale.allowScripts.removed) || [];
+            if (!Array.isArray(pendingList) || !Array.isArray(removedList)) {
+              console.error("想定外の JSON 構造です。");
+              process.exit(2);
+            }
+            console.log(pendingList.length + " " + removedList.length);
+          ' "$pending_json" "$stale_json") || {
+            echo "::error::npm install-scripts の出力を解釈できませんでした。上のログを確認してください。"
+            exit 1
+          }
+
+          pending_count=${counts% *}
+          removed_count=${counts#* }
+
+          if [ "$pending_count" -ne 0 ] || [ "$removed_count" -ne 0 ]; then
+            echo "::error::allowScripts の見直しが必要です（未承認 ${pending_count} 件 / 陳腐化 ${removed_count} 件）。npm install-scripts approve --no-allow-scripts-pin <pkg> などで解消してください。"
+            exit 1
+          fi
+
+          if [ -s "$pending_err" ] || [ -s "$stale_err" ]; then
+            echo "::error::npm が警告を出力しました。allowScripts のキー記法を確認してください。"
+            exit 1
+          fi
+
+          echo "allowScripts は現在の依存ツリーと一致しています。"
+        working-directory: ./aws-lambda
+
+      # Dockerfile の COPY --from=builder /build/.cache/puppeteer が成立する条件をここで先取りする。
+      - name: Verify Chrome for Testing was downloaded
+        run: |
+          if [ ! -d "$PUPPETEER_CACHE_DIR" ] || [ -z "$(ls -A "$PUPPETEER_CACHE_DIR")" ]; then
+            echo "::error::Chrome for Testing が未取得です。puppeteer の postinstall がスキップされた可能性があります。"
+            exit 1
+          fi
+          du -sh "$PUPPETEER_CACHE_DIR"
+
+      - name: Build (tsc)
+        run: npm run build
+        working-directory: ./aws-lambda
 
   deploy-flags:
     needs: changes

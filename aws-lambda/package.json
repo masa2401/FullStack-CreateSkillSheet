@@ -19,6 +19,6 @@
     "typescript": "^7.0.2"
   },
   "allowScripts": {
-    "puppeteer@25.3.0": true
+    "puppeteer": true
   }
 }

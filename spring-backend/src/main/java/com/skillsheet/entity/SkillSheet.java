@@ -32,6 +32,7 @@ public class SkillSheet {
     @Column(name = "user_name", nullable = false)
     private String userName;
 
+    // 機能拡張時利用予定トークン
     @Column(name = "share_token", unique = true)
     private String shareToken;
 
