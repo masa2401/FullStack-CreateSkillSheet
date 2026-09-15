@@ -12,7 +12,8 @@
 元々フロントエンド（Vue3 + TypeScript）で制作したシステムに対し、実務運用を想定した機能拡張を行うため、\
 バックエンド（Spring Boot）およびデータベースを接続してフルスタックな構成へと刷新しました。
 
-[【 旧開発リポジトリ（フロントエンド） 】](https://github.com/masa2401/CreateYourSkillSheet)
+[【 旧開発リポジトリ（フロントエンド） 】](https://github.com/masa2401/CreateYourSkillSheet)\
+フロントエンド版からの移行過程は、両リポジトリのコミットログから辿れます。
 
 ## 本アプリで意識したポイント
 
