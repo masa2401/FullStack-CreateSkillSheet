@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
+import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { faCopy, faHouse } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft,
@@ -34,6 +35,7 @@ library.add(
   faCheck,
   faCopy,
   faSpinner,
+  faGithub,
 )
 
 const pinia = createPinia()
