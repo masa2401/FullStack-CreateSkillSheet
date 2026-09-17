@@ -11,10 +11,8 @@ import {
  * 録画の前に本番のバックエンド（Railway）と PDF 生成（Lambda）を起動しておく。
  * コールドスタート中は生成がアプリ側の打ち切り（60秒）に間に合わず失敗するため、
  * ここで一度 PDF を作り切ってから share-flow を録画する。
- * ファイル名の番号順で最初に実行される。録画はしない。
+ * 実行順と録画の無効化は `playwright.capture.config.ts` の warmup プロジェクトで指定する。
  */
-test.use({ video: 'off' })
-
 test('本番環境の暖機', async ({ page }) => {
   // 打ち切りからの再試行を含めて待つ
   test.setTimeout(180_000)

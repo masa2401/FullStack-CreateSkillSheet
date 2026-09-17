@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "capture": "playwright test --config=playwright.capture.config.ts",
-    "capture:gif": "node capture/make-gif.mjs"
+    "capture:convert": "node capture/convert.mjs",
+    "capture:publish": "node capture/publish.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",

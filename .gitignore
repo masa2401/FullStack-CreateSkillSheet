@@ -79,10 +79,9 @@ vue-frontend/blob-report/
 vue-frontend/playwright/.cache/
 vue-frontend/playwright/.auth/
 
-# README 用GIF（capture/ の録画結果と変換後のGIF）
-# GIF は GitHub のコメント添付で公開し、リポジトリには含めない
-docs/videos/
-docs/images/
+# README 用メディアの撮影結果（capture/ の録画・変換結果）
+# 公開は media ブランチで行い、作業ブランチには含めない
+vue-frontend/capture/output/
 
 # Environment Variables (Crucial Secret Protection)
 vue-frontend/.env

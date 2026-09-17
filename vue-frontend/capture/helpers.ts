@@ -1,11 +1,11 @@
-import type { Locator, Page } from '@playwright/test'
+import { type Locator, type Page, test } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 import type { CategorySelection } from '@/types'
 
-/** 録画の保存先。README から参照する `docs/` に揃え、リポジトリ直下を基準にする */
-const VIDEO_DIR = fileURLToPath(new URL('../../docs/videos/', import.meta.url))
+/** 録画と変換結果の出力先（.gitignore 対象）。`convert.mjs` / `publish.mjs` と揃える */
+const OUTPUT_DIR = fileURLToPath(new URL('./output/', import.meta.url))
 
 /**
  * 撮影で使う回答。survey-flow の操作結果（Slack 4 / TypeScript 4）と同じ内容で、
@@ -29,7 +29,7 @@ export const SURVEY_SELECTIONS: CategorySelection[] = [
 const TRIM_MARGIN_SEC = 0.1
 
 export interface Recorder {
-  /** 画面の描画が済んだ時点で呼ぶ。ここより前（空白ページ・読み込み中）を GIF から削る */
+  /** 画面の描画が済んだ時点で呼ぶ。ここより前（空白ページ・読み込み中）を変換時に削る */
   markReady: () => void
   /** ページを閉じて WebM と切り出し位置（JSON）を保存する */
   save: () => Promise<void>
@@ -38,10 +38,12 @@ export interface Recorder {
 /**
  * 録画の保存と、冒頭の空白を削るための切り出し位置の記録を受け持つ。
  * 録画はページの生成と同時に始まるため、テスト本体の先頭で作る。
- * 切り出し位置は `capture/make-gif.mjs` が読む。
+ * 保存名にはプロジェクト名（テーマ）を付ける（例: survey-flow-light.webm）。
+ * 切り出し位置は `capture/convert.mjs` が読む。
  */
 export const createRecorder = (page: Page, name: string): Recorder => {
   const startedAt = Date.now()
+  const fileBase = `${OUTPUT_DIR}${name}-${test.info().project.name}`
   let trimStartSec = 0
 
   return {
@@ -49,12 +51,12 @@ export const createRecorder = (page: Page, name: string): Recorder => {
       trimStartSec = (Date.now() - startedAt) / 1000 + TRIM_MARGIN_SEC
     },
     save: async () => {
-      await mkdir(VIDEO_DIR, { recursive: true })
+      await mkdir(OUTPUT_DIR, { recursive: true })
       const video = page.video()
       // saveAs はページが閉じられるまで待つため、先に閉じる
       await page.close()
-      await video?.saveAs(`${VIDEO_DIR}${name}.webm`)
-      await writeFile(`${VIDEO_DIR}${name}.json`, JSON.stringify({ trimStartSec }))
+      await video?.saveAs(`${fileBase}.webm`)
+      await writeFile(`${fileBase}.json`, JSON.stringify({ trimStartSec }))
     },
   }
 }
