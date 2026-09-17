@@ -11,7 +11,7 @@ test('カテゴリ選択から結果表示まで', async ({ page }) => {
     has: page.getByRole('checkbox', { name: 'プログラマ / ITエンジニア' }),
   })
   await engineerCard.waitFor()
-  recorder.markReady()
+  await recorder.start()
   // 冒頭に静止を作る
   await page.waitForTimeout(500)
 

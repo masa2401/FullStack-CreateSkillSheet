@@ -27,7 +27,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-dark.webp">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-light.webp">
-  <img alt="職種カテゴリを選び、設問に回答してスキルシートを表示するまでの操作" src="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-light.webp">
+  <img alt="職種カテゴリを選び、設問に回答してスキルシートを表示するまでの操作" src="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-light.webp" width="720">
 </picture>
 
 ### 2. スキルシートとして確認する
@@ -43,7 +43,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-dark.webp">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-light.webp">
-  <img alt="名前を入力し、共有メニューのPDFダウンロードが使えるようになるまでの操作（2倍速）" src="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-light.webp">
+  <img alt="名前を入力し、共有メニューのPDFダウンロードが使えるようになるまでの操作（2倍速）" src="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-light.webp" width="720">
 </picture>
 
 ### 表示設定

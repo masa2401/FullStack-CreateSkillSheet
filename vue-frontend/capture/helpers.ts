@@ -1,10 +1,10 @@
-import { type Locator, type Page, test } from '@playwright/test'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { type CDPSession, type Locator, type Page, test } from '@playwright/test'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 import type { CategorySelection } from '@/types'
 
-/** 録画と変換結果の出力先（.gitignore 対象）。`convert.mjs` / `publish.mjs` と揃える */
+/** 取り込み画像と変換結果の出力先（.gitignore 対象）。`convert.mjs` / `publish.mjs` と揃える */
 const OUTPUT_DIR = fileURLToPath(new URL('./output/', import.meta.url))
 
 /**
@@ -25,45 +25,73 @@ export const SURVEY_SELECTIONS: CategorySelection[] = [
   { categoryId: 3, isChecked: false, questions: [] },
 ]
 
-/** 画面の描画が済んでから切り出しを始めるまでの余白（秒） */
-const TRIM_MARGIN_SEC = 0.1
+interface ScreencastFrame {
+  /** 取り込み先フォルダ内のファイル名 */
+  file: string
+  /** 画面が描画された時刻（UNIX 時間の秒） */
+  timestamp: number
+}
 
 export interface Recorder {
-  /** 画面の描画が済んだ時点で呼ぶ。ここより前（空白ページ・読み込み中）を変換時に削る */
-  markReady: () => void
-  /** ページを閉じて WebM と切り出し位置（JSON）を保存する */
+  /** 画面の描画が済んだ時点で呼び、取り込みを始める。空白ページや読み込み中は取り込まない */
+  start: () => Promise<void>
+  /** 取り込みを止め、画像の書き込み完了を待ってから frames.json を保存する */
   save: () => Promise<void>
 }
 
 /**
- * 録画の保存と、冒頭の空白を削るための切り出し位置の記録を受け持つ。
- * 録画はページの生成と同時に始まるため、テスト本体の先頭で作る。
- * 保存名にはプロジェクト名（テーマ）を付ける（例: survey-flow-light.webm）。
- * 切り出し位置は `capture/convert.mjs` が読む。
+ * Chromium のスクリーンキャスト機能で、画面が変化するたびに PNG（無劣化）を保存する。
+ * Playwright の動画録画は録画中に圧縮されるため、スクロール時に文字の欠けやブロックノイズが出る。
+ * 変化がない間は画像が届かないため、各画像の表示時間は frames.json の時刻から決める。
+ * 保存先はプロジェクト名（テーマ）付きのフォルダ（例: output/survey-flow-light/）。
+ * 動画録画も同じ仕組みを使うため、`playwright.capture.config.ts` で録画は無効にしている。
  */
 export const createRecorder = (page: Page, name: string): Recorder => {
-  const startedAt = Date.now()
-  const fileBase = `${OUTPUT_DIR}${name}-${test.info().project.name}`
-  let trimStartSec = 0
+  const frameDir = `${OUTPUT_DIR}${name}-${test.info().project.name}/`
+  const frames: ScreencastFrame[] = []
+  const writes: Promise<void>[] = []
+  let session: CDPSession | null = null
+  let isStopped = false
 
   return {
-    markReady: () => {
-      trimStartSec = (Date.now() - startedAt) / 1000 + TRIM_MARGIN_SEC
+    start: async () => {
+      await rm(frameDir, { recursive: true, force: true })
+      await mkdir(frameDir, { recursive: true })
+
+      const client = await page.context().newCDPSession(page)
+      session = client
+      client.on('Page.screencastFrame', ({ data, metadata, sessionId }) => {
+        if (isStopped) return
+        const file = `${String(frames.length).padStart(5, '0')}.png`
+        frames.push({ file, timestamp: metadata.timestamp ?? Date.now() / 1000 })
+        writes.push(writeFile(`${frameDir}${file}`, Buffer.from(data, 'base64')))
+        // 受け取りを返さないと次の画像が届かない。書き込みを待たずに返して取りこぼしを減らす
+        void client.send('Page.screencastFrameAck', { sessionId }).catch(() => {})
+      })
+
+      // 表示倍率2倍で撮るため、上限は viewport の2倍より大きく取る
+      await client.send('Page.startScreencast', {
+        format: 'png',
+        maxWidth: 2000,
+        maxHeight: 2000,
+        everyNthFrame: 1,
+      })
     },
     save: async () => {
-      await mkdir(OUTPUT_DIR, { recursive: true })
-      const video = page.video()
-      // saveAs はページが閉じられるまで待つため、先に閉じる
-      await page.close()
-      await video?.saveAs(`${fileBase}.webm`)
-      await writeFile(`${fileBase}.json`, JSON.stringify({ trimStartSec }))
+      if (session === null) throw new Error('start() を呼ぶ前に save() が呼ばれました')
+      await session.send('Page.stopScreencast')
+      isStopped = true
+      const stoppedAt = Date.now() / 1000
+      await Promise.all(writes)
+      await writeFile(`${frameDir}frames.json`, JSON.stringify({ frames, stoppedAt }))
+      await session.detach()
     },
   }
 }
 
 /**
- * 録画に映る疑似カーソルを仕込む。goto の前に呼ぶ。
- * Playwright の録画にはマウスカーソルが映らないため、DOM で描画する。
+ * 取り込み画像に映る疑似カーソルを仕込む。goto の前に呼ぶ。
+ * スクリーンキャストにはマウスカーソルが映らないため、DOM で描画する。
  */
 export const installCursor = async (page: Page): Promise<void> => {
   await page.addInitScript(() => {
@@ -116,7 +144,7 @@ export const installCursor = async (page: Page): Promise<void> => {
 
 /**
  * 要素が画面外にあれば、中央に来るまでスムーズスクロールする。
- * `scrollIntoViewIfNeeded` は瞬間移動するため、録画では画面が飛んで見える。
+ * `scrollIntoViewIfNeeded` は瞬間移動するため、撮影結果では画面が飛んで見える。
  * スクロールが止まった（5フレーム連続で位置が変わらない）時点で戻る。
  */
 export const smoothScrollTo = async (locator: Locator): Promise<void> => {
@@ -160,7 +188,7 @@ export const slowHover = async (page: Page, locator: Locator): Promise<void> => 
 
 /**
  * カーソルを滑らせてからクリックする。
- * `locator.click()` はカーソルが瞬間移動するため、録画では使わない。
+ * `locator.click()` はカーソルが瞬間移動するため、撮影では使わない。
  */
 export const slowClick = async (page: Page, locator: Locator): Promise<void> => {
   await slowHover(page, locator)

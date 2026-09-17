@@ -8,10 +8,10 @@ import {
 } from './helpers'
 
 /**
- * 録画の前に本番のバックエンド（Railway）と PDF 生成（Lambda）を起動しておく。
+ * 撮影の前に本番のバックエンド（Railway）と PDF 生成（Lambda）を起動しておく。
  * コールドスタート中は生成がアプリ側の打ち切り（60秒）に間に合わず失敗するため、
- * ここで一度 PDF を作り切ってから share-flow を録画する。
- * 実行順と録画の無効化は `playwright.capture.config.ts` の warmup プロジェクトで指定する。
+ * ここで一度 PDF を作り切ってから share-flow を撮影する。
+ * 実行順は `playwright.capture.config.ts` の warmup プロジェクトで指定する。取り込みはしない。
  */
 test('本番環境の暖機', async ({ page }) => {
   // 打ち切りからの再試行を含めて待つ
