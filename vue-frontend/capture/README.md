@@ -46,6 +46,7 @@ npm run capture:publish  # WebP を media ブランチに公開する（確認�
 - 作業ブランチにコミットすると、更新のたびに古いファイルが履歴に残りリポジトリが肥大化する。
 - GitHub のコメント添付は、ログインしていない閲覧者に表示されなかった。
 - そのため、メディアだけを持つ media ブランチを毎回1コミットで作り直し、`raw.githubusercontent.com` から参照する。
+- media ブランチには `vue-frontend/vercel.json`（自動デプロイ無効）も入れる。Vercel は push されたコミットの Root Directory（`vue-frontend`）から設定を読むため、これがないと media ブランチへの push でプレビューデプロイが走って失敗する。Vercel の Root Directory を変えた場合は `publish.mjs` の `VERCEL_CONFIG_PATH` も合わせる。
 - GIF は容量が大きく、動画（MP4）は README で自動再生されずテーマ切り替えもできないため、アニメーション WebP を使う。
 
 ## 注意

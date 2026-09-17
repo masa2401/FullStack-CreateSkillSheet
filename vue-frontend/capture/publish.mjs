@@ -2,14 +2,26 @@
  * `npm run capture:convert` で作った WebP を media ブランチに公開する。
  * README は raw.githubusercontent.com 経由で media ブランチのファイルを参照する。
  *
- * media ブランチは毎回「WebP だけを含む1コミット」で作り直して強制 push する。
+ * media ブランチは毎回「WebP と説明用 README、Vercel 設定だけを含む1コミット」で作り直して強制 push する。
  * 古いファイルが履歴に残らないため、更新してもリポジトリの容量が増え続けない。
  * 作業ブランチには触れないよう、一時ディレクトリの worktree で作業する。
+ *
+ * Vercel は全ブランチへの push でプレビューデプロイを作り、アプリのない media ブランチでは失敗する。
+ * Vercel はデプロイ設定を push されたコミットの Root Directory（vue-frontend）から読むため、
+ * media ブランチ側に自動デプロイを無効にする vercel.json を置く。
  */
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 
@@ -22,10 +34,15 @@ const FILES = ['survey-flow', 'share-flow'].flatMap((name) =>
   ['light', 'dark'].map((theme) => `${name}-${theme}.webp`),
 )
 
+// Vercel プロジェクトの Root Directory に合わせる
+const VERCEL_CONFIG_PATH = 'vue-frontend/vercel.json'
+const VERCEL_CONFIG = { git: { deploymentEnabled: false } }
+
 const BRANCH_README = `# media ブランチ
 
 README に掲載する操作動画（アニメーション WebP）の置き場所です。
 \`vue-frontend\` の \`npm run capture:publish\` が毎回作り直して強制 push するため、直接編集しないでください。
+\`${VERCEL_CONFIG_PATH}\` は、このブランチへの push で Vercel のデプロイが走らないようにするための設定です。
 手順は \`vue-frontend/capture/README.md\` を参照してください。
 `
 
@@ -88,6 +105,9 @@ try {
     copyFileSync(join(OUTPUT_DIR, file), join(workDir, file))
   }
   writeFileSync(join(workDir, 'README.md'), BRANCH_README)
+  const vercelConfigFile = join(workDir, VERCEL_CONFIG_PATH)
+  mkdirSync(dirname(vercelConfigFile), { recursive: true })
+  writeFileSync(vercelConfigFile, `${JSON.stringify(VERCEL_CONFIG, null, 2)}\n`)
 
   git(['add', '--all'], workDir)
   git(['commit', '--no-verify', '-m', 'README用メディアを更新'], workDir)
