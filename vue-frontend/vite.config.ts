@@ -13,7 +13,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
     restoreMocks: true,
-    exclude: [...configDefaults.exclude, '**/e2e/**'],
+    exclude: [...configDefaults.exclude, '**/e2e/**', '**/capture/**'],
     coverage: {
       exclude: [
         ...(configDefaults.coverage?.exclude ?? []),

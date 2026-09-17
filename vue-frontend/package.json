@@ -1,6 +1,6 @@
 {
   "name": "CreateSkillSheet",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -18,7 +18,10 @@
     "type-check": "vue-tsc --noEmit",
     "coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "capture": "playwright test --config=playwright.capture.config.ts",
+    "capture:convert": "node capture/convert.mjs",
+    "capture:publish": "node capture/publish.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",

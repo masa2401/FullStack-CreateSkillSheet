@@ -79,6 +79,10 @@ vue-frontend/blob-report/
 vue-frontend/playwright/.cache/
 vue-frontend/playwright/.auth/
 
+# README 用メディアの撮影結果（capture/ の録画・変換結果）
+# 公開は media ブランチで行い、作業ブランチには含めない
+vue-frontend/capture/output/
+
 # Environment Variables (Crucial Secret Protection)
 vue-frontend/.env
 vue-frontend/.env.local
