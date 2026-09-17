@@ -24,6 +24,12 @@
 各項目はチェックと5段階の習熟度で回答します。\
 入力内容はブラウザに保存されるため、途中で閉じても続きから再開できます。
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-dark.webp">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-light.webp">
+  <img alt="職種カテゴリを選び、設問に回答してスキルシートを表示するまでの操作" src="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/survey-flow-light.webp">
+</picture>
+
 ### 2. スキルシートとして確認する
 
 回答した項目だけがカテゴリ別のカードに表示されます。\
@@ -34,9 +40,16 @@
 印刷、CSV保存、共有URLの発行、PDFダウンロードに対応しています。\
 有効期限が5日間の共有URLを発行し、URLにアクセスするだけで閲覧する事が出来ます。
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-dark.webp">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-light.webp">
+  <img alt="名前を入力し、共有メニューのPDFダウンロードが使えるようになるまでの操作（2倍速）" src="https://raw.githubusercontent.com/masa2401/FullStack-CreateSkillSheet/media/share-flow-light.webp">
+</picture>
+
 ### 表示設定
 
-ライトモードとダークモードに対応しています。ヘッダーのボタンから切り替えられます。
+ライトモードとダークモードに対応しています。ヘッダーのボタンから切り替えられます。\
+上記の操作動画も、閲覧している GitHub のテーマ設定に合わせて切り替わります。
 
 ## 本アプリで意識したポイント
 
