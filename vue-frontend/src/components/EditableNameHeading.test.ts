@@ -11,6 +11,10 @@ const renderHeading = (props = {}) =>
 
 const nameInput = () => screen.getByRole('textbox', { name: 'お名前（20文字まで）' })
 
+const queryNameInput = () => screen.queryByRole('textbox', { name: 'お名前（20文字まで）' })
+
+const nameDisplay = (container: Element) => container.querySelector('[data-slot="name-display"]')
+
 const editButton = () => screen.getByRole('button', { name: '名前を編集する' })
 
 describe('EditableNameHeading', () => {
@@ -26,9 +30,10 @@ describe('EditableNameHeading', () => {
     expect(nameInput()).not.toHaveAttribute('readonly')
   })
 
-  it('initialName が設定済みの場合、最初からロック状態（readonly）で開始する', () => {
-    renderHeading({ initialName: '山田太郎', displayName: '山田太郎' })
-    expect(nameInput()).toHaveAttribute('readonly')
+  it('initialName が設定済みの場合、入力欄ではなくテキストとして名前を表示する', () => {
+    const { container } = renderHeading({ initialName: '山田太郎', displayName: '山田太郎' })
+    expect(queryNameInput()).not.toBeInTheDocument()
+    expect(nameDisplay(container)).toHaveTextContent('山田太郎')
   })
 
   it('displayName の変更は見出しに反映されるが、入力中の draft には影響しない', async () => {
@@ -101,14 +106,24 @@ describe('EditableNameHeading', () => {
       expect(emitted().commit).toBeUndefined()
     })
 
-    it('コミット確定後は readonly になり、「名前を編集する」ボタンが表示される', async () => {
+    it('確定待ちの間は、readonly の入力欄のまま残る', async () => {
       const user = setupUser()
       renderHeading()
 
       await typeNameAndBlur(user)
-      await vi.advanceTimersByTimeAsync(2000)
 
       expect(nameInput()).toHaveAttribute('readonly')
+    })
+
+    it('コミット確定後は名前がテキスト表示になり、「名前を編集する」ボタンが表示される', async () => {
+      const user = setupUser()
+      const { container } = renderHeading()
+
+      await typeNameAndBlur(user)
+      await vi.advanceTimersByTimeAsync(2000)
+
+      expect(queryNameInput()).not.toBeInTheDocument()
+      expect(nameDisplay(container)).toHaveTextContent('山田太郎')
       expect(editButton()).toBeInTheDocument()
     })
 
@@ -122,7 +137,7 @@ describe('EditableNameHeading', () => {
       expect(container.querySelector('[data-slot="edit-progress-fill"]')).toBeInTheDocument()
     })
 
-    it('「名前を編集する」をクリックすると再び編集可能になる', async () => {
+    it('「名前を編集する」をクリックすると、編集可能な入力欄に戻りフォーカスが移る', async () => {
       const user = setupUser()
       renderHeading()
 
@@ -132,6 +147,8 @@ describe('EditableNameHeading', () => {
       await user.click(editButton())
 
       expect(nameInput()).not.toHaveAttribute('readonly')
+      expect(nameInput()).toHaveValue('山田太郎')
+      expect(nameInput()).toHaveFocus()
     })
   })
 })

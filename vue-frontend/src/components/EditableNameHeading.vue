@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 
 import { SquarePen } from '@lucide/vue'
 
@@ -23,6 +23,7 @@ const NAME_MAX_LENGTH = 20
 const NAME_PLACEHOLDER = 'お名前を入力'
 
 const {
+  phase: namePhase,
   draft: nameDraft,
   isEditable: isNameEditable,
   showEditButton,
@@ -33,6 +34,23 @@ const {
 } = useNameCommit(props.initialName, {
   onCommit: (name) => emit('commit', name),
 })
+
+/**
+ * 確定済みで入力欄を表示しない状態。確定待ち（confirming）は再フォーカスで確定を
+ * キャンセルできる仕様のため、入力欄のまま残す
+ */
+const isNameLocked = computed<boolean>(
+  () => namePhase.value === 'committed' || namePhase.value === 'locked',
+)
+
+const nameInputRef = useTemplateRef<HTMLInputElement>('nameInput')
+
+/** 押したボタン自体が消えるため、フォーカスを出現した入力欄へ移す */
+const handleStartEdit = async (): Promise<void> => {
+  startNameEdit()
+  await nextTick()
+  nameInputRef.value?.focus()
+}
 
 const handleNameFocus = (): void => cancelNameCommit()
 
@@ -64,59 +82,72 @@ watch(showEditButton, (visible) => {
   >
     {{ displayName }} 様のスキルシート
   </h2>
-  <div class="flex min-w-0 flex-col items-center gap-2">
-    <div
-      class="flex min-w-0 flex-wrap items-baseline justify-center gap-1 text-3xl font-extrabold sm:text-4xl print:text-2xl"
-    >
-      <div class="grid max-w-full min-w-0 items-baseline">
-        <!-- 入力値の複製。visibility:hidden なので見えないまま場所を占有し、この幅がグリッドの
-             列幅＝入力欄の幅になる。フォントは preflight の font:inherit で input と一致する -->
-        <span
-          class="invisible col-start-1 row-start-1 overflow-hidden px-2 whitespace-pre"
-          aria-hidden="true"
-          >{{ nameDraft || NAME_PLACEHOLDER }}</span
-        >
-        <input
-          v-model="nameDraft"
-          type="text"
-          data-slot="name-input"
-          size="1"
-          class="col-start-1 row-start-1 w-full min-w-0 rounded-lg border-b-2 border-dashed border-transparent bg-field px-2 text-center transition-colors placeholder:text-muted-foreground read-only:cursor-default read-only:bg-transparent hover:border-ring read-only:hover:border-transparent focus:border-ring read-only:focus:border-transparent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none print:break-after-avoid print:border-none print:ring-0"
-          :readonly="!isNameEditable"
-          :maxlength="NAME_MAX_LENGTH"
-          :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
-          :placeholder="NAME_PLACEHOLDER"
-          @focus="handleNameFocus"
-          @blur="handleNameBlur"
-          @keydown="handleNameKeydown"
-        />
-      </div>
-      <span aria-hidden="true">様のスキルシート</span>
-    </div>
-    <div
-      v-if="showEditButton"
-      class="flex items-center justify-center gap-2 print:hidden"
-    >
-      <AppButton
-        data-slot="edit-name-button"
-        variant="outline"
-        size="sm"
-        @click="startNameEdit"
-      >
-        <SquarePen aria-hidden="true" />
-        名前を編集する
-      </AppButton>
-      <div
-        class="h-1 w-20 shrink-0 overflow-hidden rounded-full bg-primary/20"
+  <div
+    class="flex min-w-0 flex-wrap items-baseline justify-center gap-1 text-3xl font-extrabold sm:text-4xl print:text-2xl"
+  >
+    <div class="grid max-w-full min-w-0 items-baseline">
+      <!-- 入力値の複製。visibility:hidden なので見えないまま場所を占有し、この幅がグリッドの
+           列幅＝入力欄（確定後は表示用テキスト）の幅になる。フォントは preflight の font:inherit で input と一致する -->
+      <span
+        class="invisible col-start-1 row-start-1 overflow-hidden px-2 whitespace-pre"
         aria-hidden="true"
+        >{{ nameDraft || NAME_PLACEHOLDER }}</span
       >
-        <div
-          data-slot="edit-progress-fill"
-          class="h-full bg-primary transition-[width] ease-linear"
-          :class="isEditProgressCollapsed ? 'w-0' : 'w-full'"
-          :style="{ transitionDuration: `${editableWindowMs}ms` }"
-        ></div>
+      <!-- 確定後は入力欄ではなく表示用テキストにする。読み上げは sr-only の h2 が担うため aria-hidden。
+           px-2 と透明な border-b-2 は入力欄と位置・高さを揃えるため -->
+      <span
+        v-if="isNameLocked"
+        data-slot="name-display"
+        class="col-start-1 row-start-1 min-w-0 overflow-hidden border-b-2 border-transparent px-2 text-center text-ellipsis whitespace-pre"
+        aria-hidden="true"
+        >{{ nameDraft }}</span
+      >
+      <input
+        v-else
+        ref="nameInput"
+        v-model="nameDraft"
+        type="text"
+        data-slot="name-input"
+        size="1"
+        class="col-start-1 row-start-1 w-full min-w-0 rounded-lg border-b-2 border-dashed border-transparent bg-field px-2 text-center transition-colors placeholder:text-muted-foreground read-only:cursor-default read-only:bg-transparent hover:border-ring read-only:hover:border-transparent focus:border-ring read-only:focus:border-transparent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none print:break-after-avoid print:border-none print:ring-0"
+        :readonly="!isNameEditable"
+        :maxlength="NAME_MAX_LENGTH"
+        :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
+        :placeholder="NAME_PLACEHOLDER"
+        @focus="handleNameFocus"
+        @blur="handleNameBlur"
+        @keydown="handleNameKeydown"
+      />
+      <!-- 名前の真下に置くため同じ列の2行目に配置する。幅0の箱の中で中央揃えにして左右へ
+           はみ出させ、ボタン幅が列幅（＝名前欄の幅）を押し広げないようにする -->
+      <div
+        v-if="showEditButton"
+        class="col-start-1 row-start-2 flex w-0 justify-center justify-self-center pt-2 print:hidden"
+      >
+        <div class="flex flex-col gap-1">
+          <AppButton
+            data-slot="edit-name-button"
+            variant="outline"
+            size="sm"
+            @click="handleStartEdit"
+          >
+            <SquarePen aria-hidden="true" />
+            名前を編集する
+          </AppButton>
+          <div
+            class="h-1 w-full overflow-hidden rounded-full bg-primary/20"
+            aria-hidden="true"
+          >
+            <div
+              data-slot="edit-progress-fill"
+              class="h-full bg-primary transition-[width] ease-linear"
+              :class="isEditProgressCollapsed ? 'w-0' : 'w-full'"
+              :style="{ transitionDuration: `${editableWindowMs}ms` }"
+            ></div>
+          </div>
+        </div>
       </div>
     </div>
+    <span aria-hidden="true">様のスキルシート</span>
   </div>
 </template>
