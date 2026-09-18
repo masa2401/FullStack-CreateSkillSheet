@@ -30,6 +30,7 @@ const {
   state: pdfState,
   downloadUrl: pdfDownloadUrl,
   progress: pdfProgress,
+  start: startPdfStatus,
   retry: retryPdf,
 } = usePdfStatus(savedSheetId)
 
@@ -39,7 +40,10 @@ const openMenu = async (): Promise<void> => {
   if (!isBackendEnabled()) return
 
   try {
-    await store.getSavedIdOrSave()
+    const previousId = savedSheetId.value
+    const id = await store.getSavedIdOrSave()
+    // 既存のIDならPDFは生成済みの可能性が高いため、初回の待機を挟まずに確認する
+    startPdfStatus({ immediate: id === previousId })
   } catch (error) {
     console.error('シート保存エラー:', error)
   }

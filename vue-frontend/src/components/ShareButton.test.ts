@@ -3,6 +3,7 @@ import { type InjectionKey, type Ref, defineComponent, inject, provide, ref, toR
 import { createTestingPinia } from '@pinia/testing'
 import userEvent from '@testing-library/user-event'
 import { render, screen, waitFor } from '@testing-library/vue'
+import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useSurveyStore } from '@/stores/useSurveyStore.ts'
@@ -10,11 +11,14 @@ import * as apiUtils from '@/utils/api'
 
 import ShareButton from './ShareButton.vue'
 
+const mockStartPdfStatus = vi.fn()
+
 vi.mock('@/composables/usePdfStatus', () => ({
   usePdfStatus: () => ({
     state: ref('waiting'),
     downloadUrl: ref(''),
     progress: ref(0),
+    start: mockStartPdfStatus,
     retry: vi.fn(),
   }),
 }))
@@ -78,7 +82,7 @@ const renderShareButton = (initialState: Record<string, unknown> = {}) =>
       plugins: [
         createTestingPinia({
           initialState: {
-            survey: { saveSheetId: null, userName: 'テストユーザー', ...initialState },
+            survey: { savedSheetId: null, userName: 'テストユーザー', ...initialState },
           },
         }),
       ],
@@ -104,6 +108,7 @@ const menu = () => screen.queryByRole('menu')
 
 describe('ShareButton', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(false)
   })
 
@@ -190,7 +195,35 @@ describe('ShareButton', () => {
       await waitFor(() => expect(store.getSavedIdOrSave).toHaveBeenCalled())
     })
 
-    it('保存に失敗してもメニューは開いたままになる', async () => {
+    it('表示しただけでは PDF の状態確認を開始しない', () => {
+      renderShareButton({ savedSheetId: 'already-saved-id' })
+
+      expect(mockStartPdfStatus).not.toHaveBeenCalled()
+    })
+
+    it('新しく保存した場合は初回の待機を挟んで状態確認を開始する', async () => {
+      const user = userEvent.setup()
+      renderShareButton()
+      const store = useSurveyStore()
+      vi.mocked(store.getSavedIdOrSave).mockResolvedValue('new-id')
+
+      await user.click(shareTrigger())
+
+      await waitFor(() => expect(mockStartPdfStatus).toHaveBeenCalledWith({ immediate: false }))
+    })
+
+    it('保存済みの ID がある場合は待機せずに状態確認を開始する', async () => {
+      const user = userEvent.setup()
+      renderShareButton({ savedSheetId: 'already-saved-id' })
+      const store = useSurveyStore()
+      vi.mocked(store.getSavedIdOrSave).mockResolvedValue('already-saved-id')
+
+      await user.click(shareTrigger())
+
+      await waitFor(() => expect(mockStartPdfStatus).toHaveBeenCalledWith({ immediate: true }))
+    })
+
+    it('保存に失敗してもメニューは開いたままで、PDF の状態確認は開始しない', async () => {
       const user = userEvent.setup()
       renderShareButton()
       const store = useSurveyStore()
@@ -199,7 +232,9 @@ describe('ShareButton', () => {
       await user.click(shareTrigger())
 
       await waitFor(() => expect(store.getSavedIdOrSave).toHaveBeenCalled())
+      await flushPromises()
       expect(menu()).toBeInTheDocument()
+      expect(mockStartPdfStatus).not.toHaveBeenCalled()
     })
   })
 

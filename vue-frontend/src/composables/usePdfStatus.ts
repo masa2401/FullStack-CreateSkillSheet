@@ -28,17 +28,27 @@ const TIMEOUT_MS = 60_000
 /** 進捗バーの更新間隔 */
 const PROGRESS_TICK_MS = 200
 
+export interface StartOptions {
+  /** 初回の状態確認を待機なしで行う。PDFが生成済みの可能性が高い時に使う */
+  immediate?: boolean
+}
+
 export interface UsePdfStatusReturn {
   state: Ref<PdfGenerationState>
   downloadUrl: Ref<string>
   /** 0〜100。`SLOW_THRESHOLD_MS` を100%として経過時間から算出する */
   progress: ComputedRef<number>
+  /** ポーリングを開始する。進行中・失敗の状態では何もしない */
+  start: (options?: StartOptions) => void
   retry: () => Promise<void>
 }
 
 /**
  * シートIDに紐づくPDF生成状態をポーリングするcomposable。
- * sheetIdがセットされる（nullでなくなる）と自動的にポーリングを開始する。
+ * ポーリングは `start()` を呼んだ時に開始する。sheetId が入っているだけでは開始しない。
+ * 永続化された sheetId はページ読み込み時に復元されるため、自動で開始すると
+ * 打ち切り（`TIMEOUT_MS`）までの時間が読み込み時点から数えられてしまう。
+ * `start()` の後に sheetId が変わった場合は、新しい ID でやり直す。
  * AWS Lambda（非同期Invoke）からの明示的な完了通知が無い構成のため、
  * S3オブジェクトの有無を一定間隔で確認する方式を取る。
  *
@@ -59,6 +69,8 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
   let tickTimer: ReturnType<typeof setInterval> | undefined
   /** 打ち切り後に遅れて返ってきたレスポンスを弾くための世代番号 */
   let runToken = 0
+  /** `start()` が呼ばれたか。sheetId が null に戻ると解除する */
+  let isRequested = false
 
   const progress = computed<number>(() =>
     Math.min(100, Math.round((elapsedMs.value / SLOW_THRESHOLD_MS) * 100)),
@@ -106,7 +118,7 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
     }
   }
 
-  const startPolling = (id: string): void => {
+  const startPolling = (id: string, initialDelayMs: number = INITIAL_DELAY_MS): void => {
     stopPolling()
     const token = runToken
     state.value = 'generating'
@@ -130,7 +142,45 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
       state.value = 'error'
     }, TIMEOUT_MS)
 
-    pollTimer = setTimeout(() => poll(id, token), INITIAL_DELAY_MS)
+    pollTimer = setTimeout(() => poll(id, token), initialDelayMs)
+  }
+
+  /**
+   * `ready` のまま共有メニューを開き直した時に、ダウンロードURLを取り直す。
+   * 署名付きURLの有効期限は10分のため、時間が経っていると失効している。
+   */
+  const refreshDownloadUrl = async (id: string): Promise<void> => {
+    const token = runToken
+    try {
+      const result = await fetchPdfStatus(id)
+
+      if (token !== runToken || id !== sheetId.value || state.value !== 'ready') return
+
+      if (result?.status === 'ready') {
+        downloadUrl.value = result.downloadUrl
+        return
+      }
+      // PDFが見つからない場合は、再試行から作り直せる状態にする
+      state.value = 'error'
+    } catch (error) {
+      if (token !== runToken || id !== sheetId.value || state.value !== 'ready') return
+
+      console.error('PDF状態取得エラー:', error)
+      state.value = 'error'
+    }
+  }
+
+  const start = ({ immediate = false }: StartOptions = {}): void => {
+    const id = sheetId.value
+    if (!id) return
+
+    isRequested = true
+
+    if (state.value === 'ready') {
+      void refreshDownloadUrl(id)
+      return
+    }
+    if (state.value === 'waiting') startPolling(id, immediate ? 0 : INITIAL_DELAY_MS)
   }
 
   /** 「再試行」操作。regenerate APIを叩いてからポーリングを最初からやり直す。 */
@@ -157,20 +207,17 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
     }
   }
 
-  watch(
-    sheetId,
-    (id) => {
-      if (id) {
-        startPolling(id)
-      } else {
-        stopPolling()
-        state.value = 'waiting'
-        elapsedMs.value = 0
-      }
-    },
-    { immediate: true },
-  )
+  watch(sheetId, (id) => {
+    if (id && isRequested) {
+      startPolling(id)
+      return
+    }
+    stopPolling()
+    isRequested = false
+    state.value = 'waiting'
+    elapsedMs.value = 0
+  })
   onUnmounted(stopPolling)
 
-  return { state, downloadUrl, progress, retry }
+  return { state, downloadUrl, progress, start, retry }
 }
