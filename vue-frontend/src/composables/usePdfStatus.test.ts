@@ -7,13 +7,14 @@ import * as apiUtils from '@/utils/api'
 
 import { type UsePdfStatusReturn, usePdfStatus } from './usePdfStatus'
 
-const INITIAL_DELAY_MS = 6_000
 const FAST_INTERVAL_MS = 2_000
 const SLOW_THRESHOLD_MS = 20_000
 const TIMEOUT_MS = 60_000
+const MAX_RETRYABLE_FAILURES = 3
 
-const advanceToFirstPoll = async () => {
-  vi.advanceTimersByTime(INITIAL_DELAY_MS)
+/** 初回ポーリングは待機なしで走るため、応答の解決だけ待てばよい */
+const advanceToNextPoll = async () => {
+  vi.advanceTimersByTime(FAST_INTERVAL_MS)
   await flushPromises()
 }
 
@@ -64,16 +65,16 @@ describe('usePdfStatus', () => {
     expect(state.value).toBe('generating')
   })
 
-  it('初回ポーリングは INITIAL_DELAY_MS 後まで実行されない', async () => {
+  it('初回ポーリングは待機なしで実行される', async () => {
     const fetchSpy = vi
       .spyOn(apiUtils, 'fetchPdfStatus')
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
-    mountPdfStatus(sheetId)
-    await flushPromises()
-    expect(fetchSpy).not.toHaveBeenCalled()
+    const { start } = mountPdfStatus(sheetId, { started: false })
 
-    await advanceToFirstPoll()
+    start()
+    await flushPromises()
+
     expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
@@ -84,7 +85,7 @@ describe('usePdfStatus', () => {
     })
     const sheetId = ref<string | null>('sheet-1')
     const { state, downloadUrl } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
     expect(state.value).toBe('ready')
     expect(downloadUrl.value).toBe('https://example.com/skill.pdf')
   })
@@ -95,11 +96,10 @@ describe('usePdfStatus', () => {
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
     mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
     expect(fetchSpy).toHaveBeenCalledTimes(1)
 
-    vi.advanceTimersByTime(FAST_INTERVAL_MS)
-    await flushPromises()
+    await advanceToNextPoll()
     expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
 
@@ -126,7 +126,7 @@ describe('usePdfStatus', () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
     const { state } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
     expect(state.value).toBe('generating')
 
     vi.advanceTimersByTime(SLOW_THRESHOLD_MS)
@@ -147,19 +147,62 @@ describe('usePdfStatus', () => {
 
   // ─── 異常系 ─────────────────────────────────────
 
-  it('fetchPdfStatus が null を返す場合は error になる', async () => {
-    vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue(null)
+  it('リトライできない失敗（4xx）は1回で error になる', async () => {
+    const fetchSpy = vi
+      .spyOn(apiUtils, 'fetchPdfStatus')
+      .mockResolvedValue({ status: 'failed', retryable: false })
     const sheetId = ref<string | null>('sheet-1')
     const { state } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(state.value).toBe('error')
   })
 
-  it('fetchPdfStatus が例外を投げた場合は error になる', async () => {
+  it('リトライできる失敗（5xx）は MAX_RETRYABLE_FAILURES 回まで続ける', async () => {
+    const fetchSpy = vi
+      .spyOn(apiUtils, 'fetchPdfStatus')
+      .mockResolvedValue({ status: 'failed', retryable: true })
+    const sheetId = ref<string | null>('sheet-1')
+    const { state } = mountPdfStatus(sheetId)
+    await flushPromises()
+    expect(state.value).toBe('generating')
+
+    await advanceToNextPoll()
+    expect(state.value).toBe('generating')
+
+    await advanceToNextPoll()
+    expect(fetchSpy).toHaveBeenCalledTimes(MAX_RETRYABLE_FAILURES)
+    expect(state.value).toBe('error')
+  })
+
+  it('成功を挟むと失敗の回数は数え直される', async () => {
+    const fetchSpy = vi
+      .spyOn(apiUtils, 'fetchPdfStatus')
+      .mockResolvedValue({ status: 'failed', retryable: true })
+    const sheetId = ref<string | null>('sheet-1')
+    const { state } = mountPdfStatus(sheetId)
+    await flushPromises()
+    await advanceToNextPoll()
+    expect(state.value).toBe('generating')
+
+    fetchSpy.mockResolvedValueOnce({ status: 'generating' })
+    await advanceToNextPoll()
+    expect(state.value).toBe('generating')
+
+    await advanceToNextPoll()
+    await advanceToNextPoll()
+    expect(state.value).toBe('generating')
+
+    await advanceToNextPoll()
+    expect(state.value).toBe('error')
+  })
+
+  it('fetchPdfStatus が想定外の例外を投げた場合は error になる', async () => {
     vi.spyOn(apiUtils, 'fetchPdfStatus').mockRejectedValue(new Error('network error'))
     const sheetId = ref<string | null>('sheet-1')
     const { state } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
     expect(state.value).toBe('error')
   })
 
@@ -173,7 +216,7 @@ describe('usePdfStatus', () => {
     )
     const sheetId = ref<string | null>('sheet-1')
     const { state } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
     expect(state.value).toBe('generating')
 
     sheetId.value = 'sheet-2'
@@ -193,7 +236,7 @@ describe('usePdfStatus', () => {
     )
     const sheetId = ref<string | null>('sheet-1')
     const { state } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
 
     sheetId.value = 'sheet-2'
     pendingRejects[0]!(new Error('network error'))
@@ -202,25 +245,26 @@ describe('usePdfStatus', () => {
     expect(state.value).toBe('generating')
   })
 
-  it('ポーリング予約後にidが変わると古い予約は実行されない', async () => {
+  it('idが変わると新しいidでポーリングし直し、古い予約は実行されない', async () => {
     const fetchSpy = vi
       .spyOn(apiUtils, 'fetchPdfStatus')
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
     mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
-    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    await flushPromises()
+    expect(fetchSpy).toHaveBeenCalledWith('sheet-1')
 
+    fetchSpy.mockClear()
     sheetId.value = 'sheet-2'
     await flushPromises()
-    fetchSpy.mockClear()
-
-    vi.advanceTimersByTime(FAST_INTERVAL_MS)
-    await flushPromises()
-    expect(fetchSpy).not.toHaveBeenCalled()
-
-    await advanceToFirstPoll()
     expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(fetchSpy).toHaveBeenCalledWith('sheet-2')
+
+    // 古い予約が残っていれば sheet-1 への問い合わせが増える
+    fetchSpy.mockClear()
+    await advanceToNextPoll()
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(fetchSpy).toHaveBeenCalledWith('sheet-2')
   })
 
   // ─── アンマウント時の後片付け ────────────────────
@@ -231,7 +275,7 @@ describe('usePdfStatus', () => {
       .mockResolvedValue({ status: 'generating' })
     const sheetId = ref<string | null>('sheet-1')
     const { wrapper } = mountPdfStatus(sheetId)
-    await advanceToFirstPoll()
+    await flushPromises()
     expect(fetchSpy).toHaveBeenCalledTimes(1)
 
     wrapper.unmount()
@@ -258,20 +302,9 @@ describe('usePdfStatus', () => {
     expect(progress.value).toBe(progressBeforeUnmount)
   })
 
-  // ─── retry ──────────────────────────────────────
+  // ─── start ──────────────────────────────────────
 
-  describe('retry', () => {
-    it('sheetId が null の場合は何もしない', async () => {
-      const regenerateSpy = vi.spyOn(apiUtils, 'regeneratePdf')
-      const sheetId = ref<string | null>(null)
-      const { retry, state } = mountPdfStatus(sheetId)
-
-      await retry()
-
-      expect(regenerateSpy).not.toHaveBeenCalled()
-      expect(state.value).toBe('waiting')
-    })
-
+  describe('start', () => {
     it('start を呼ぶまではポーリングしない', async () => {
       const fetchSpy = vi
         .spyOn(apiUtils, 'fetchPdfStatus')
@@ -294,8 +327,7 @@ describe('usePdfStatus', () => {
       const { state } = mountPdfStatus(sheetId, { started: false })
 
       sheetId.value = 'sheet-1'
-      await flushPromises()
-      await advanceToFirstPoll()
+      await advanceToNextPoll()
 
       expect(fetchSpy).not.toHaveBeenCalled()
       expect(state.value).toBe('waiting')
@@ -313,25 +345,10 @@ describe('usePdfStatus', () => {
       sheetId.value = 'sheet-2'
       await flushPromises()
       fetchSpy.mockClear()
-      await advanceToFirstPoll()
+      await advanceToNextPoll()
 
       expect(fetchSpy).not.toHaveBeenCalled()
       expect(state.value).toBe('waiting')
-    })
-
-    it('immediate 指定の start は初回の確認を待たずに行う', async () => {
-      const fetchSpy = vi
-        .spyOn(apiUtils, 'fetchPdfStatus')
-        .mockResolvedValue({ status: 'ready', downloadUrl: 'https://example.com/skill.pdf' })
-      const sheetId = ref<string | null>('sheet-1')
-      const { state, start } = mountPdfStatus(sheetId, { started: false })
-
-      start({ immediate: true })
-      vi.advanceTimersByTime(1)
-      await flushPromises()
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
-      expect(state.value).toBe('ready')
     })
 
     it('進行中に start を呼んでも最初からやり直さない', async () => {
@@ -348,10 +365,10 @@ describe('usePdfStatus', () => {
     })
 
     it('error の時に start を呼んでも error のまま', async () => {
-      vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue(null)
+      vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'failed', retryable: false })
       const sheetId = ref<string | null>('sheet-1')
       const { state, start } = mountPdfStatus(sheetId)
-      await advanceToFirstPoll()
+      await flushPromises()
       expect(state.value).toBe('error')
 
       start()
@@ -365,7 +382,7 @@ describe('usePdfStatus', () => {
         .mockResolvedValue({ status: 'ready', downloadUrl: 'https://example.com/first.pdf' })
       const sheetId = ref<string | null>('sheet-1')
       const { state, downloadUrl, start } = mountPdfStatus(sheetId)
-      await advanceToFirstPoll()
+      await flushPromises()
       expect(downloadUrl.value).toBe('https://example.com/first.pdf')
       fetchSpy.mockResolvedValue({ status: 'ready', downloadUrl: 'https://example.com/second.pdf' })
 
@@ -382,7 +399,7 @@ describe('usePdfStatus', () => {
         .mockResolvedValue({ status: 'ready', downloadUrl: 'https://example.com/first.pdf' })
       const sheetId = ref<string | null>('sheet-1')
       const { state, start } = mountPdfStatus(sheetId)
-      await advanceToFirstPoll()
+      await flushPromises()
       fetchSpy.mockResolvedValue({ status: 'generating' })
 
       start()
@@ -390,47 +407,105 @@ describe('usePdfStatus', () => {
 
       expect(state.value).toBe('error')
     })
+  })
 
-    it('regenerate 成功時は待ち時間も含めてやり直す', async () => {
+  // ─── retry ──────────────────────────────────────
+
+  describe('retry', () => {
+    it('sheetId が null の場合は何もしない', async () => {
+      const regenerateSpy = vi.spyOn(apiUtils, 'regeneratePdf')
+      const sheetId = ref<string | null>(null)
+      const { retry, state } = mountPdfStatus(sheetId)
+
+      await retry()
+
+      expect(regenerateSpy).not.toHaveBeenCalled()
+      expect(state.value).toBe('waiting')
+    })
+
+    it('regenerate 成功時はポーリングを最初からやり直す', async () => {
       const fetchSpy = vi
         .spyOn(apiUtils, 'fetchPdfStatus')
         .mockResolvedValue({ status: 'generating' })
-      vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue(true)
+      vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue({ status: 'accepted' })
       const sheetId = ref<string | null>('sheet-1')
       const { state, progress, retry } = mountPdfStatus(sheetId)
-      await advanceToFirstPoll()
+      await flushPromises()
       fetchSpy.mockClear()
 
       await retry()
+
       expect(state.value).toBe('generating')
       expect(progress.value).toBe(0)
       expect(apiUtils.regeneratePdf).toHaveBeenCalledWith('sheet-1')
-
-      vi.advanceTimersByTime(FAST_INTERVAL_MS)
-      await flushPromises()
-      expect(fetchSpy).not.toHaveBeenCalled()
-
-      await advanceToFirstPoll()
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('regenerate 失敗時は error になる', async () => {
+    it('リトライできない失敗（4xx）は1回で error になる', async () => {
       vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
-      vi.spyOn(apiUtils, 'regeneratePdf').mockResolvedValue(false)
+      const regenerateSpy = vi
+        .spyOn(apiUtils, 'regeneratePdf')
+        .mockResolvedValue({ status: 'failed', retryable: false })
       const sheetId = ref<string | null>('sheet-1')
       const { state, retry } = mountPdfStatus(sheetId)
-      await advanceToFirstPoll()
+      await flushPromises()
 
       await retry()
+
+      expect(regenerateSpy).toHaveBeenCalledTimes(1)
       expect(state.value).toBe('error')
     })
 
-    it('regeneratePdf が例外を投げた場合は error になる', async () => {
+    it('リトライできる失敗（5xx）は MAX_RETRYABLE_FAILURES 回まで送り直す', async () => {
+      vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
+      const regenerateSpy = vi
+        .spyOn(apiUtils, 'regeneratePdf')
+        .mockResolvedValue({ status: 'failed', retryable: true })
+      const sheetId = ref<string | null>('sheet-1')
+      const { state, retry } = mountPdfStatus(sheetId)
+      await flushPromises()
+
+      const retryPromise = retry()
+      await flushPromises()
+      expect(regenerateSpy).toHaveBeenCalledTimes(1)
+
+      await advanceToNextPoll()
+      expect(regenerateSpy).toHaveBeenCalledTimes(2)
+
+      await advanceToNextPoll()
+      await retryPromise
+
+      expect(regenerateSpy).toHaveBeenCalledTimes(MAX_RETRYABLE_FAILURES)
+      expect(state.value).toBe('error')
+    })
+
+    it('送り直して成功すればポーリングを開始する', async () => {
+      const fetchSpy = vi
+        .spyOn(apiUtils, 'fetchPdfStatus')
+        .mockResolvedValue({ status: 'generating' })
+      vi.spyOn(apiUtils, 'regeneratePdf')
+        .mockResolvedValueOnce({ status: 'failed', retryable: true })
+        .mockResolvedValue({ status: 'accepted' })
+      const sheetId = ref<string | null>('sheet-1')
+      const { state, retry } = mountPdfStatus(sheetId)
+      await flushPromises()
+      fetchSpy.mockClear()
+
+      const retryPromise = retry()
+      await flushPromises()
+      await advanceToNextPoll()
+      await retryPromise
+
+      expect(state.value).toBe('generating')
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('regeneratePdf が想定外の例外を投げた場合は error になる', async () => {
       vi.spyOn(apiUtils, 'fetchPdfStatus').mockResolvedValue({ status: 'generating' })
       vi.spyOn(apiUtils, 'regeneratePdf').mockRejectedValue(new Error('network error'))
       const sheetId = ref<string | null>('sheet-1')
       const { retry, state } = mountPdfStatus(sheetId)
-      await advanceToFirstPoll()
+      await flushPromises()
 
       await retry()
       expect(state.value).toBe('error')
@@ -444,7 +519,7 @@ describe('usePdfStatus', () => {
             : { status: 'generating' },
         ),
       )
-      let resolveRegenerate!: (value: boolean) => void
+      let resolveRegenerate!: (value: apiUtils.RegenerateResult) => void
       vi.spyOn(apiUtils, 'regeneratePdf').mockReturnValue(
         new Promise((resolve) => {
           resolveRegenerate = resolve
@@ -456,7 +531,7 @@ describe('usePdfStatus', () => {
 
       const retryPromise = retry()
       sheetId.value = 'sheet-2'
-      resolveRegenerate(true)
+      resolveRegenerate({ status: 'accepted' })
       await retryPromise
       await flushPromises()
 
