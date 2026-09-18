@@ -9,7 +9,7 @@ import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { CategorySelection, SurveyState } from '@/types/state'
 import * as apiUtils from '@/utils/api'
 import { ROUTES } from '@/utils/constants'
-import * as shareUtils from '@/utils/shareUtils'
+import { encodeData } from '@/utils/shareUtils'
 
 import ResultPage from './ResultPage.vue'
 
@@ -64,8 +64,14 @@ describe('ResultPage', () => {
   beforeEach(async () => {
     router = buildRouter()
     await router.push(ROUTES.RESULT)
-    vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(null)
   })
+
+  /** 共有リンク（ID方式）で開いた状態にする。ResultPage はクエリをセットアップ時に読むため、描画より前に呼ぶ */
+  const openSharedById = () => router.push({ path: ROUTES.RESULT, query: { id: 'shared-id' } })
+
+  /** 共有リンク（クエリ方式）で開いた状態にする。描画より前に呼ぶ */
+  const openSharedByData = () =>
+    router.push({ path: ROUTES.RESULT, query: { data: encodeData(urlSurveyState)! } })
 
   const renderPage = (
     surveyState: Record<string, unknown> = {},
@@ -112,7 +118,7 @@ describe('ResultPage', () => {
   })
 
   it('URL データがある場合は URL データが優先して表示される', async () => {
-    vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(urlSurveyState)
+    await openSharedByData()
     renderPage()
     expect(
       await screen.findByRole('heading', { name: 'URLユーザー 様のスキルシート' }),
@@ -120,7 +126,7 @@ describe('ResultPage', () => {
   })
 
   it('id パラメータがありバックエンド有効な場合、fetchSheet の結果を反映する', async () => {
-    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+    await openSharedById()
     vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
     vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'success', data: urlSurveyState })
 
@@ -197,7 +203,7 @@ describe('ResultPage', () => {
   })
 
   it('共有ビューでは ShareButton が表示されない', async () => {
-    vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(urlSurveyState)
+    await openSharedByData()
     renderPage()
     await waitForReady()
 
@@ -205,7 +211,7 @@ describe('ResultPage', () => {
   })
 
   it('共有ビューでは「自分のスキルシートを作成」ボタンが表示される', async () => {
-    vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(urlSurveyState)
+    await openSharedByData()
     renderPage()
     await waitForReady()
 
@@ -219,7 +225,7 @@ describe('ResultPage', () => {
   ])(
     'fetchSheet が %o を返す場合は該当するエラー画面になる',
     async (result, titleText, messageText) => {
-      vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+      await openSharedById()
       vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
       vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue(result)
 
@@ -257,7 +263,7 @@ describe('ResultPage', () => {
   })
 
   it('エラー画面のトップへ戻るボタンをクリックすると TopPage へ遷移する', async () => {
-    vi.spyOn(shareUtils, 'getIdFromUrl').mockReturnValue('shared-id')
+    await openSharedById()
     vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
     vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'notfound' })
     const user = userEvent.setup()
@@ -268,8 +274,8 @@ describe('ResultPage', () => {
     expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
   })
 
-  it('共有ビューで「自分のスキルシートを作成」をクリックすると store がリセットされてから TopPage へ遷移する', async () => {
-    vi.spyOn(shareUtils, 'getDataFromUrl').mockReturnValue(urlSurveyState)
+  it('共有ビューで「自分のスキルシートを作成」をクリックすると、store を変えずに TopPage へ遷移する', async () => {
+    await openSharedByData()
     const user = userEvent.setup()
     renderPage()
     await waitForReady()
@@ -277,8 +283,38 @@ describe('ResultPage', () => {
 
     await user.click(screen.getByRole('button', { name: '自分のスキルシートを作成' }))
 
-    expect(store.userName).toBe('')
+    expect(store.userName).toBe('テストユーザー')
     expect(router.currentRoute.value.path).toBe(ROUTES.TOP)
+  })
+
+  // ─── 閲覧者のデータの保護 ──────────────────────────────────────
+
+  it('共有リンク（ID方式）を開いても store（閲覧者自身のデータ）は書き換わらない', async () => {
+    await openSharedById()
+    vi.spyOn(apiUtils, 'isBackendEnabled').mockReturnValue(true)
+    vi.spyOn(apiUtils, 'fetchSheet').mockResolvedValue({ status: 'success', data: urlSurveyState })
+    renderPage()
+    const store = useSurveyStore()
+    const before = JSON.stringify(store.selections)
+
+    expect(
+      await screen.findByRole('heading', { name: 'URLユーザー 様のスキルシート' }),
+    ).toBeInTheDocument()
+    expect(store.userName).toBe('テストユーザー')
+    expect(JSON.stringify(store.selections)).toBe(before)
+  })
+
+  it('共有リンク（クエリ方式）を開いても store（閲覧者自身のデータ）は書き換わらない', async () => {
+    await openSharedByData()
+    renderPage()
+    const store = useSurveyStore()
+    const before = JSON.stringify(store.selections)
+
+    expect(
+      await screen.findByRole('heading', { name: 'URLユーザー 様のスキルシート' }),
+    ).toBeInTheDocument()
+    expect(store.userName).toBe('テストユーザー')
+    expect(JSON.stringify(store.selections)).toBe(before)
   })
 
   // ─── 名前の確定 ────────────────────────────────────────────────

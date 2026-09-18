@@ -1,14 +1,20 @@
-import { computed } from 'vue'
+import { type MaybeRefOrGetter, computed, toValue } from 'vue'
 
 import { CATEGORY_MASTER_BY_ID } from '@/data/questions'
 import { useSurveyStore } from '@/stores/useSurveyStore'
-import type { MergedCategory } from '@/types'
+import type { CategorySelection, MergedCategory } from '@/types'
 
-export const useMergedSurvey = () => {
+/**
+ * 回答（ID と習熟度だけを持つ）をマスタと結合し、表示用のラベルを解決する。
+ * 結合する回答は引数で渡す。省略時は作成中のシート（ストア）を使う。
+ * 共有リンクで開いたシートはストアに入れないため、`ResultPage` はここで共有データを渡す。
+ */
+export const useMergedSurvey = (selections?: MaybeRefOrGetter<CategorySelection[]>) => {
   const store = useSurveyStore()
+  const source = selections ?? (() => store.selections)
 
   const mergedCategories = computed<MergedCategory[]>(() =>
-    store.selections.map((sel) => {
+    toValue(source).map((sel) => {
       const master = CATEGORY_MASTER_BY_ID.get(sel.categoryId)!
       return {
         id: master.id,

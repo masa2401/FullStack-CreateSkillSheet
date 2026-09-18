@@ -74,4 +74,20 @@ describe('useMergedSurvey', () => {
     expect(typeof label).toBe('string')
     expect(label.length).toBeGreaterThan(0)
   })
+
+  it('引数で渡した回答を、ストアの代わりにマスターデータと結合する', () => {
+    const store = useSurveyStore()
+    const { mergedCategories } = useMergedSurvey(() => [
+      {
+        categoryId: 2,
+        isChecked: true,
+        questions: [{ questionId: 1, answers: [{ answerId: 1, isChecked: true, value: 5 }] }],
+      },
+    ])
+
+    expect(mergedCategories.value).toHaveLength(1)
+    expect(mergedCategories.value[0]!.label).toBe('プログラマ / ITエンジニア')
+    expect(mergedCategories.value[0]!.questions[0]!.answers[0]!.value).toBe(5)
+    expect(store.selections.find((s) => s.categoryId === 2)!.isChecked).toBe(false)
+  })
 })

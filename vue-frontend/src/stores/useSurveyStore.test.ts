@@ -117,22 +117,6 @@ describe('useSurveyStore', () => {
 
       expect(store.hasAnswers).toBe(false)
     })
-
-    it('loadFromSharedState 経由で isChecked: false のカテゴリに回答が入っていても無視される', () => {
-      const store = useSurveyStore()
-      store.loadFromSharedState({
-        userName: '山田太郎',
-        selections: [
-          {
-            categoryId: 1,
-            isChecked: false,
-            questions: [{ questionId: 1, answers: [{ answerId: 1, isChecked: true, value: 3 }] }],
-          },
-        ],
-      })
-
-      expect(store.hasAnswers).toBe(false)
-    })
   })
 
   // ─── setAnswerSelection ────────────────────────────────────
@@ -161,98 +145,6 @@ describe('useSurveyStore', () => {
       const before = JSON.stringify(store.selections)
       store.setAnswerSelection(999, 999, 1, { isChecked: true })
       expect(JSON.stringify(store.selections)).toBe(before)
-    })
-  })
-
-  // ─── loadFromSharedState ───────────────────────────────────
-
-  describe('loadFromSharedState', () => {
-    it('userName が復元される', () => {
-      const store = useSurveyStore()
-      store.loadFromSharedState({
-        userName: '山田太郎',
-        selections: [],
-      })
-      expect(store.userName).toBe('山田太郎')
-    })
-
-    it('受け取った isChecked / value が反映される', () => {
-      const store = useSurveyStore()
-      store.loadFromSharedState({
-        userName: '山田太郎',
-        selections: [
-          {
-            categoryId: 1,
-            isChecked: true,
-            questions: [
-              {
-                questionId: 1,
-                answers: [{ answerId: 1, isChecked: true, value: 4 }],
-              },
-            ],
-          },
-        ],
-      })
-      const answer = store.selections
-        .find((s) => s.categoryId === 1)!
-        .questions.find((q) => q.questionId === 1)!
-        .answers.find((a) => a.answerId === 1)!
-      expect(answer.isChecked).toBe(true)
-      expect(answer.value).toBe(4)
-    })
-
-    it('マスターデータに存在しない categoryId は無視される', () => {
-      const store = useSurveyStore()
-      expect(() =>
-        store.loadFromSharedState({
-          userName: '山田太郎',
-          selections: [{ categoryId: 999, isChecked: true, questions: [] }],
-        }),
-      ).not.toThrow()
-    })
-
-    it('呼び出し前の状態は一度リセットされてから上書きされる', () => {
-      const store = useSurveyStore()
-      store.setAnswerSelection(1, 1, 1, { isChecked: true, value: 5 })
-
-      store.loadFromSharedState({ userName: '山田太郎', selections: [] })
-
-      const answer = store.selections
-        .find((s) => s.categoryId === 1)!
-        .questions.find((q) => q.questionId === 1)!
-        .answers.find((a) => a.answerId === 1)!
-      expect(answer.isChecked).toBe(false)
-      expect(answer.value).toBeUndefined()
-    })
-
-    it('受け取ったデータに存在しない questionId が含まれていても無視される', () => {
-      const store = useSurveyStore()
-      expect(() =>
-        store.loadFromSharedState({
-          userName: '山田太郎',
-          selections: [
-            { categoryId: 1, isChecked: true, questions: [{ questionId: 999, answers: [] }] },
-          ],
-        }),
-      ).not.toThrow()
-    })
-
-    it('受け取ったデータに存在しない answerId が含まれていても無視される', () => {
-      const store = useSurveyStore()
-      expect(() =>
-        store.loadFromSharedState({
-          userName: '山田太郎',
-          selections: [
-            {
-              categoryId: 1,
-              isChecked: true,
-              questions: [
-                { questionId: 1, answers: [{ answerId: 999, isChecked: true, value: 3 }] },
-              ],
-            },
-          ],
-        }),
-      ).not.toThrow()
     })
   })
 
@@ -290,7 +182,7 @@ describe('useSurveyStore', () => {
       expect(apiUtils.saveSheet).not.toHaveBeenCalled()
     })
 
-    it('内容が同じだが未検証の場合は checkSheetExists で存在確認する', async () => {
+    it('内容が同じだが未検証の場合は fetchSheet で存在確認する', async () => {
       vi.mocked(apiUtils.saveSheet).mockResolvedValue('existing-id')
       const firstStore = useSurveyStore()
       await firstStore.getSavedIdOrSave()
@@ -305,17 +197,20 @@ describe('useSurveyStore', () => {
       const store = useSurveyStore()
       store.$patch(persisted)
 
-      vi.mocked(apiUtils.checkSheetExists).mockResolvedValue(true)
+      vi.mocked(apiUtils.fetchSheet).mockResolvedValue({
+        status: 'success',
+        data: { userName: '', selections: [] },
+      })
       vi.mocked(apiUtils.saveSheet).mockClear()
 
       const id = await store.getSavedIdOrSave()
 
-      expect(apiUtils.checkSheetExists).toHaveBeenCalledWith('existing-id')
+      expect(apiUtils.fetchSheet).toHaveBeenCalledWith('existing-id')
       expect(id).toBe('existing-id')
       expect(apiUtils.saveSheet).not.toHaveBeenCalled()
     })
 
-    it('存在確認で false の場合は再度 saveSheet が呼ばれる', async () => {
+    const restoreUnverifiedStore = async () => {
       vi.mocked(apiUtils.saveSheet).mockResolvedValue('existing-id')
       const firstStore = useSurveyStore()
       await firstStore.getSavedIdOrSave()
@@ -329,15 +224,36 @@ describe('useSurveyStore', () => {
       setActivePinia(createPinia())
       const store = useSurveyStore()
       store.$patch(persisted)
-
-      vi.mocked(apiUtils.checkSheetExists).mockResolvedValue(false)
       vi.mocked(apiUtils.saveSheet).mockClear()
-      vi.mocked(apiUtils.saveSheet).mockResolvedValueOnce('re-saved-id')
+      return store
+    }
+
+    it.each([[{ status: 'notfound' } as const], [{ status: 'expired', expiryDays: 5 } as const]])(
+      '存在確認の結果が %o の場合は再度 saveSheet が呼ばれる',
+      async (result) => {
+        const store = await restoreUnverifiedStore()
+        vi.mocked(apiUtils.fetchSheet).mockResolvedValue(result)
+        vi.mocked(apiUtils.saveSheet).mockResolvedValueOnce('re-saved-id')
+
+        const id = await store.getSavedIdOrSave()
+
+        expect(apiUtils.saveSheet).toHaveBeenCalledOnce()
+        expect(id).toBe('re-saved-id')
+      },
+    )
+
+    it('存在確認が通信エラー等で失敗した場合は、保存し直さずに既存 ID を返し、次回あらためて確認する', async () => {
+      const store = await restoreUnverifiedStore()
+      vi.mocked(apiUtils.fetchSheet).mockResolvedValue({ status: 'error' })
 
       const id = await store.getSavedIdOrSave()
 
-      expect(apiUtils.saveSheet).toHaveBeenCalledOnce()
-      expect(id).toBe('re-saved-id')
+      expect(id).toBe('existing-id')
+      expect(apiUtils.saveSheet).not.toHaveBeenCalled()
+
+      await store.getSavedIdOrSave()
+
+      expect(apiUtils.fetchSheet).toHaveBeenCalledTimes(2)
     })
 
     it('内容が変わっていれば savedSheetId があっても新規保存される', async () => {
@@ -352,28 +268,6 @@ describe('useSurveyStore', () => {
 
       expect(apiUtils.saveSheet).toHaveBeenCalledTimes(2)
       expect(id).toBe('id-after-change')
-    })
-  })
-
-  // ─── reset ────────────────────────────────────────────────
-
-  describe('reset', () => {
-    it('userName / selections / savedSheetId 等が初期状態に戻る', async () => {
-      vi.mocked(apiUtils.saveSheet).mockResolvedValue('id')
-      const store = useSurveyStore()
-      store.setUserName('山田太郎')
-      store.setAnswerSelection(1, 1, 1, { isChecked: true, value: 3 })
-      await store.getSavedIdOrSave()
-
-      store.reset()
-
-      expect(store.userName).toBe('')
-      expect(store.savedSheetId).toBeNull()
-      const answer = store.selections
-        .find((s) => s.categoryId === 1)!
-        .questions.find((q) => q.questionId === 1)!
-        .answers.find((a) => a.answerId === 1)!
-      expect(answer.isChecked).toBe(false)
     })
   })
 })

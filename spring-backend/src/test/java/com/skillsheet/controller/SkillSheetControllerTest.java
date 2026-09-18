@@ -94,4 +94,31 @@ class SkillSheetControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.userName").value("山田太郎"));
   }
+
+  @Test
+  @DisplayName("GET /api/sheets/{id} - IDがUUIDの形式でない場合は404 Not Foundが返ること")
+  void findById_InvalidUuid_Returns404() throws Exception {
+    // WHEN & THEN
+    mockMvc.perform(get("/api/sheets/{id}", "not-a-uuid")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("POST /api/sheets - JSONとして読み取れないボディの場合は400 Bad Requestが返ること")
+  void save_MalformedJson_Returns400() throws Exception {
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{ invalid json"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("POST /api/sheets/{id} - 未対応のHTTPメソッドの場合は500ではなく405 Method Not Allowedが返ること")
+  void findById_UnsupportedMethod_Returns405() throws Exception {
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets/{id}", UUID.randomUUID()))
+        .andExpect(status().isMethodNotAllowed());
+  }
 }

@@ -2,9 +2,9 @@ import { computed, ref } from 'vue'
 
 import { defineStore } from 'pinia'
 
-import { CATEGORY_MASTERS } from '@/data/questions'
-import type { AnswerSelection, CategorySelection, QuestionSelection, SurveyState } from '@/types'
-import { checkSheetExists, saveSheet } from '@/utils/api'
+import type { AnswerSelection, CategorySelection, SurveyState } from '@/types'
+import { fetchSheet, saveSheet } from '@/utils/api'
+import { buildInitialSelections, buildQuestionsForCategory } from '@/utils/surveyState'
 
 export const useSurveyStore = defineStore(
   'survey',
@@ -17,28 +17,6 @@ export const useSurveyStore = defineStore(
     const savedSheetId = ref<string | null>(null)
     const savedDataSnapshot = ref<string>('')
     const isIdVerified = ref<boolean>(false)
-
-    // ─── 初期状態の構築 ────────────────────────────────────────────
-
-    function buildQuestionsForCategory(categoryId: number): QuestionSelection[] {
-      const master = CATEGORY_MASTERS.find((m) => m.id === categoryId)!
-      return master.questions.map((q): QuestionSelection => ({
-        questionId: q.id,
-        answers: q.answers.map((a): AnswerSelection => ({
-          answerId: a.id,
-          isChecked: false,
-          value: undefined,
-        })),
-      }))
-    }
-
-    function buildInitialSelections(): CategorySelection[] {
-      return CATEGORY_MASTERS.map((master): CategorySelection => ({
-        categoryId: master.id,
-        isChecked: master.isCheckedByDefault,
-        questions: buildQuestionsForCategory(master.id),
-      }))
-    }
 
     // ─── Getters ───────────────────────────────────────────────────
 
@@ -81,29 +59,6 @@ export const useSurveyStore = defineStore(
       if (aSel) Object.assign(aSel, patch)
     }
 
-    const loadFromSharedState = (state: SurveyState) => {
-      userName.value = state.userName
-      selections.value = buildInitialSelections()
-
-      state.selections.forEach((incoming) => {
-        const sel = selections.value.find((s) => s.categoryId === incoming.categoryId)
-        if (!sel) return
-        sel.isChecked = incoming.isChecked
-
-        incoming.questions.forEach((incomingQ) => {
-          const qSel = sel.questions.find((q) => q.questionId === incomingQ.questionId)
-          if (!qSel) return
-
-          incomingQ.answers.forEach((incomingA) => {
-            const aSel = qSel.answers.find((a) => a.answerId === incomingA.answerId)
-            if (!aSel) return
-            aSel.isChecked = incomingA.isChecked
-            aSel.value = incomingA.value
-          })
-        })
-      })
-    }
-
     const getSavedIdOrSave = async (): Promise<string> => {
       const currentSnapshot = JSON.stringify(surveyState.value)
 
@@ -111,11 +66,17 @@ export const useSurveyStore = defineStore(
         if (isIdVerified.value) {
           return savedSheetId.value
         }
-        const exists = await checkSheetExists(savedSheetId.value)
-        if (exists) {
+        const result = await fetchSheet(savedSheetId.value)
+        if (result.status === 'success') {
           isIdVerified.value = true
           return savedSheetId.value
         }
+        // 通信エラーや5xxは、シートが無いのではなく確認できなかっただけなので、作り直さずに既存IDを使う。
+        // 検証済みにはしないため、次の呼び出しであらためて確認する
+        if (result.status === 'error') {
+          return savedSheetId.value
+        }
+        // 期限切れ（410）・未存在（404）の場合だけ、保存し直す
         savedSheetId.value = null
         savedDataSnapshot.value = ''
       }
@@ -128,14 +89,6 @@ export const useSurveyStore = defineStore(
       return id
     }
 
-    const reset = (): void => {
-      userName.value = ''
-      selections.value = buildInitialSelections()
-      savedSheetId.value = null
-      savedDataSnapshot.value = ''
-      isIdVerified.value = false
-    }
-
     return {
       userName,
       selections,
@@ -146,9 +99,7 @@ export const useSurveyStore = defineStore(
       setUserName,
       setCategoryChecked,
       setAnswerSelection,
-      loadFromSharedState,
       getSavedIdOrSave,
-      reset,
     }
   },
   {

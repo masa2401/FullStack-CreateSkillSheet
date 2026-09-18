@@ -60,16 +60,6 @@ export const fetchSheet = async (id: string): Promise<FetchSheetResult> => {
   }
 }
 
-export const checkSheetExists = async (id: string): Promise<boolean> => {
-  if (!isBackendEnabled()) return false
-  try {
-    const res = await fetch(`${getApiBase()}/api/sheets/${id}`)
-    return res.ok
-  } catch {
-    return false
-  }
-}
-
 export const fetchPdfStatus = async (id: string): Promise<PdfStatusResult> => {
   if (!isBackendEnabled()) return { status: 'failed', retryable: false }
   try {

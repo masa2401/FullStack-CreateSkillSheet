@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { TriangleAlert } from '@lucide/vue'
 
@@ -14,19 +15,24 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAppNavigation } from '@/composables/useAppNavigation'
 import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
+import type { SurveyState } from '@/types'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
 import { LEVEL_LABELS } from '@/utils/constants'
-import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
+import { getDataFromQuery, getIdFromQuery } from '@/utils/shareUtils'
+import { normalizeSurveyState } from '@/utils/surveyState'
 
 const store = useSurveyStore()
-const { mergedCategories } = useMergedSurvey()
+
+/**
+ * 共有リンクで開いたシート。閲覧者自身の作成データ（ストア、localStorage に永続化される）とは分けて、
+ * この画面の中だけで持つ。画面を離れれば破棄されるため、閲覧者のデータを上書きしない
+ */
+const sharedState = ref<SurveyState | null>(null)
+const { mergedCategories } = useMergedSurvey(
+  () => sharedState.value?.selections ?? store.selections,
+)
 
 const { goToTop, goToSurvey: goBack } = useAppNavigation()
-
-const startOwnSheet = (): void => {
-  store.reset()
-  goToTop()
-}
 
 type ErrorReason = 'expired' | 'notfound' | 'error'
 
@@ -36,15 +42,16 @@ type PageStatus =
   | { type: 'error'; reason: ErrorReason; expiryDays?: number }
 
 const pageStatus = ref<PageStatus>({ type: 'loading' })
-const sharedId = getIdFromUrl()
-const urlData = getDataFromUrl()
+const route = useRoute()
+const sharedId = getIdFromQuery(route.query)
+const urlData = getDataFromQuery(route.query)
 const isSharedView = (!!sharedId && isBackendEnabled()) || urlData !== null
 
 onMounted(async () => {
   if (sharedId && isBackendEnabled()) {
     const result = await fetchSheet(sharedId)
     if (result.status === 'success') {
-      store.loadFromSharedState(result.data)
+      sharedState.value = normalizeSurveyState(result.data)
       pageStatus.value = { type: 'ready' }
       return
     }
@@ -59,7 +66,7 @@ onMounted(async () => {
   }
 
   if (urlData) {
-    store.loadFromSharedState(urlData)
+    sharedState.value = normalizeSurveyState(urlData)
   }
   pageStatus.value = { type: 'ready' }
 })
@@ -74,7 +81,9 @@ const handleNameCommitted = async (name: string): Promise<void> => {
   }
 }
 
-const displayName = computed(() => store.userName || 'Guest')
+const displayName = computed(
+  () => (sharedState.value ? sharedState.value.userName : store.userName) || 'Guest',
+)
 
 // ─── 分岐処理 ──────────────────────────────────────────────────────────────
 
@@ -250,7 +259,7 @@ const errorMessage = computed(() => {
           icon="fa-solid fa-pen"
           label="自分のスキルシートを作成"
           animation-type="beat"
-          @click="startOwnSheet"
+          @click="goToTop"
         />
       </template>
     </div>

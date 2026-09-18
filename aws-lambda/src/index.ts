@@ -60,6 +60,19 @@ function sanitizeFileName(name: string | undefined): string {
   return name.replace(/[^\w\-ぁ-んァ-ヶ一-龠々ー]/g, '_').slice(0, 50);
 }
 
+/**
+ * Content-Disposition ヘッダーの値を組み立てる。
+ * ヘッダー値は ASCII に限られるため、日本語のファイル名は RFC 6266 / RFC 5987 の
+ * `filename*=UTF-8''<パーセントエンコード>` で渡す。`filename="..."` にパーセントエンコードした値を
+ * 入れると、ブラウザによってはデコードされず `%E5...` のままのファイル名になる。
+ * `filename` は `filename*` に対応していないクライアント向けの ASCII のみの代替名。
+ * `sanitizeFileName()` が記号を `_` に置き換えるため、`encodeURIComponent` が
+ * エンコードしない記号（`'` `(` `)` `*` など）はここに残らない。
+ */
+function buildContentDisposition(safeFileName: string): string {
+  return `attachment; filename="skillsheet.pdf"; filename*=UTF-8''${encodeURIComponent(safeFileName)}.pdf`;
+}
+
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -129,7 +142,7 @@ export const handler = async (
         Key: objectKey,
         Body: pdfBuffer,
         ContentType: 'application/pdf',
-        ContentDisposition: `attachment; filename="${encodeURIComponent(safeFileName)}.pdf"`,
+        ContentDisposition: buildContentDisposition(safeFileName),
       }),
     );
 

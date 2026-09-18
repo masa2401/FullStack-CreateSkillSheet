@@ -1,3 +1,5 @@
+import type { LocationQuery } from 'vue-router'
+
 import LZString from 'lz-string'
 
 import type { CategorySelection, SurveyState } from '@/types'
@@ -58,17 +60,19 @@ export const createShareUrl = (surveyData: SurveyState): string => {
   return url.toString()
 }
 
-const getHashQueryParams = (): URLSearchParams | null => {
-  const url = new URL(window.location.href)
-  if (!url.hash || !url.hash.includes('?')) return null
-  const [, hashQuery] = url.hash.split('?')
-  if (!hashQuery) return null
-  return new URLSearchParams(hashQuery)
+/**
+ * クエリの値を1つの文字列として取り出す。同名のキーが複数ある場合は先頭を使う。
+ * クエリは vue-router が解析した `route.query` / `to.query` を受け取る。
+ * `window.location` を読むと、ナビゲーションガードの中では遷移元の URL を見てしまうため。
+ */
+const firstQueryValue = (query: LocationQuery, key: string): string | null => {
+  const value = query[key]
+  return (Array.isArray(value) ? value[0] : value) ?? null
 }
 
-export const getDataFromUrl = (): SurveyState | null => {
+export const getDataFromQuery = (query: LocationQuery): SurveyState | null => {
   try {
-    const encodedData = getHashQueryParams()?.get('data')
+    const encodedData = firstQueryValue(query, 'data')
     if (!encodedData) return null
     const decoded = decodeData(encodedData)
     if (!decoded) {
@@ -87,7 +91,7 @@ export const getDataFromUrl = (): SurveyState | null => {
   }
 }
 
-export const getIdFromUrl = (): string | null => getHashQueryParams()?.get('id') ?? null
+export const getIdFromQuery = (query: LocationQuery): string | null => firstQueryValue(query, 'id')
 
 // ─── クリップボード操作 ──────────────────────────────────────────
 

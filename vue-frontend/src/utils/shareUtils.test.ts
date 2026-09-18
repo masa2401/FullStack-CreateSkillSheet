@@ -8,8 +8,8 @@ import {
   createShareUrl,
   decodeData,
   encodeData,
-  getDataFromUrl,
-  getIdFromUrl,
+  getDataFromQuery,
+  getIdFromQuery,
 } from './shareUtils'
 
 const mockSurveyState: SurveyState = {
@@ -82,52 +82,46 @@ describe('createShareUrl', () => {
   })
 })
 
-describe('getDataFromUrl', () => {
-  afterEach(() => {
-    window.location.hash = ''
-  })
-
+describe('getDataFromQuery', () => {
   it('data パラメータがあればデコードして返す', () => {
     const encoded = encodeData(mockSurveyState)!
-    window.location.hash = `/result?data=${encoded}`
-    expect(getDataFromUrl()).toEqual(mockSurveyState)
+    expect(getDataFromQuery({ data: encoded })).toEqual(mockSurveyState)
   })
 
-  it('ハッシュに ? が含まれない場合は null を返す', () => {
-    window.location.hash = '/result'
-    expect(getDataFromUrl()).toBeNull()
+  it('同名のパラメータが複数ある場合は先頭の値を使う', () => {
+    const encoded = encodeData(mockSurveyState)!
+    expect(getDataFromQuery({ data: [encoded, 'invalid-string'] })).toEqual(mockSurveyState)
+  })
+
+  it('クエリが空の場合は null を返す', () => {
+    expect(getDataFromQuery({})).toBeNull()
   })
 
   it('data パラメータが無い場合は null を返す', () => {
-    window.location.hash = '/result?id=abc'
-    expect(getDataFromUrl()).toBeNull()
+    expect(getDataFromQuery({ id: 'abc' })).toBeNull()
   })
 
   it('壊れたデータの場合は null を返す', () => {
-    window.location.hash = '/result?data=invalid-string'
-    expect(getDataFromUrl()).toBeNull()
+    expect(getDataFromQuery({ data: 'invalid-string' })).toBeNull()
   })
 
   it('構造が不正なデータの場合は null を返す', () => {
     const encoded = LZString.compressToEncodedURIComponent(JSON.stringify({ foo: 'bar' }))
-    window.location.hash = `/result?data=${encoded}`
-    expect(getDataFromUrl()).toBeNull()
+    expect(getDataFromQuery({ data: encoded })).toBeNull()
   })
 })
 
-describe('getIdFromUrl', () => {
-  afterEach(() => {
-    window.location.hash = ''
+describe('getIdFromQuery', () => {
+  it('id パラメータがあれば返す', () => {
+    expect(getIdFromQuery({ id: 'abc123' })).toBe('abc123')
   })
 
-  it('id パラメータがあれば返す', () => {
-    window.location.hash = '/result?id=abc123'
-    expect(getIdFromUrl()).toBe('abc123')
+  it('同名のパラメータが複数ある場合は先頭の値を返す', () => {
+    expect(getIdFromQuery({ id: ['abc123', 'def456'] })).toBe('abc123')
   })
 
   it('id パラメータが無い場合は null を返す', () => {
-    window.location.hash = '/result?data=xxx'
-    expect(getIdFromUrl()).toBeNull()
+    expect(getIdFromQuery({ data: 'xxx' })).toBeNull()
   })
 })
 
