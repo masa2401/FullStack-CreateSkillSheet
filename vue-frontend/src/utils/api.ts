@@ -10,7 +10,23 @@ export type FetchSheetResult =
   | { status: 'notfound' }
   | { status: 'error' }
 
-export type PdfStatus = { status: 'generating' } | { status: 'ready'; downloadUrl: string }
+/** バックエンドが返すPDFの生成状況 */
+type PdfStatusBody = { status: 'generating' } | { status: 'ready'; downloadUrl: string }
+
+/**
+ * `retryable` は、同じリクエストをやり直す価値があるかを表す。
+ * 5xx と通信エラーは一時的な不調（Railwayの起床中など）とみなして true、
+ * 4xx は内容を直さない限り結果が変わらないため false にする。
+ * 429 は待てば通る4xxだが、PDF系のエンドポイントはレート制限の対象外のため区別しない。
+ */
+export type PdfStatusResult = PdfStatusBody | { status: 'failed'; retryable: boolean }
+
+export type RegenerateResult = { status: 'accepted' } | { status: 'failed'; retryable: boolean }
+
+const failedResult = (httpStatus: number): { status: 'failed'; retryable: boolean } => ({
+  status: 'failed',
+  retryable: httpStatus >= 500,
+})
 
 export const isBackendEnabled = (): boolean => !!getApiBase()
 
@@ -54,23 +70,24 @@ export const checkSheetExists = async (id: string): Promise<boolean> => {
   }
 }
 
-export const fetchPdfStatus = async (id: string): Promise<PdfStatus | null> => {
-  if (!isBackendEnabled()) return null
+export const fetchPdfStatus = async (id: string): Promise<PdfStatusResult> => {
+  if (!isBackendEnabled()) return { status: 'failed', retryable: false }
   try {
     const res = await fetch(`${getApiBase()}/api/pdf/${id}/status`)
-    if (!res.ok) return null
-    return (await res.json()) as PdfStatus
+    if (!res.ok) return failedResult(res.status)
+    return (await res.json()) as PdfStatusBody
   } catch {
-    return null
+    return { status: 'failed', retryable: true }
   }
 }
 
-export const regeneratePdf = async (id: string): Promise<boolean> => {
-  if (!isBackendEnabled()) return false
+export const regeneratePdf = async (id: string): Promise<RegenerateResult> => {
+  if (!isBackendEnabled()) return { status: 'failed', retryable: false }
   try {
     const res = await fetch(`${getApiBase()}/api/pdf/${id}/regenerate`, { method: 'POST' })
-    return res.ok
+    if (!res.ok) return failedResult(res.status)
+    return { status: 'accepted' }
   } catch {
-    return false
+    return { status: 'failed', retryable: true }
   }
 }

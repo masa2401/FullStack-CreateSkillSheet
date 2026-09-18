@@ -30,6 +30,7 @@ const {
   state: pdfState,
   downloadUrl: pdfDownloadUrl,
   progress: pdfProgress,
+  start: startPdfStatus,
   retry: retryPdf,
 } = usePdfStatus(savedSheetId)
 
@@ -40,6 +41,7 @@ const openMenu = async (): Promise<void> => {
 
   try {
     await store.getSavedIdOrSave()
+    startPdfStatus()
   } catch (error) {
     console.error('シート保存エラー:', error)
   }

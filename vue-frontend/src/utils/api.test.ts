@@ -180,10 +180,10 @@ describe('fetchPdfStatus', () => {
     vi.unstubAllEnvs()
   })
 
-  it('バックエンド無効時は null を返す', async () => {
+  it('バックエンド無効時はリトライできない失敗を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
     const result = await fetchPdfStatus('abc123')
-    expect(result).toBeNull()
+    expect(result).toEqual({ status: 'failed', retryable: false })
   })
 
   it('ready の場合は status と downloadUrl を返す', async () => {
@@ -208,18 +208,32 @@ describe('fetchPdfStatus', () => {
     expect(result).toEqual({ status: 'generating' })
   })
 
-  it('レスポンスが ok でない場合は null を返す', async () => {
+  it('4xx の場合はリトライできない失敗を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 404 }))
     const result = await fetchPdfStatus('abc123')
-    expect(result).toBeNull()
+    expect(result).toEqual({ status: 'failed', retryable: false })
   })
 
-  it('ネットワークエラー時は null を返す', async () => {
+  it('429 は 4xx としてリトライできない失敗を返す', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 429 }))
+    const result = await fetchPdfStatus('abc123')
+    expect(result).toEqual({ status: 'failed', retryable: false })
+  })
+
+  it('5xx の場合はリトライできる失敗を返す', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 503 }))
+    const result = await fetchPdfStatus('abc123')
+    expect(result).toEqual({ status: 'failed', retryable: true })
+  })
+
+  it('ネットワークエラー時はリトライできる失敗を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network Error'))
     const result = await fetchPdfStatus('abc123')
-    expect(result).toBeNull()
+    expect(result).toEqual({ status: 'failed', retryable: true })
   })
 })
 
@@ -229,24 +243,31 @@ describe('regeneratePdf', () => {
     vi.unstubAllEnvs()
   })
 
-  it('バックエンド無効時は false を返す', async () => {
+  it('バックエンド無効時はリトライできない失敗を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
     const result = await regeneratePdf('sheet-1')
-    expect(result).toBe(false)
+    expect(result).toEqual({ status: 'failed', retryable: false })
   })
 
-  it('レスポンスが ok の場合は true を返す', async () => {
+  it('レスポンスが ok の場合は accepted を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 202 }))
     const result = await regeneratePdf('sheet-1')
-    expect(result).toBe(true)
+    expect(result).toEqual({ status: 'accepted' })
   })
 
-  it('レスポンスが ok でない場合は false を返す', async () => {
+  it('4xx の場合はリトライできない失敗を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 429 }))
     const result = await regeneratePdf('sheet-1')
-    expect(result).toBe(false)
+    expect(result).toEqual({ status: 'failed', retryable: false })
+  })
+
+  it('5xx の場合はリトライできる失敗を返す', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 502 }))
+    const result = await regeneratePdf('sheet-1')
+    expect(result).toEqual({ status: 'failed', retryable: true })
   })
 
   it('POST リクエストが送信される', async () => {
@@ -261,10 +282,10 @@ describe('regeneratePdf', () => {
     )
   })
 
-  it('ネットワークエラー時は false を返す', async () => {
+  it('ネットワークエラー時はリトライできる失敗を返す', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network Error'))
     const result = await regeneratePdf('sheet-1')
-    expect(result).toBe(false)
+    expect(result).toEqual({ status: 'failed', retryable: true })
   })
 })
