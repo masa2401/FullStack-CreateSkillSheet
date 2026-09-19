@@ -31,8 +31,12 @@ test('名前入力からPDFダウンロードの活性化まで', async ({ page 
   await slowClick(page, page.getByRole('button', { name: '結果を印刷/共有' }))
   await page.getByRole('menu').waitFor()
 
-  const pdfPending = page.getByRole('menuitem', { name: /PDFを準備中/ })
-  await slowHover(page, pdfPending)
+  // 生成が早く終わると「準備中」は一瞬で消え、状態で絞ると一致しなくなる。
+  // 状態を問わずPDF項目を指す（文言は `src/components/PdfButton.vue` に合わせる）
+  const pdfItem = page.getByRole('menuitem', {
+    name: /^(PDFを準備中|PDFをダウンロード|PDF生成に失敗)/,
+  })
+  await slowHover(page, pdfItem)
 
   // 押すと別タブで開き撮影結果に残らないため、活性化した状態を見せて終える
   const pdfState = await waitForPdfSettled(page)

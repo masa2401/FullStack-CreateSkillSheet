@@ -177,7 +177,8 @@ export const smoothScrollTo = async (locator: Locator): Promise<void> => {
 /** カーソルを要素の中央へ滑らせる。クリックはしない */
 export const slowHover = async (page: Page, locator: Locator): Promise<void> => {
   await smoothScrollTo(locator)
-  const box = await locator.boundingBox()
+  // スクロール中に要素が消えたり別の要素に置き換わったりした場合、テスト全体のタイムアウトまで待たずに早めに失敗させる
+  const box = await locator.boundingBox({ timeout: 10_000 })
   if (box === null) throw new Error('要素の位置を取得できませんでした')
 
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, {
