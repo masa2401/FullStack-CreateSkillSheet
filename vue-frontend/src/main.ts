@@ -9,6 +9,7 @@ import {
   faArrowUpRightFromSquare,
   faCheck,
   faCircleExclamation,
+  faFileCsv,
   faPen,
   faPrint,
   faSpinner,
@@ -34,6 +35,7 @@ library.add(
   faHouse,
   faCheck,
   faCopy,
+  faFileCsv,
   faSpinner,
   faGithub,
 )

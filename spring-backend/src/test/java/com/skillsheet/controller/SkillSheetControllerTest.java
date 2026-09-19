@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.skillsheet.dto.AnswerDto;
+import com.skillsheet.dto.CategoryDto;
+import com.skillsheet.dto.QuestionDto;
 import com.skillsheet.dto.request.SaveSheetRequest;
+import com.skillsheet.dto.response.SheetResponse;
 import com.skillsheet.exception.TooManyRequestsException;
 import com.skillsheet.service.SaveRateLimiter;
 import com.skillsheet.service.SkillSheetService;
@@ -80,11 +85,70 @@ class SkillSheetControllerTest {
   }
 
   @Test
+  @DisplayName("POST /api/sheets - 習熟度が1〜5の範囲外の場合は400 Bad Requestが返ること")
+  void save_ValueOutOfRange_Returns400() throws Exception {
+    // GIVEN: 習熟度が6の回答を含むリクエスト
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎",
+        List.of(new CategoryDto(1, List.of(new QuestionDto(1, List.of(new AnswerDto(1, 6)))))));
+
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("POST /api/sheets - 1設問の回答が上限（30件）を超える場合は400 Bad Requestが返ること")
+  void save_TooManyAnswers_Returns400() throws Exception {
+    // GIVEN: 31件の回答を持つ設問を含むリクエスト
+    List<AnswerDto> answers = IntStream.rangeClosed(1, 31).mapToObj(i -> new AnswerDto(i, 3)).toList();
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎",
+        List.of(new CategoryDto(1, List.of(new QuestionDto(1, answers)))));
+
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("POST /api/sheets - カテゴリIDが無い場合は400 Bad Requestが返ること")
+  void save_MissingCategoryId_Returns400() throws Exception {
+    // GIVEN: categoryId が null のカテゴリを含むリクエスト
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎",
+        List.of(new CategoryDto(null, List.of())));
+
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("POST /api/sheets - 上限内の入れ子データは201 Createdで保存されること")
+  void save_NestedWithinLimits_Returns201() throws Exception {
+    // GIVEN: 上限ちょうど（30件）の回答を持つ設問を含むリクエスト
+    List<AnswerDto> answers = IntStream.rangeClosed(1, 30).mapToObj(i -> new AnswerDto(i, 5)).toList();
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎",
+        List.of(new CategoryDto(1, List.of(new QuestionDto(1, answers)))));
+    when(service.save(ArgumentMatchers.<SaveSheetRequest>any())).thenReturn(UUID.randomUUID());
+
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated());
+  }
+
+  @Test
   @DisplayName("GET /api/sheets/{id} - 指定したIDのスキルシートが正常に取得でき、200 OKが返ること")
   void findById_Success() throws Exception {
     // GIVEN
     UUID targetId = UUID.randomUUID();
-    SaveSheetRequest expectedResponse = new SaveSheetRequest("山田太郎", List.of());
+    SheetResponse expectedResponse = new SheetResponse("山田太郎", List.of());
 
     when(service.findById(targetId)).thenReturn(expectedResponse);
 

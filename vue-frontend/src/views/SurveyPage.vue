@@ -4,6 +4,7 @@ import { computed, nextTick } from 'vue'
 import { Check } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
+import LevelLegend from '@/components/LevelLegend.vue'
 import QuestionSection from '@/components/QuestionSection.vue'
 import ValidationError from '@/components/ValidationError.vue'
 import { resolveCategoryIcon } from '@/components/icons/categoryIcons'
@@ -13,7 +14,6 @@ import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyValidation } from '@/composables/useSurveyValidation'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { StarLevel } from '@/types'
-import { LEVEL_LABELS } from '@/utils/constants'
 import { getScrollBehavior } from '@/utils/motion'
 
 const store = useSurveyStore()
@@ -70,16 +70,7 @@ const handleSubmit = async (): Promise<void> => {
           />
           以下の質問で該当する項目を選択後、習熟度を5段階で選択してください。
         </p>
-        <ul
-          class="mx-auto grid w-fit gap-1 text-sm text-muted-foreground md:grid-flow-col md:grid-rows-3 md:gap-x-8"
-        >
-          <li
-            v-for="level in LEVEL_LABELS"
-            :key="level.stars"
-          >
-            {{ level.stars }}： {{ level.text }}
-          </li>
-        </ul>
+        <LevelLegend />
       </CardContent>
     </Card>
 

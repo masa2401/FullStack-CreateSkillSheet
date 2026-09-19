@@ -41,11 +41,6 @@ public class LambdaPdfService {
     private final ConcurrentHashMap<UUID, Instant> lastInvokedAt = new ConcurrentHashMap<>();
     private static final long MIN_RETRY_INTERVAL_SECONDS = 15;
 
-    /** 保存直後に呼ぶ非同期生成リクエスト。失敗してもログのみで例外を上位に投げない。 */
-    public void requestGenerationAsync(UUID sheetId, String userName) {
-        invokeAsync(sheetId, userName);
-    }
-
     /** 「再試行」ボタンから呼ばれる。直近のInvokeから間隔が短すぎる場合はスキップする。 */
     public boolean retryGeneration(UUID sheetId, String userName) {
         Instant now = Instant.now();
@@ -54,12 +49,14 @@ public class LambdaPdfService {
             log.info("PDF再生成リクエストをスロットリングしました: sheetId={}", sheetId);
             return false;
         }
-        invokeAsync(sheetId, userName);
+        requestGenerationAsync(sheetId, userName);
         return true;
     }
 
-    private void invokeAsync(UUID sheetId, String userName) {
+    /** 保存直後に呼ぶ非同期生成リクエスト。失敗してもログのみで例外を上位に投げない。 */
+    public void requestGenerationAsync(UUID sheetId, String userName) {
         try {
+            // 共有リンク（ID方式）の形式。フロントエンドの shareUtils.ts（createShareUrlById）と合わせる
             String resultUrl = frontendBaseUrl + "/#/result?id=" + sheetId;
             PdfGenerationPayload payload = new PdfGenerationPayload(
                     sheetId.toString(), resultUrl, userName);

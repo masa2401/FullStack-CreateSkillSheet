@@ -1,9 +1,4 @@
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import puppeteer from 'puppeteer';
 
 // ─── 型定義 ──────────────────────────────────────────────────────
@@ -15,19 +10,10 @@ interface PdfGenerationRequest {
   fileName?: string;
 }
 
-/** バックエンドへ返すレスポンスの形 */
-interface PdfGenerationResponse {
-  downloadUrl: string;
-  expiresInSeconds: number;
-}
-
 // ─── 環境変数 ────────────────────────────────────────────────────
 
 const BUCKET_NAME = process.env.PDF_BUCKET_NAME;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
-const PRESIGNED_URL_EXPIRES_SECONDS = Number(
-  process.env.PRESIGNED_URL_EXPIRES_SECONDS ?? 600,
-);
 
 const s3 = new S3Client({});
 
@@ -76,9 +62,12 @@ function buildContentDisposition(safeFileName: string): string {
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const handler = async (
-  event: PdfGenerationRequest,
-): Promise<PdfGenerationResponse> => {
+/**
+ * バックエンドから非同期（InvocationType.EVENT）で呼ばれるため、戻り値は誰にも返らない。
+ * 生成の成否はバックエンドが S3 にオブジェクトがあるかどうかで判断し、
+ * ダウンロード用の署名付き URL もバックエンド側（PdfController）で発行する。
+ */
+export const handler = async (event: PdfGenerationRequest): Promise<void> => {
   const { id, url, fileName } = event ?? {};
 
   if (!id || !UUID_PATTERN.test(id)) {
@@ -145,17 +134,6 @@ export const handler = async (
         ContentDisposition: buildContentDisposition(safeFileName),
       }),
     );
-
-    const downloadUrl = await getSignedUrl(
-      s3,
-      new GetObjectCommand({ Bucket: BUCKET_NAME, Key: objectKey }),
-      { expiresIn: PRESIGNED_URL_EXPIRES_SECONDS },
-    );
-
-    return {
-      downloadUrl,
-      expiresInSeconds: PRESIGNED_URL_EXPIRES_SECONDS,
-    };
   } finally {
     await browser.close();
   }

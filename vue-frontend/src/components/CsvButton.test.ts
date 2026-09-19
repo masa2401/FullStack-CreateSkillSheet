@@ -82,14 +82,26 @@ describe('CsvButton', () => {
     expect(await findMenuItem()).toHaveTextContent('ダウンロード完了')
   })
 
-  it('ダウンロード失敗時は data-feedback が付かない', async () => {
+  // ─── ダウンロード失敗 ──────────────────────────────────────────
+
+  it('ダウンロード失敗時に data-feedback が error になる', async () => {
     vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
     const user = userEvent.setup()
     renderButton()
 
     await user.click(await findMenuItem())
 
-    expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
+    expect(await findMenuItem()).toHaveAttribute('data-feedback', 'error')
+  })
+
+  it('ダウンロード失敗時に「保存に失敗しました」と表示される', async () => {
+    vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
+    const user = userEvent.setup()
+    renderButton()
+
+    await user.click(await findMenuItem())
+
+    expect(await findMenuItem()).toHaveTextContent('保存に失敗しました')
   })
 
   // ─── 自動クローズ ──────────────────────────────────────────────
@@ -115,6 +127,20 @@ describe('CsvButton', () => {
       await vi.advanceTimersByTimeAsync(2000)
 
       expect(emitted('done')).toBeTruthy()
+    })
+
+    it('失敗表示は2秒後に元の表示へ戻る', async () => {
+      vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      renderButton()
+
+      await user.click(await findMenuItem())
+      expect(await findMenuItem()).toHaveAttribute('data-feedback', 'error')
+
+      await vi.advanceTimersByTimeAsync(2000)
+
+      expect(await findMenuItem()).not.toHaveAttribute('data-feedback')
+      expect(await findMenuItem()).toHaveTextContent('CSVとして保存')
     })
 
     it('失敗時は done イベントが emit されない', async () => {

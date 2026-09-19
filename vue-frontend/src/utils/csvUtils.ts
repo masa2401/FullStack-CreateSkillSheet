@@ -2,64 +2,63 @@ import { CATEGORY_MASTER_BY_ID } from '@/data/questions'
 import type { CategorySelection } from '@/types'
 import { LEVEL_LABELS } from '@/utils/constants'
 
+/**
+ * 回答を CSV 文字列に変換する。
+ * 例外はここでは捕捉せず、呼び出し元（`downloadCSV`）でログを出して失敗として扱う。
+ */
 export const convertToCSV = (userName: string, selections: CategorySelection[]): string => {
-  try {
-    const rows: string[][] = [
-      ['ユーザー名', userName],
-      [],
-      ['習熟度の説明'],
-      ...LEVEL_LABELS.map((level) => [level.stars, level.text]),
-      [],
-      ['カテゴリ', '質問項目', 'スキル・技術要素', '習熟度'],
-    ]
+  const rows: string[][] = [
+    ['ユーザー名', userName],
+    [],
+    ['習熟度の説明'],
+    ...LEVEL_LABELS.map((level) => [level.stars, level.text]),
+    [],
+    ['カテゴリ', '質問項目', 'スキル・技術要素', '習熟度'],
+  ]
 
-    const body = selections
-      .filter((sel) => sel.isChecked)
-      .flatMap((sel) => {
-        const categoryMaster = CATEGORY_MASTER_BY_ID.get(sel.categoryId)
-        if (!categoryMaster) return []
+  const body = selections
+    .filter((sel) => sel.isChecked)
+    .flatMap((sel) => {
+      const categoryMaster = CATEGORY_MASTER_BY_ID.get(sel.categoryId)
+      if (!categoryMaster) return []
 
-        let categoryShown = false
-        return sel.questions.flatMap((qSel) => {
-          const questionDef = categoryMaster.questions.find((q) => q.id === qSel.questionId)
-          if (!questionDef) return []
+      let categoryShown = false
+      return sel.questions.flatMap((qSel) => {
+        const questionDef = categoryMaster.questions.find((q) => q.id === qSel.questionId)
+        if (!questionDef) return []
 
-          const checkedAnswers = qSel.answers.filter((a) => a.isChecked)
-          if (checkedAnswers.length === 0) return []
+        const checkedAnswers = qSel.answers.filter((a) => a.isChecked)
+        if (checkedAnswers.length === 0) return []
 
-          let questionShown = false
-          return checkedAnswers.flatMap((aSel) => {
-            const answerDef = questionDef.answers.find((a) => a.id === aSel.answerId)
-            if (!answerDef) return []
+        let questionShown = false
+        return checkedAnswers.flatMap((aSel) => {
+          const answerDef = questionDef.answers.find((a) => a.id === aSel.answerId)
+          if (!answerDef) return []
 
-            const level = aSel.value ? LEVEL_LABELS[aSel.value - 1] : undefined
-            const row = [
-              !categoryShown ? categoryMaster.label : '',
-              !questionShown ? questionDef.title : '',
-              answerDef.label,
-              level ? level.stars : '',
-            ]
-            categoryShown = true
-            questionShown = true
-            return [row]
-          })
+          const level = aSel.value ? LEVEL_LABELS[aSel.value - 1] : undefined
+          const row = [
+            !categoryShown ? categoryMaster.label : '',
+            !questionShown ? questionDef.title : '',
+            answerDef.label,
+            level ? level.stars : '',
+          ]
+          categoryShown = true
+          questionShown = true
+          return [row]
         })
       })
-    rows.push(...body)
-    return rows
-      .map((row) =>
-        row
-          .map((cell) => {
-            const correctValue = String(cell ?? '').replace(/"/g, '""')
-            return `"${correctValue}"`
-          })
-          .join(','),
-      )
-      .join('\r\n')
-  } catch (error) {
-    console.error('CSV変換エラー:', error)
-    throw new Error('CSVへの変換に失敗しました')
-  }
+    })
+  rows.push(...body)
+  return rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const correctValue = String(cell ?? '').replace(/"/g, '""')
+          return `"${correctValue}"`
+        })
+        .join(','),
+    )
+    .join('\r\n')
 }
 
 export const downloadCSV = (userName: string, selections: CategorySelection[]): boolean => {

@@ -55,8 +55,8 @@ public class PdfController {
     /** 手動リトライ用：既存シートに対して再度Lambdaを非同期Invokeする。 */
     @PostMapping("/{id}/regenerate")
     public ResponseEntity<PdfStatusResponse> regenerate(@PathVariable UUID id) {
-        // findById()はNotFound/Expiredの例外をGlobalExceptionHandlerが処理済みの規約に乗せる
-        String userName = skillSheetService.findById(id).userName();
+        // 未存在・期限切れの場合はfindById()と同じ例外になり、GlobalExceptionHandlerが404・410に変換する
+        String userName = skillSheetService.findUserNameById(id);
         lambdaPdfService.retryGeneration(id, userName);
         return ResponseEntity.accepted().body(PdfStatusResponse.generating());
     }

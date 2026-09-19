@@ -6,6 +6,7 @@ import { TriangleAlert } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
+import LevelLegend from '@/components/LevelLegend.vue'
 import ResultSkeleton from '@/components/ResultSkeleton.vue'
 import ShareButton from '@/components/ShareButton.vue'
 import StatePanel from '@/components/StatePanel.vue'
@@ -159,16 +160,7 @@ const errorMessage = computed(() => {
             @commit="handleNameCommitted"
           />
         </div>
-        <ul
-          class="mx-auto grid w-fit gap-1 text-sm text-muted-foreground md:grid-flow-col md:grid-rows-3 md:gap-x-8 print:grid-flow-col print:grid-rows-3 print:gap-x-8"
-        >
-          <li
-            v-for="level in LEVEL_LABELS"
-            :key="level.stars"
-          >
-            {{ level.stars }}： {{ level.text }}
-          </li>
-        </ul>
+        <LevelLegend />
       </CardContent>
     </Card>
 

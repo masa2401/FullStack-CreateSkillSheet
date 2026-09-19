@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
 import { Check, Lightbulb, MousePointer } from '@lucide/vue'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
@@ -11,17 +9,16 @@ import { useSurveyStore } from '@/stores/useSurveyStore'
 
 const store = useSurveyStore()
 
-const engineerMaster = CATEGORY_MASTERS.find((c) => c.key === 'engineer')!
-const designerMaster = CATEGORY_MASTERS.find((c) => c.key === 'designer')!
+/** トップで選ぶ職種カテゴリ。常に回答する共通カテゴリ（isCheckedByDefault）は除く */
+const selectableCategories = CATEGORY_MASTERS.filter((c) => !c.isCheckedByDefault)
 
-const engineerChecked = computed({
-  get: () => store.selections.find((c) => c.categoryId === engineerMaster.id)?.isChecked ?? false,
-  set: (val: boolean) => store.setCategoryChecked(engineerMaster.id, val),
-})
-const designerChecked = computed({
-  get: () => store.selections.find((c) => c.categoryId === designerMaster.id)?.isChecked ?? false,
-  set: (val: boolean) => store.setCategoryChecked(designerMaster.id, val),
-})
+const isCategoryChecked = (categoryId: number): boolean =>
+  store.selections.find((c) => c.categoryId === categoryId)?.isChecked ?? false
+
+const toggleCategory = (categoryId: number, event: Event): void => {
+  store.setCategoryChecked(categoryId, (event.target as HTMLInputElement).checked)
+}
+
 const { goToSurvey } = useAppNavigation()
 </script>
 
@@ -43,18 +40,21 @@ const { goToSurvey } = useAppNavigation()
         class="mt-8 grid gap-4 sm:grid-cols-2 2xl:gap-6"
       >
         <label
+          v-for="category in selectableCategories"
+          :key="category.id"
           data-slot="category-card"
           class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input bg-card px-6 pt-6 pb-8 text-center shadow-sm transition-colors hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 2xl:gap-4 2xl:px-8 2xl:pt-8 2xl:pb-10"
         >
           <input
-            v-model="engineerChecked"
             type="checkbox"
             class="sr-only"
-            aria-describedby="engineer-desc"
-            :aria-label="engineerMaster.label"
+            :checked="isCategoryChecked(category.id)"
+            :aria-describedby="`${category.key}-desc`"
+            :aria-label="category.label"
+            @change="toggleCategory(category.id, $event)"
           />
           <component
-            :is="resolveCategoryIcon(engineerMaster.key)"
+            :is="resolveCategoryIcon(category.key)"
             class="size-14 2xl:size-16"
             aria-hidden="true"
           />
@@ -62,54 +62,17 @@ const { goToSurvey } = useAppNavigation()
             data-slot="category-card-title"
             class="text-lg font-bold 2xl:text-xl"
           >
-            {{ engineerMaster.label }}
+            {{ category.label }}
           </h3>
           <p
-            id="engineer-desc"
+            :id="`${category.key}-desc`"
             data-slot="category-card-description"
             class="text-sm leading-relaxed text-muted-foreground group-has-[:checked]:text-primary-foreground 2xl:text-base"
           >
-            {{ engineerMaster.description }}
+            {{ category.description }}
           </p>
           <span
-            v-if="engineerChecked"
-            class="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm 2xl:top-6 2xl:right-6"
-            aria-hidden="true"
-          >
-            <Check class="size-6 animate-check-pop" />
-          </span>
-        </label>
-        <label
-          data-slot="category-card"
-          class="group relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-input bg-card px-6 pt-6 pb-8 text-center shadow-sm transition-colors hover:border-ring has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 2xl:gap-4 2xl:px-8 2xl:pt-8 2xl:pb-10"
-        >
-          <input
-            v-model="designerChecked"
-            type="checkbox"
-            class="sr-only"
-            aria-describedby="designer-desc"
-            :aria-label="designerMaster.label"
-          />
-          <component
-            :is="resolveCategoryIcon(designerMaster.key)"
-            class="size-14 2xl:size-16"
-            aria-hidden="true"
-          />
-          <h3
-            data-slot="category-card-title"
-            class="text-lg font-bold 2xl:text-xl"
-          >
-            {{ designerMaster.label }}
-          </h3>
-          <p
-            id="designer-desc"
-            data-slot="category-card-description"
-            class="text-sm leading-relaxed text-muted-foreground group-has-[:checked]:text-primary-foreground 2xl:text-base"
-          >
-            {{ designerMaster.description }}
-          </p>
-          <span
-            v-if="designerChecked"
+            v-if="isCategoryChecked(category.id)"
             class="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-card text-primary shadow-sm 2xl:top-6 2xl:right-6"
             aria-hidden="true"
           >

@@ -6,6 +6,7 @@ import type { SurveyState } from '@/types'
 import {
   copyToClipboard,
   createShareUrl,
+  createShareUrlById,
   decodeData,
   encodeData,
   getDataFromQuery,
@@ -79,6 +80,20 @@ describe('createShareUrl', () => {
 
   it('result ページへのハッシュが含まれる', () => {
     expect(url).toContain('#/result')
+  })
+})
+
+describe('createShareUrlById', () => {
+  it('id パラメータを含む結果ページの URL が生成される', () => {
+    const url = new URL(createShareUrlById('abc-123'))
+    expect(url.hash).toBe('#/result?id=abc-123')
+    expect(url.search).toBe('')
+  })
+
+  it('クエリ方式の URL と同じ基準（現在のページ）で組み立てられる', () => {
+    const byId = new URL(createShareUrlById('abc-123'))
+    const byData = new URL(createShareUrl(mockSurveyState))
+    expect(byId.origin + byId.pathname).toBe(byData.origin + byData.pathname)
   })
 })
 

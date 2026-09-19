@@ -2,12 +2,12 @@
 import { computed } from 'vue'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import type { ValidationError } from '@/types'
+import type { ValidationErrorItem } from '@/types'
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface Props {
-  errors: ValidationError[]
+  errors: ValidationErrorItem[]
   messageId?: string
   show?: boolean
 }
@@ -19,7 +19,7 @@ const isVisible = computed(() => show ?? errors.length > 0)
 // ─── 内部型 ──────────────────────────────────────────────────────────────────
 
 /** カテゴリ × 質問 でグループ化したエラーを表す型 */
-interface GroupedError extends ValidationError {
+interface GroupedError extends ValidationErrorItem {
   count: number
 }
 

@@ -48,17 +48,30 @@ export const decodeData = (compressedString: string): SurveyState | null => {
 
 // ─── URL生成・解析 ──────────────────────────────────────────
 
+/**
+ * 結果ページ（`/#/result?...`）の URL を、現在のページを基準に組み立てる。
+ * ID 方式の形式を変える場合は、Lambda に渡す URL を組み立てている
+ * `LambdaPdfService.java`（`requestGenerationAsync` の `resultUrl`）も合わせて変更する。
+ */
+const buildResultUrl = (query: string): string => {
+  const url = new URL(window.location.href)
+  url.hash = `/result?${query}`
+  url.search = ''
+  return url.toString()
+}
+
+/** 共有リンク（クエリ方式）の URL。回答データそのものを圧縮して URL に含める */
 export const createShareUrl = (surveyData: SurveyState): string => {
   const encoded = encodeData(surveyData)
   if (!encoded) {
     throw new Error('データのエンコードに失敗しました')
   }
-  const url = new URL(window.location.href)
-  url.hash = `/result?data=${encoded}`
-  url.search = ''
-
-  return url.toString()
+  return buildResultUrl(`data=${encoded}`)
 }
+
+/** 共有リンク（ID 方式）の URL。バックエンドに保存したシートの ID だけを含める */
+export const createShareUrlById = (id: string): string =>
+  buildResultUrl(`id=${encodeURIComponent(id)}`)
 
 /**
  * クエリの値を1つの文字列として取り出す。同名のキーが複数ある場合は先頭を使う。
