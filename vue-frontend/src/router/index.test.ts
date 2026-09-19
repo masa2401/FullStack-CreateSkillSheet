@@ -1,21 +1,17 @@
-import type { RouteLocationNormalized } from 'vue-router'
+import type { LocationQuery, RouteLocationNormalized } from 'vue-router'
 
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
-import * as shareUtils from '@/utils/shareUtils'
+import { encodeData } from '@/utils/shareUtils'
 
 import router, { requiresAnswersGuard } from './index'
-
-vi.mock('@/utils/shareUtils')
 
 describe('router', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    vi.mocked(shareUtils.getIdFromUrl).mockReturnValue(null)
-    vi.mocked(shareUtils.getDataFromUrl).mockReturnValue(null)
   })
 
   it('/top, /survey, /result, 未定義パスへそれぞれ遷移できる', async () => {
@@ -57,12 +53,10 @@ describe('router', () => {
 describe('requiresAnserGuard', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    vi.mocked(shareUtils.getIdFromUrl).mockReturnValue(null)
-    vi.mocked(shareUtils.getDataFromUrl).mockReturnValue(null)
   })
 
-  const buildTo = (requiresAnswers: boolean): RouteLocationNormalized =>
-    ({ meta: { requiresAnswers } }) as unknown as RouteLocationNormalized
+  const buildTo = (requiresAnswers: boolean, query: LocationQuery = {}): RouteLocationNormalized =>
+    ({ meta: { requiresAnswers }, query }) as unknown as RouteLocationNormalized
 
   it('回答チェックの対象外のルート（/top・/survey など）では、そのまま遷移できる', () => {
     const next = vi.fn()
@@ -90,19 +84,20 @@ describe('requiresAnserGuard', () => {
   })
 
   it('URLに共有リンクのID（id=）が含まれる場合は、回答の有無に関わらず /result に遷移できる', () => {
-    vi.mocked(shareUtils.getIdFromUrl).mockReturnValue('shared-id')
+    useSurveyStore()
     const next = vi.fn()
 
-    requiresAnswersGuard(buildTo(true), {} as RouteLocationNormalized, next)
+    requiresAnswersGuard(buildTo(true, { id: 'shared-id' }), {} as RouteLocationNormalized, next)
 
     expect(next).toHaveBeenCalledWith()
   })
 
   it('URLに共有データ（data=）が含まれる場合は、回答の有無に関わらず /result に遷移できる', () => {
-    vi.mocked(shareUtils.getDataFromUrl).mockReturnValue({ userName: 'x', selections: [] })
+    useSurveyStore()
+    const data = encodeData({ userName: 'x', selections: [] })!
     const next = vi.fn()
 
-    requiresAnswersGuard(buildTo(true), {} as RouteLocationNormalized, next)
+    requiresAnswersGuard(buildTo(true, { data }), {} as RouteLocationNormalized, next)
 
     expect(next).toHaveBeenCalledWith()
   })
@@ -111,7 +106,21 @@ describe('requiresAnserGuard', () => {
     useSurveyStore()
     const next = vi.fn()
 
-    requiresAnswersGuard(buildTo(true), {} as RouteLocationNormalized, next)
+    requiresAnswersGuard(buildTo(true, { valid: 'x' }), {} as RouteLocationNormalized, next)
+
+    expect(next).toHaveBeenCalledWith(ROUTES.TOP)
+  })
+
+  it('現在の URL ではなく遷移先のクエリで判定する（遷移元が共有リンクでも、遷移先に id= が無ければ対象外）', () => {
+    useSurveyStore()
+    window.location.hash = '/result?id=shared-id'
+    const next = vi.fn()
+
+    try {
+      requiresAnswersGuard(buildTo(true), {} as RouteLocationNormalized, next)
+    } finally {
+      window.location.hash = ''
+    }
 
     expect(next).toHaveBeenCalledWith(ROUTES.TOP)
   })

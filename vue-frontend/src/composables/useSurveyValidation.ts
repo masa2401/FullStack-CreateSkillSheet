@@ -1,6 +1,6 @@
 import { type ComputedRef, computed, ref } from 'vue'
 
-import type { MergedCategory, ValidationError } from '@/types'
+import type { MergedCategory, ValidationErrorItem } from '@/types'
 
 /** 未完成（チェック済みかつ習熟度未選択）の回答を、位置を特定できる形で表す内部型 */
 type IncompleteAnswer = {
@@ -46,7 +46,7 @@ export const useSurveyValidation = (mergedCategories: ComputedRef<MergedCategory
    * 送信時に指摘した回答のうち、いまも未選択のものだけを返す。
    * エラーが減る方向のライブ更新は残り、増える方向は次の送信まで起きない。
    */
-  const validationErrors = computed<ValidationError[]>(() =>
+  const validationErrors = computed<ValidationErrorItem[]>(() =>
     collectIncomplete()
       .filter((item) => flaggedAnswers.value.some((flagged) => isSameAnswer(flagged, item)))
       .map(({ category, text }) => ({ category, text })),

@@ -94,6 +94,42 @@ class SkillSheetServiceTest {
   }
 
   @Test
+  @DisplayName("findUserNameById: 有効期限内のシートの名前が返ること")
+  void findUserNameById_Success() {
+    UUID targetId = UUID.randomUUID();
+    SkillSheet sheet = new SkillSheet();
+    sheet.setUserName("山田太郎");
+    sheet.setExpiresAt(LocalDateTime.now().plusDays(1));
+
+    when(sheetRepository.findById(targetId)).thenReturn(Optional.of(sheet));
+
+    assertThat(service.findUserNameById(targetId)).isEqualTo("山田太郎");
+  }
+
+  @Test
+  @DisplayName("findUserNameById: 該当するスキルシートが存在しない場合、NoSuchElementExceptionがスローされること")
+  void findUserNameById_NotFound_ThrowsException() {
+    UUID targetId = UUID.randomUUID();
+    when(sheetRepository.findById(targetId)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> service.findUserNameById(targetId))
+        .isInstanceOf(NoSuchElementException.class);
+  }
+
+  @Test
+  @DisplayName("findUserNameById: expiresAt が過去の場合、SheetExpiredException がスローされること")
+  void findUserNameById_Expired_ThrowsException() {
+    UUID targetId = UUID.randomUUID();
+    SkillSheet expiredSheet = new SkillSheet();
+    expiredSheet.setExpiresAt(LocalDateTime.now().minusDays(1));
+
+    when(sheetRepository.findById(targetId)).thenReturn(Optional.of(expiredSheet));
+
+    assertThatThrownBy(() -> service.findUserNameById(targetId))
+        .isInstanceOf(SheetExpiredException.class);
+  }
+
+  @Test
   @DisplayName("deleteExpiredSheets: 期限切れのシートが削除されること")
   void deleteExpiredSheets_DeletesExpiredOnly() {
     SkillSheet expired = new SkillSheet();

@@ -29,9 +29,9 @@ describe('TheHeader', () => {
     renderHeader(router)
 
     expect(
-      screen.getByRole('button', { name: 'スキルシート制作ページ（TOPページ）' }),
+      screen.getByRole('button', { name: 'スキルシート作成ページ（TOPページ）' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('スキルシート制作ページ')).toBeInTheDocument()
+    expect(screen.getByText('スキルシート作成ページ')).toBeInTheDocument()
   })
 
   it('トップページ以外でタイトルをクリックするとトップへ遷移する', async () => {
@@ -40,7 +40,7 @@ describe('TheHeader', () => {
     renderHeader(router)
 
     await user.click(
-      screen.getByRole('button', { name: 'スキルシート制作ページ（トップページへ戻る）' }),
+      screen.getByRole('button', { name: 'スキルシート作成ページ（トップページへ戻る）' }),
     )
 
     await waitFor(() => expect(router.currentRoute.value.path).toBe(ROUTES.TOP))
@@ -52,7 +52,7 @@ describe('TheHeader', () => {
     const pushSpy = vi.spyOn(router, 'push')
     renderHeader(router)
 
-    await user.click(screen.getByRole('button', { name: 'スキルシート制作ページ（TOPページ）' }))
+    await user.click(screen.getByRole('button', { name: 'スキルシート作成ページ（TOPページ）' }))
 
     expect(pushSpy).not.toHaveBeenCalled()
   })

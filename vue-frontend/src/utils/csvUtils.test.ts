@@ -105,9 +105,7 @@ describe('convertToCSV', () => {
   })
 
   it('selectionsが不正な場合はエラーをthrowする', () => {
-    expect(() => convertToCSV('テストユーザー', null as unknown as CategorySelection[])).toThrow(
-      'CSVへの変換に失敗しました',
-    )
+    expect(() => convertToCSV('テストユーザー', null as unknown as CategorySelection[])).toThrow()
   })
 
   it('マスターデータに存在しない categoryId は無視される', () => {
@@ -168,14 +166,12 @@ describe('convertToCSV', () => {
     )
   })
 
-  it('内部で例外が発生すると変換失敗のエラーを throw する', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  it('内部で例外が発生すると、捕捉せずに呼び出し元へ throw する', () => {
     const broken = [
       { categoryId: 1, isChecked: true, questions: null },
     ] as unknown as CategorySelection[]
 
-    expect(() => convertToCSV('山田太郎', broken)).toThrow('CSVへの変換に失敗しました')
-    consoleErrorSpy.mockRestore()
+    expect(() => convertToCSV('山田太郎', broken)).toThrow(TypeError)
   })
 })
 

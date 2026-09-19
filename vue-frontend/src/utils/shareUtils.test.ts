@@ -6,10 +6,11 @@ import type { SurveyState } from '@/types'
 import {
   copyToClipboard,
   createShareUrl,
+  createShareUrlById,
   decodeData,
   encodeData,
-  getDataFromUrl,
-  getIdFromUrl,
+  getDataFromQuery,
+  getIdFromQuery,
 } from './shareUtils'
 
 const mockSurveyState: SurveyState = {
@@ -82,52 +83,60 @@ describe('createShareUrl', () => {
   })
 })
 
-describe('getDataFromUrl', () => {
-  afterEach(() => {
-    window.location.hash = ''
+describe('createShareUrlById', () => {
+  it('id パラメータを含む結果ページの URL が生成される', () => {
+    const url = new URL(createShareUrlById('abc-123'))
+    expect(url.hash).toBe('#/result?id=abc-123')
+    expect(url.search).toBe('')
   })
 
+  it('クエリ方式の URL と同じ基準（現在のページ）で組み立てられる', () => {
+    const byId = new URL(createShareUrlById('abc-123'))
+    const byData = new URL(createShareUrl(mockSurveyState))
+    expect(byId.origin + byId.pathname).toBe(byData.origin + byData.pathname)
+  })
+})
+
+describe('getDataFromQuery', () => {
   it('data パラメータがあればデコードして返す', () => {
     const encoded = encodeData(mockSurveyState)!
-    window.location.hash = `/result?data=${encoded}`
-    expect(getDataFromUrl()).toEqual(mockSurveyState)
+    expect(getDataFromQuery({ data: encoded })).toEqual(mockSurveyState)
   })
 
-  it('ハッシュに ? が含まれない場合は null を返す', () => {
-    window.location.hash = '/result'
-    expect(getDataFromUrl()).toBeNull()
+  it('同名のパラメータが複数ある場合は先頭の値を使う', () => {
+    const encoded = encodeData(mockSurveyState)!
+    expect(getDataFromQuery({ data: [encoded, 'invalid-string'] })).toEqual(mockSurveyState)
+  })
+
+  it('クエリが空の場合は null を返す', () => {
+    expect(getDataFromQuery({})).toBeNull()
   })
 
   it('data パラメータが無い場合は null を返す', () => {
-    window.location.hash = '/result?id=abc'
-    expect(getDataFromUrl()).toBeNull()
+    expect(getDataFromQuery({ id: 'abc' })).toBeNull()
   })
 
   it('壊れたデータの場合は null を返す', () => {
-    window.location.hash = '/result?data=invalid-string'
-    expect(getDataFromUrl()).toBeNull()
+    expect(getDataFromQuery({ data: 'invalid-string' })).toBeNull()
   })
 
   it('構造が不正なデータの場合は null を返す', () => {
     const encoded = LZString.compressToEncodedURIComponent(JSON.stringify({ foo: 'bar' }))
-    window.location.hash = `/result?data=${encoded}`
-    expect(getDataFromUrl()).toBeNull()
+    expect(getDataFromQuery({ data: encoded })).toBeNull()
   })
 })
 
-describe('getIdFromUrl', () => {
-  afterEach(() => {
-    window.location.hash = ''
+describe('getIdFromQuery', () => {
+  it('id パラメータがあれば返す', () => {
+    expect(getIdFromQuery({ id: 'abc123' })).toBe('abc123')
   })
 
-  it('id パラメータがあれば返す', () => {
-    window.location.hash = '/result?id=abc123'
-    expect(getIdFromUrl()).toBe('abc123')
+  it('同名のパラメータが複数ある場合は先頭の値を返す', () => {
+    expect(getIdFromQuery({ id: ['abc123', 'def456'] })).toBe('abc123')
   })
 
   it('id パラメータが無い場合は null を返す', () => {
-    window.location.hash = '/result?data=xxx'
-    expect(getIdFromUrl()).toBeNull()
+    expect(getIdFromQuery({ data: 'xxx' })).toBeNull()
   })
 })
 

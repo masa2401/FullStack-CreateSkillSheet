@@ -5,8 +5,10 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.skillsheet.exception.TooManyRequestsException;
@@ -22,6 +24,9 @@ import com.skillsheet.exception.TooManyRequestsException;
  * インメモリのスライディングウィンドウ方式。単一インスタンス運用（現状のRailwayデプロイ）を
  * 前提としており、複数インスタンス構成に拡張する場合はRedis等の共有ストアへの置き換えが必要。
  * （PdfController/LambdaPdfServiceの再試行スロットリングと同じ設計方針に揃えている）
+ *
+ * ウィンドウを過ぎた記録は判定に使われないため、定期的に削除する。
+ * 削除しないと、一度でも保存したクライアントの記録が残り続け、稼働が長いほどメモリを使い続ける。
  */
 @Component
 public class SaveRateLimiter {
@@ -45,9 +50,7 @@ public class SaveRateLimiter {
         history.compute(clientKey, (key, existing) -> {
             Deque<Instant> timestamps = existing != null ? existing : new ArrayDeque<>();
 
-            while (!timestamps.isEmpty() && Duration.between(timestamps.peekFirst(), now).compareTo(window) > 0) {
-                timestamps.pollFirst();
-            }
+            removeOutsideWindow(timestamps, now, window);
 
             if (timestamps.size() >= maxRequests) {
                 long retryAfterSeconds = window.minus(Duration.between(timestamps.peekFirst(), now)).getSeconds();
@@ -59,5 +62,28 @@ public class SaveRateLimiter {
             timestamps.addLast(now);
             return timestamps;
         });
+    }
+
+    /** ウィンドウを過ぎた記録を削除し、記録が空になったクライアントはキーごと取り除く。 */
+    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
+    public void removeExpiredRecords() {
+        removeExpiredRecordsAt(Instant.now());
+    }
+
+    // 基準時刻を受け取る版。テストから任意の時刻で呼べるようにしている
+    void removeExpiredRecordsAt(Instant now) {
+        Duration window = Duration.ofSeconds(windowSeconds);
+        // computeIfPresent はキー単位で排他されるため、同じクライアントの checkAndRecord と競合しない。
+        // null を返すとそのキーが削除される
+        history.keySet().forEach(clientKey -> history.computeIfPresent(clientKey, (key, timestamps) -> {
+            removeOutsideWindow(timestamps, now, window);
+            return timestamps.isEmpty() ? null : timestamps;
+        }));
+    }
+
+    private static void removeOutsideWindow(Deque<Instant> timestamps, Instant now, Duration window) {
+        while (!timestamps.isEmpty() && Duration.between(timestamps.peekFirst(), now).compareTo(window) > 0) {
+            timestamps.pollFirst();
+        }
     }
 }

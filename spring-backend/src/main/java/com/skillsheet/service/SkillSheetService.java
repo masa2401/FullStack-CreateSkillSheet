@@ -15,6 +15,7 @@ import com.skillsheet.dto.AnswerDto;
 import com.skillsheet.dto.CategoryDto;
 import com.skillsheet.dto.QuestionDto;
 import com.skillsheet.dto.request.SaveSheetRequest;
+import com.skillsheet.dto.response.SheetResponse;
 import com.skillsheet.entity.SheetAnswer;
 import com.skillsheet.entity.SheetCategory;
 import com.skillsheet.entity.SkillSheet;
@@ -84,23 +85,38 @@ public class SkillSheetService {
 
     /** IDでスキルシートを取得する */
     @Transactional(readOnly = true)
-    public SaveSheetRequest findById(UUID id) {
+    public SheetResponse findById(UUID id) {
+        SkillSheet sheet = findActiveSheet(id);
+
+        // エンティティ → DTOに変換して返す（逆方向の変換）
+        List<CategoryDto> categories = sheet.getCategories().stream()
+                .map(cat -> new CategoryDto(cat.getCategoryId(), buildQuestions(cat.getAnswers()))).toList();
+
+        return new SheetResponse(sheet.getUserName(), categories);
+    }
+
+    /**
+     * IDでシートの名前だけを取得する（PDF再生成用）。
+     * 回答（categories）は遅延ロードのため読み込まれず、findById より軽い。
+     */
+    @Transactional(readOnly = true)
+    public String findUserNameById(UUID id) {
+        return findActiveSheet(id).getUserName();
+    }
+
+    // 未存在・期限切れのシートは例外にする（GlobalExceptionHandlerが404・410に変換する）
+    private SkillSheet findActiveSheet(UUID id) {
         SkillSheet sheet = sheetRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("スキルシートが見つかりません"));
 
         if (sheet.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new SheetExpiredException("この共有リンクの有効期限は切れています", expiryDays);
         }
-
-        // エンティティ → DTOに変換して返す（逆方向の変換）
-        List<CategoryDto> categories = sheet.getCategories().stream()
-                .map(cat -> new CategoryDto(cat.getCategoryId(), buildQustions(cat.getAnswers()))).toList();
-
-        return new SaveSheetRequest(sheet.getUserName(), categories);
+        return sheet;
     }
 
     // 回答リストから質問DTO一覧を組み立てるヘルパー
-    private List<QuestionDto> buildQustions(List<SheetAnswer> answers) {
+    private List<QuestionDto> buildQuestions(List<SheetAnswer> answers) {
         return answers.stream().collect(Collectors.groupingBy(a -> a.getQuestionId())).entrySet().stream()
                 .map(entry -> {
                     List<AnswerDto> answerDtos = entry.getValue().stream()

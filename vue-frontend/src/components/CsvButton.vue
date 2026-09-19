@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+
+import { useTimeoutFn } from '@vueuse/core'
 
 import { useSuccessFeedback } from '@/composables/useSuccessFeedback'
 import { useSurveyStore } from '@/stores/useSurveyStore'
@@ -12,19 +14,42 @@ const store = useSurveyStore()
 const emit = defineEmits<{ done: [] }>()
 const { success: downloadSuccess, trigger } = useSuccessFeedback(() => emit('done'))
 
+// 失敗表示は成功表示と同じ時間だけ出して元に戻す。メニューは閉じず、その場で再操作できるようにする
+const FAILURE_DISPLAY_MS = 2000
+const downloadFailed = ref(false)
+const { start: startFailureReset } = useTimeoutFn(
+  () => {
+    downloadFailed.value = false
+  },
+  FAILURE_DISPLAY_MS,
+  { immediate: false },
+)
+
 const handleDownloadCSV = () => {
-  const success = downloadCSV(store.userName, store.selections)
-  if (success) {
-    downloadSuccess.value = true
+  if (downloadCSV(store.userName, store.selections)) {
+    downloadFailed.value = false
     trigger()
-  } else {
-    console.log('CSVのダウンロードに失敗しました')
+    return
   }
+  downloadFailed.value = true
+  startFailureReset()
 }
 
-const icon = computed(() => (downloadSuccess.value ? 'fa-solid fa-check' : 'fa-regular fa-copy'))
-const text = computed(() => (downloadSuccess.value ? 'ダウンロード完了' : 'CSVとして保存'))
-const variant = computed(() => (downloadSuccess.value ? 'success' : 'default'))
+const icon = computed(() => {
+  if (downloadSuccess.value) return 'fa-solid fa-check'
+  if (downloadFailed.value) return 'fa-solid fa-triangle-exclamation'
+  return 'fa-solid fa-file-csv'
+})
+const text = computed(() => {
+  if (downloadSuccess.value) return 'ダウンロード完了'
+  if (downloadFailed.value) return '保存に失敗しました'
+  return 'CSVとして保存'
+})
+const variant = computed<'default' | 'success' | 'error'>(() => {
+  if (downloadSuccess.value) return 'success'
+  if (downloadFailed.value) return 'error'
+  return 'default'
+})
 </script>
 
 <template>

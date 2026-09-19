@@ -30,14 +30,14 @@ const handleTitleClick = () => {
         <button
           type="button"
           class="inline-flex items-center gap-2 rounded-md text-lg font-bold text-foreground transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:text-xl"
-          :aria-label="`スキルシート制作ページ（${route.path !== ROUTES.TOP ? 'トップページへ戻る' : 'TOPページ'}）`"
+          :aria-label="`スキルシート作成ページ（${route.path !== ROUTES.TOP ? 'トップページへ戻る' : 'TOPページ'}）`"
           @click="handleTitleClick"
         >
           <SquarePen
             class="size-5 shrink-0 sm:size-6"
             aria-hidden="true"
           />
-          <span class="truncate">スキルシート制作ページ</span>
+          <span class="truncate">スキルシート作成ページ</span>
         </button>
       </h1>
       <ThemeToggle />

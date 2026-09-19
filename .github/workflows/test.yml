@@ -144,7 +144,7 @@ jobs:
         working-directory: ./vue-frontend
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:check
         working-directory: ./vue-frontend
 
       - name: Run Frontend tests

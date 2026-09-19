@@ -2,14 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { SurveyState } from '@/types'
 
-import {
-  checkSheetExists,
-  fetchPdfStatus,
-  fetchSheet,
-  isBackendEnabled,
-  regeneratePdf,
-  saveSheet,
-} from './api'
+import { fetchPdfStatus, fetchSheet, isBackendEnabled, regeneratePdf, saveSheet } from './api'
 
 const mockSurveyState: SurveyState = {
   userName: 'テストユーザー',
@@ -137,40 +130,6 @@ describe('fetchSheet', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network Error'))
     const result = await fetchSheet('sheet-1')
     expect(result).toEqual({ status: 'error' })
-  })
-})
-
-describe('checkSheetExists', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-    vi.unstubAllEnvs()
-  })
-
-  it('バックエンド無効時は false を返す', async () => {
-    vi.stubEnv('VITE_API_BASE_URL', '')
-    const result = await checkSheetExists('sheet-1')
-    expect(result).toBe(false)
-  })
-
-  it('レスポンスが ok の場合は true を返す', async () => {
-    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 200 }))
-    const result = await checkSheetExists('sheet-1')
-    expect(result).toBe(true)
-  })
-
-  it('レスポンスが ok でない場合は false を返す', async () => {
-    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 404 }))
-    const result = await checkSheetExists('sheet-1')
-    expect(result).toBe(false)
-  })
-
-  it('ネットワークエラー時は false を返す', async () => {
-    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
-    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network Error'))
-    const result = await checkSheetExists('sheet-1')
-    expect(result).toBe(false)
   })
 })
 

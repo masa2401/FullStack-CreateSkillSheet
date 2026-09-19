@@ -4,8 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -37,14 +39,10 @@ public class LambdaPdfService {
     @Value("${app.frontend-base-url}")
     private String frontendBaseUrl;
 
-    // 手動リトライ（regenerate）の連打防止用の簡易スロットリング
+    // 手動リトライ（regenerate）の連打防止用の簡易スロットリング。
+    // 判定に使うのは直近 MIN_RETRY_INTERVAL_SECONDS 以内の記録だけなので、それより古い記録は定期的に削除する
     private final ConcurrentHashMap<UUID, Instant> lastInvokedAt = new ConcurrentHashMap<>();
     private static final long MIN_RETRY_INTERVAL_SECONDS = 15;
-
-    /** 保存直後に呼ぶ非同期生成リクエスト。失敗してもログのみで例外を上位に投げない。 */
-    public void requestGenerationAsync(UUID sheetId, String userName) {
-        invokeAsync(sheetId, userName);
-    }
 
     /** 「再試行」ボタンから呼ばれる。直近のInvokeから間隔が短すぎる場合はスキップする。 */
     public boolean retryGeneration(UUID sheetId, String userName) {
@@ -54,12 +52,14 @@ public class LambdaPdfService {
             log.info("PDF再生成リクエストをスロットリングしました: sheetId={}", sheetId);
             return false;
         }
-        invokeAsync(sheetId, userName);
+        requestGenerationAsync(sheetId, userName);
         return true;
     }
 
-    private void invokeAsync(UUID sheetId, String userName) {
+    /** 保存直後に呼ぶ非同期生成リクエスト。失敗してもログのみで例外を上位に投げない。 */
+    public void requestGenerationAsync(UUID sheetId, String userName) {
         try {
+            // 共有リンク（ID方式）の形式。フロントエンドの shareUtils.ts（createShareUrlById）と合わせる
             String resultUrl = frontendBaseUrl + "/#/result?id=" + sheetId;
             PdfGenerationPayload payload = new PdfGenerationPayload(
                     sheetId.toString(), resultUrl, userName);
@@ -83,6 +83,19 @@ public class LambdaPdfService {
         } catch (Exception e) {
             log.error("PDF生成リクエストの送信中に予期しないエラーが発生しました: sheetId={}", sheetId, e);
         }
+    }
+
+    /** スロットリングの判定に使われなくなった記録を削除する。放置すると、シートを作るたびに記録が増え続ける。 */
+    @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
+    public void removeExpiredInvocationRecords() {
+        removeExpiredInvocationRecordsAt(Instant.now());
+    }
+
+    // 基準時刻を受け取る版。テストから任意の時刻で呼べるようにしている
+    void removeExpiredInvocationRecordsAt(Instant now) {
+        Instant threshold = now.minusSeconds(MIN_RETRY_INTERVAL_SECONDS);
+        // ConcurrentHashMap の removeIf は、判定後に値が更新されていれば削除しない
+        lastInvokedAt.values().removeIf(last -> last.isBefore(threshold));
     }
 
     private record PdfGenerationPayload(String id, String url, String fileName) {

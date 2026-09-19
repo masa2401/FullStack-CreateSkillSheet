@@ -34,8 +34,8 @@ export interface SurveyState {
   selections: CategorySelection[]
 }
 
-export interface ValidationError {
+/** 入力チェックのエラー1件。表示するコンポーネント（ValidationError.vue）と区別するため Item を付ける */
+export interface ValidationErrorItem {
   category: string
   text: string
-  answer?: string
 }

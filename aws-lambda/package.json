@@ -9,9 +9,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "puppeteer": "^25.1.0",
     "@aws-sdk/client-s3": "^3.1080.0",
-    "@aws-sdk/s3-request-presigner": "^3.1080.0"
+    "puppeteer": "^25.1.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.161",

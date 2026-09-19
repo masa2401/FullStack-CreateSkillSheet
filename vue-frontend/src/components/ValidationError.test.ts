@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 
-import type { ValidationError as VError } from '@/types'
+import type { ValidationErrorItem } from '@/types'
 
 import ValidationError from './ValidationError.vue'
 
-const renderValidationError = (errors: VError[]) =>
+const renderValidationError = (errors: ValidationErrorItem[]) =>
   render(ValidationError, {
     props: { errors },
     global: { stubs: { 'font-awesome-icon': true } },
@@ -61,7 +61,7 @@ describe('ValidationError', () => {
   })
 
   it('text が無いエラーは補足テキストが表示されない', () => {
-    renderValidationError([{ category: 'テスト' } as unknown as VError])
+    renderValidationError([{ category: 'テスト' } as unknown as ValidationErrorItem])
     expect(screen.getByRole('listitem')).toHaveTextContent(/^テスト（1件）$/)
   })
 })

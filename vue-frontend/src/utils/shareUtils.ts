@@ -1,3 +1,5 @@
+import type { LocationQuery } from 'vue-router'
+
 import LZString from 'lz-string'
 
 import type { CategorySelection, SurveyState } from '@/types'
@@ -46,29 +48,44 @@ export const decodeData = (compressedString: string): SurveyState | null => {
 
 // ─── URL生成・解析 ──────────────────────────────────────────
 
+/**
+ * 結果ページ（`/#/result?...`）の URL を、現在のページを基準に組み立てる。
+ * ID 方式の形式を変える場合は、Lambda に渡す URL を組み立てている
+ * `LambdaPdfService.java`（`requestGenerationAsync` の `resultUrl`）も合わせて変更する。
+ */
+const buildResultUrl = (query: string): string => {
+  const url = new URL(window.location.href)
+  url.hash = `/result?${query}`
+  url.search = ''
+  return url.toString()
+}
+
+/** 共有リンク（クエリ方式）の URL。回答データそのものを圧縮して URL に含める */
 export const createShareUrl = (surveyData: SurveyState): string => {
   const encoded = encodeData(surveyData)
   if (!encoded) {
     throw new Error('データのエンコードに失敗しました')
   }
-  const url = new URL(window.location.href)
-  url.hash = `/result?data=${encoded}`
-  url.search = ''
-
-  return url.toString()
+  return buildResultUrl(`data=${encoded}`)
 }
 
-const getHashQueryParams = (): URLSearchParams | null => {
-  const url = new URL(window.location.href)
-  if (!url.hash || !url.hash.includes('?')) return null
-  const [, hashQuery] = url.hash.split('?')
-  if (!hashQuery) return null
-  return new URLSearchParams(hashQuery)
+/** 共有リンク（ID 方式）の URL。バックエンドに保存したシートの ID だけを含める */
+export const createShareUrlById = (id: string): string =>
+  buildResultUrl(`id=${encodeURIComponent(id)}`)
+
+/**
+ * クエリの値を1つの文字列として取り出す。同名のキーが複数ある場合は先頭を使う。
+ * クエリは vue-router が解析した `route.query` / `to.query` を受け取る。
+ * `window.location` を読むと、ナビゲーションガードの中では遷移元の URL を見てしまうため。
+ */
+const firstQueryValue = (query: LocationQuery, key: string): string | null => {
+  const value = query[key]
+  return (Array.isArray(value) ? value[0] : value) ?? null
 }
 
-export const getDataFromUrl = (): SurveyState | null => {
+export const getDataFromQuery = (query: LocationQuery): SurveyState | null => {
   try {
-    const encodedData = getHashQueryParams()?.get('data')
+    const encodedData = firstQueryValue(query, 'data')
     if (!encodedData) return null
     const decoded = decodeData(encodedData)
     if (!decoded) {
@@ -87,7 +104,7 @@ export const getDataFromUrl = (): SurveyState | null => {
   }
 }
 
-export const getIdFromUrl = (): string | null => getHashQueryParams()?.get('id') ?? null
+export const getIdFromQuery = (query: LocationQuery): string | null => firstQueryValue(query, 'id')
 
 // ─── クリップボード操作 ──────────────────────────────────────────
 

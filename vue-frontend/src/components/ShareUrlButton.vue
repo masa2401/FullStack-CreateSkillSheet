@@ -4,7 +4,7 @@ import { computed, ref } from 'vue'
 import { useSuccessFeedback } from '@/composables/useSuccessFeedback'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { isBackendEnabled } from '@/utils/api'
-import { copyToClipboard, createShareUrl } from '@/utils/shareUtils'
+import { copyToClipboard, createShareUrl, createShareUrlById } from '@/utils/shareUtils'
 
 import MenuItemButton from './MenuItemButton.vue'
 
@@ -17,7 +17,6 @@ const { success: copySuccess, trigger } = useSuccessFeedback(() => emit('done'))
 const copyAndNotify = async (url: string) => {
   const success = await copyToClipboard(url)
   if (success) {
-    copySuccess.value = true
     trigger()
   }
 }
@@ -27,7 +26,7 @@ const handleCopy = async () => {
 
   try {
     const url = isBackendEnabled()
-      ? `${window.location.origin}/#/result?id=${await store.getSavedIdOrSave()}`
+      ? createShareUrlById(await store.getSavedIdOrSave())
       : createShareUrl(store.surveyState)
     await copyAndNotify(url)
   } catch (error) {

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.skillsheet.dto.request.SaveSheetRequest;
 import com.skillsheet.dto.response.SaveSheetResponse;
+import com.skillsheet.dto.response.SheetResponse;
 import com.skillsheet.service.SaveRateLimiter;
 import com.skillsheet.service.SkillSheetService;
 
@@ -38,7 +39,7 @@ public class SkillSheetController {
 
     // GET /api/sheets/{id} → 取得
     @GetMapping("/{id}")
-    public ResponseEntity<SaveSheetRequest> findById(@PathVariable UUID id) {
+    public ResponseEntity<SheetResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
 

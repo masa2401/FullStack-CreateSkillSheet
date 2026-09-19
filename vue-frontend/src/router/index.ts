@@ -2,7 +2,7 @@ import { type NavigationGuard, createRouter, createWebHashHistory } from 'vue-ro
 
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
-import { getDataFromUrl, getIdFromUrl } from '@/utils/shareUtils'
+import { getDataFromQuery, getIdFromQuery } from '@/utils/shareUtils'
 import TopPage from '@/views/TopPage.vue'
 
 const router = createRouter({
@@ -42,7 +42,7 @@ const router = createRouter({
 // ─── ナビゲーションガードの設定 ──────────────────────────────────────────
 export const requiresAnswersGuard: NavigationGuard = (to, _from, next) => {
   if (to.meta.requiresAnswers) {
-    if (getIdFromUrl() || getDataFromUrl()) {
+    if (getIdFromQuery(to.query) || getDataFromQuery(to.query)) {
       next()
       return
     }
