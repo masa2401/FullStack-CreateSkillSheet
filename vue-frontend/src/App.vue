@@ -12,7 +12,7 @@ usePrintColorScheme()
     <div class="flex min-h-svh flex-col print:min-h-0">
       <TheHeader />
       <main class="flex flex-1 flex-col print:block">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component, route }">
           <transition
             mode="out-in"
             enter-active-class="transition-opacity duration-200 ease-out"
@@ -20,7 +20,10 @@ usePrintColorScheme()
             leave-active-class="transition-opacity duration-150 ease-in"
             leave-to-class="opacity-0"
           >
-            <component :is="Component" />
+            <component
+              :is="Component"
+              :key="route.fullPath"
+            />
           </transition>
         </router-view>
       </main>
