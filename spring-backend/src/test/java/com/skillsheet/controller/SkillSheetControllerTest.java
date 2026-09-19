@@ -114,6 +114,20 @@ class SkillSheetControllerTest {
   }
 
   @Test
+  @DisplayName("POST /api/sheets - カテゴリが上限（10件）を超える場合は400 Bad Requestが返ること")
+  void save_TooManyCategories_Returns400() throws Exception {
+    // GIVEN: 11件のカテゴリを含むリクエスト
+    List<CategoryDto> categories = IntStream.rangeClosed(1, 11).mapToObj(i -> new CategoryDto(i, List.of())).toList();
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎", categories);
+
+    // WHEN & THEN
+    mockMvc.perform(post("/api/sheets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   @DisplayName("POST /api/sheets - カテゴリIDが無い場合は400 Bad Requestが返ること")
   void save_MissingCategoryId_Returns400() throws Exception {
     // GIVEN: categoryId が null のカテゴリを含むリクエスト

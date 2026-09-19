@@ -1,7 +1,11 @@
 package com.skillsheet.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.time.Instant;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,5 +75,31 @@ class SaveRateLimiterTest {
         // 3回目（スロットリングされた分）がカウントされていれば、ここでも例外になるはず
         assertThatThrownBy(() -> limiter.checkAndRecord("1.2.3.4"))
                 .isInstanceOf(TooManyRequestsException.class);
+    }
+
+    @Test
+    @DisplayName("定期削除：ウィンドウを過ぎた記録はクライアントごと削除される")
+    void removeExpiredRecords_removesClientsOutsideWindow() {
+        limiter.checkAndRecord("1.2.3.4");
+
+        // ウィンドウ（1秒）より後の時刻を基準に削除する
+        limiter.removeExpiredRecordsAt(Instant.now().plusSeconds(2));
+
+        assertThat(history()).doesNotContainKey("1.2.3.4");
+    }
+
+    @Test
+    @DisplayName("定期削除：ウィンドウ内の記録は削除されない")
+    void removeExpiredRecords_keepsClientsWithinWindow() {
+        limiter.checkAndRecord("1.2.3.4");
+
+        limiter.removeExpiredRecordsAt(Instant.now());
+
+        assertThat(history()).containsKey("1.2.3.4");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, ?> history() {
+        return (Map<String, ?>) ReflectionTestUtils.getField(limiter, "history");
     }
 }
