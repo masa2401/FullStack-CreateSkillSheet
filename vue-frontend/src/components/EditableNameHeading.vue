@@ -27,6 +27,7 @@ const {
   draft: nameDraft,
   isEditable: isNameEditable,
   showEditButton,
+  errorMessage: nameErrorMessage,
   editableWindowMs,
   requestCommit: commitNameDraft,
   cancelPendingCommit: cancelNameCommit,
@@ -113,11 +114,36 @@ watch(showEditButton, (visible) => {
         :readonly="!isNameEditable"
         :maxlength="NAME_MAX_LENGTH"
         :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
+        :aria-invalid="Boolean(nameErrorMessage)"
+        :aria-describedby="nameErrorMessage ? 'name-input-error' : undefined"
         :placeholder="NAME_PLACEHOLDER"
         @focus="handleNameFocus"
         @blur="handleNameBlur"
         @keydown="handleNameKeydown"
       />
+      <!-- 名前の真下。編集ボタンと同じ2行目だが、表示される phase が異なるため同時には出ない。
+           幅0の箱で左右へはみ出させ、メッセージ幅が列幅（＝名前欄の幅）を押し広げないようにする。
+           見た目は TooltipContent に合わせるが data-slot は分ける（e2e の guestHint が
+           [data-slot="tooltip-content"] で取得しているため、同じ属性だと複数マッチになる） -->
+      <div
+        v-if="nameErrorMessage"
+        class="col-start-1 row-start-2 flex w-0 justify-center justify-self-center pt-3 print:hidden"
+      >
+        <p
+          id="name-input-error"
+          data-slot="name-error"
+          role="alert"
+          class="relative w-max max-w-[90vw] rounded-md bg-foreground px-3 py-1.5 text-xs font-normal text-nowrap text-background"
+        >
+          <!-- TooltipArrow 相当。上向きに出すため本体の上辺へまたがらせる -->
+          <span
+            class="absolute -top-1 left-1/2 size-2.5 -translate-x-1/2 rotate-45 rounded-xs bg-foreground"
+            aria-hidden="true"
+          ></span>
+          {{ nameErrorMessage }}
+        </p>
+      </div>
+
       <!-- 名前の真下に置くため同じ列の2行目に配置する。幅0の箱の中で中央揃えにして左右へ
            はみ出させ、ボタン幅が列幅（＝名前欄の幅）を押し広げないようにする -->
       <div

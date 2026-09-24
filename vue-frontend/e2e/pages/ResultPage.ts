@@ -10,13 +10,12 @@ export class ResultPage {
   readonly nameInput: Locator
   readonly shareButton: Locator
   readonly guestHint: Locator
+  readonly nameError: Locator
   readonly buttonGroup: Locator
   readonly errorHeading: Locator
 
   constructor(page: Page) {
     this.page = page
-    // 共有ビューの h2 と、通常ビューの EditableNameHeading 内にある視覚上非表示な
-    // h2 は排他的に描画される。どちらも同じ見出し文言を持つ。
     this.heading = page.getByRole('heading', { name: /様のスキルシート/ })
     this.nameInput = page.getByRole('textbox', { name: /お名前/ })
     this.shareButton = page.getByRole('button', { name: '結果を印刷/共有' })
@@ -24,6 +23,8 @@ export class ResultPage {
     // そこに aria-hidden="true" も付ける。getByRole('tooltip') は既定の
     // includeHidden: false に弾かれて見つからないため、目に見える側を data-slot で取る。
     this.guestHint = page.locator('[data-slot="tooltip-content"]')
+    // 見た目は Tooltip に合わせているが、guestHint と取り違えないよう専用の data-slot で取る
+    this.nameError = page.locator('[data-slot="name-error"]')
     this.buttonGroup = page.locator('[data-slot="result-actions"]')
     this.errorHeading = page.locator('[data-slot="state-panel-title"]')
   }

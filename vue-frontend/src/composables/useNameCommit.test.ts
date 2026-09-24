@@ -35,6 +35,45 @@ describe('useNameCommit', () => {
     expect(onCommit).not.toHaveBeenCalled()
   })
 
+  it('先頭が数式記号の名前はrequestCommitしても確定しない（editingのまま留まる）', () => {
+    const onCommit = vi.fn()
+    const { phase, draft, requestCommit } = useNameCommit('', { onCommit })
+    draft.value = '=SUM(1)'
+    requestCommit()
+    expect(phase.value).toBe('editing')
+    vi.runAllTimers()
+    expect(onCommit).not.toHaveBeenCalled()
+  })
+
+  it('先頭の記号を取り除けば確定できる', () => {
+    const onCommit = vi.fn()
+    const { phase, draft, requestCommit } = useNameCommit('', {
+      onCommit,
+      confirmDelayMs: 1000,
+    })
+    draft.value = '@山田太郎'
+    requestCommit()
+    expect(phase.value).toBe('editing')
+
+    draft.value = '山田太郎'
+    requestCommit()
+    vi.advanceTimersByTime(1000)
+
+    expect(phase.value).toBe('committed')
+    expect(onCommit).toHaveBeenCalledExactlyOnceWith('山田太郎')
+  })
+
+  it('errorMessageはtrim後の値で判定する（先頭の空白では回避できない）', () => {
+    const { draft, errorMessage } = useNameCommit('', { onCommit: vi.fn() })
+    expect(errorMessage.value).toBe('')
+
+    draft.value = '  =山田太郎'
+    expect(errorMessage.value).not.toBe('')
+
+    draft.value = '山田太郎'
+    expect(errorMessage.value).toBe('')
+  })
+
   it('非空でrequestCommit → confirming → 自動タイムアウトでcommittedになりonCommitが呼ばれる', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit } = useNameCommit('', {

@@ -46,6 +46,15 @@ describe('convertToCSV', () => {
     expect(csv).toContain('山田""太郎')
   })
 
+  it('数式として解釈される文字で始まるユーザー名は先頭にアポストロフィが付与される', () => {
+    expect(convertToCSV('=SUM(1)', mockSelections)).toContain(`"'=SUM(1)"`)
+    expect(convertToCSV('-山田太郎', mockSelections)).toContain(`"'-山田太郎"`)
+  })
+
+  it('通常のユーザー名にはアポストロフィが付与されない', () => {
+    expect(convertToCSV('山田太郎', mockSelections)).toContain('"山田太郎"')
+  })
+
   it('isChecked: false のカテゴリは出力されない', () => {
     const selectionsWithUnchecked: CategorySelection[] = [
       ...mockSelections,
@@ -214,5 +223,28 @@ describe('downloadCSV', () => {
 
     expect(downloadCSV('山田太郎', broken)).toBe(false)
     consoleErrorSpy.mockRestore()
+  })
+
+  it('ファイル名の日付はUTCではなくローカル日付になる', () => {
+    vi.useFakeTimers()
+    // UTCの2025/12/31 15:30 ＝ JSTの2026/1/1 0:30。UTC日付とJST日付が食い違う瞬間を
+    // 絶対時刻で固定する。vite.config.ts の env.TZ で JST に固定されている前提のテスト
+    vi.setSystemTime(new Date('2025-12-31T15:30:00Z'))
+    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
+    const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    let downloadName = ''
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      downloadName = this.download
+    })
+
+    downloadCSV('山田太郎', mockSelections)
+    expect(downloadName).toBe('山田太郎様_スキルシート_2026-01-01.csv')
+
+    createObjectURLSpy.mockRestore()
+    revokeObjectURLSpy.mockRestore()
+    clickSpy.mockRestore()
+    vi.useRealTimers()
   })
 })

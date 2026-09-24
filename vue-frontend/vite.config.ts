@@ -11,6 +11,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    env: {
+      TZ: 'Asia/Tokyo',
+    },
     setupFiles: ['./vitest.setup.ts'],
     restoreMocks: true,
     exclude: [...configDefaults.exclude, '**/e2e/**', '**/capture/**'],

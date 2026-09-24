@@ -77,3 +77,19 @@ test.describe('名前の再編集', () => {
     await expect(resultPage.page.getByRole('button', { name: '名前を編集する' })).toBeHidden()
   })
 })
+
+test.describe('名前のバリデーション', () => {
+  test('先頭が数式記号の名前はエラーが表示され、修正すると消える', async ({ resultPage }) => {
+    // 検証対象はエラー表示の出方のみ。userName が空文字なら editing フェーズで到着する。
+    await resultPage.seedAndGoto(buildMinimalSurveyState(''))
+
+    await resultPage.nameInput.fill('=SUM(1)')
+    await expect(resultPage.nameError).toBeVisible()
+    await expect(resultPage.nameError).toContainText('先頭に = + - @ は使用できません')
+    await expect(resultPage.nameInput).toHaveAttribute('aria-invalid', 'true')
+
+    await resultPage.fillName('山田太郎')
+    await expect(resultPage.nameError).toBeHidden()
+    await expect(resultPage.heading).toContainText('山田太郎')
+  })
+})

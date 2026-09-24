@@ -1,6 +1,6 @@
 import { CATEGORY_MASTER_BY_ID } from '@/data/questions'
 import type { CategorySelection } from '@/types'
-import { LEVEL_LABELS } from '@/utils/constants'
+import { FORMULA_PREFIX, LEVEL_LABELS } from '@/utils/constants'
 
 /**
  * 回答を CSV 文字列に変換する。
@@ -53,7 +53,8 @@ export const convertToCSV = (userName: string, selections: CategorySelection[]):
     .map((row) =>
       row
         .map((cell) => {
-          const correctValue = String(cell ?? '').replace(/"/g, '""')
+          const escaped = FORMULA_PREFIX.test(cell) ? `'${cell}` : cell
+          const correctValue = escaped.replace(/"/g, '""')
           return `"${correctValue}"`
         })
         .join(','),
@@ -71,7 +72,12 @@ export const downloadCSV = (userName: string, selections: CategorySelection[]): 
     const bom = '\uFEFF'
     const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
-    const dateString = new Date().toISOString().split('T')[0]
+    const now = new Date()
+    const dateString = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-')
     const fileName = `${userName}様_スキルシート_${dateString}.csv`
     const link = document.createElement('a')
     link.href = url
