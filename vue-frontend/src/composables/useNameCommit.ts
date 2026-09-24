@@ -2,6 +2,11 @@ import { computed, ref, watch } from 'vue'
 
 import { useTimeoutFn } from '@vueuse/core'
 
+import { FORMULA_PREFIX } from '@/utils/constants'
+
+/** どの記号が使えないかを利用者が判断できるよう、対象を文面に明記する */
+const INVALID_PREFIX_MESSAGE = '先頭に = + - @ は使用できません'
+
 export type NameCommitPhase = 'editing' | 'confirming' | 'committed' | 'locked'
 
 export interface UseNameCommitOptions {
@@ -16,6 +21,10 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
   const phase = ref<NameCommitPhase>(initialName.trim() ? 'locked' : 'editing')
   const draft = ref<string>(initialName)
   const editUsed = ref<boolean>(false)
+
+  const errorMessage = computed<string>(() =>
+    FORMULA_PREFIX.test(draft.value.trim()) ? INVALID_PREFIX_MESSAGE : '',
+  )
 
   const editTimeout = useTimeoutFn(
     () => {
@@ -43,6 +52,7 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
   const requestCommit = (): void => {
     if (phase.value !== 'editing') return
     if (!draft.value.trim()) return
+    if (errorMessage.value) return
 
     phase.value = 'confirming'
     confirmTimeout.start()
@@ -75,6 +85,7 @@ export const useNameCommit = (initialName: string, options: UseNameCommitOptions
     draft,
     isEditable,
     showEditButton,
+    errorMessage,
     editableWindowMs,
     requestCommit,
     cancelPendingCommit,
