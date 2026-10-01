@@ -7,6 +7,10 @@ import { cn } from '@/lib/utils'
 interface Props {
   variant?: ButtonVariants['variant']
   size?: ButtonVariants['size']
+  /**
+   * disabled ではなく aria-disabled で無効を示す。
+   * フォーカスとクリックを残し、押された時に操作を誘導できるようにするため
+   */
   inactive?: boolean
   class?: HTMLAttributes['class']
 }

@@ -5,7 +5,8 @@ interface Props {
 
 defineProps<Props>()
 </script>
-
+<!-- ResultPage が付ける data-pdf-error（Lambda が描画失敗の判定に使う）は、ルート要素へのフォールスルーで付く。
+ ルート要素を複数にすると属性が付かなくなるため、単一ルートを保つこと。 -->
 <template>
   <div
     data-slot="state-panel"

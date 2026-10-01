@@ -57,10 +57,13 @@ public class PdfController {
     public ResponseEntity<PdfStatusResponse> regenerate(@PathVariable UUID id) {
         // 未存在・期限切れの場合はfindById()と同じ例外になり、GlobalExceptionHandlerが404・410に変換する
         String userName = skillSheetService.findUserNameById(id);
+        // スロットリングで Invoke しなかった場合も 202 を返す。直近の Invoke による生成が進んでいるため、
+        // フロントはそのままポーリングを続ければよい
         lambdaPdfService.retryGeneration(id, userName);
         return ResponseEntity.accepted().body(PdfStatusResponse.generating());
     }
 
+    // Lambda（aws-lambda/src/index.ts）が PDF を保存するキーと同じ形式にする
     private String buildKey(UUID id) {
         return "skill-sheets/" + id + ".pdf";
     }

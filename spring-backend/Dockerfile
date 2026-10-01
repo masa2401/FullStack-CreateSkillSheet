@@ -1,4 +1,3 @@
-# 1. ビルドステージ (Mavenでのコンパイル・パッケージング)
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
@@ -9,7 +8,6 @@ RUN ./mvnw dependency:go-offline -B
 COPY src ./src
 RUN ./mvnw clean package -Dmaven.test.skip=true
 
-# 2. 実行ステージ
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 

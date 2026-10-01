@@ -80,6 +80,9 @@ jobs:
         run: npm ci
         working-directory: ./vue-frontend
 
+      # package.json の allowScripts（install script の実行を許可するパッケージ）が依存ツリーと一致しているかを検査する。
+      # 未承認のパッケージの install script は実行されないまま npm ci が成功するため、ここで失敗させて気付けるようにする。
+      # 不要になった承認も同じく検出する。
       - name: Check install script approvals
         run: |
           pending_json="$RUNNER_TEMP/is-pending.json"
@@ -158,7 +161,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # PRイベント時はchromiumのみ、main pushや手動実行時は3ブラウザ全部を並列実行
         project: ${{ fromJSON(github.event_name == 'pull_request' && '["chromium"]' || '["chromium","firefox","webkit"]') }}
     steps:
       - name: Checkout
@@ -251,6 +253,7 @@ jobs:
         run: npm ci
         working-directory: ./aws-lambda
 
+      # 目的は frontend-test の同名ステップと同じ
       - name: Check install script approvals
         run: |
           pending_json="$RUNNER_TEMP/is-pending.json"
@@ -310,7 +313,7 @@ jobs:
           echo "allowScripts は現在の依存ツリーと一致しています。"
         working-directory: ./aws-lambda
 
-      # Dockerfile の COPY --from=builder /build/.cache/puppeteer が成立する条件をここで先取りする。
+      # Dockerfile の COPY --from=deps /build/.cache/puppeteer が成立する条件をここで先取りする。
       - name: Verify Chrome for Testing was downloaded
         run: |
           if [ ! -d "$PUPPETEER_CACHE_DIR" ] || [ -z "$(ls -A "$PUPPETEER_CACHE_DIR")" ]; then
@@ -323,6 +326,8 @@ jobs:
         run: npm run build
         working-directory: ./aws-lambda
 
+  # deploy.yml は workflow_run で別のワークフローとして起動するため、ジョブの outputs を受け取れない。
+  # 変更検出の結果をファイルに書き出し、アーティファクトとして渡す
   deploy-flags:
     needs: changes
     runs-on: ubuntu-latest

@@ -3,7 +3,6 @@ import puppeteer from 'puppeteer';
 
 // ─── 型定義 ──────────────────────────────────────────────────────
 
-/** バックエンドから受け取るリクエストの形 */
 interface PdfGenerationRequest {
   id: string;
   url: string;

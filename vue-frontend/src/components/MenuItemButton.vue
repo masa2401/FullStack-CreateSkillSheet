@@ -4,6 +4,7 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 interface Props {
   icon: string
   text: string
+  /** data-feedback 属性で色を切り替える。DropdownMenuItem が使う data-variant と衝突させないため */
   variant?: 'default' | 'success' | 'error'
   spin?: boolean
   disabled?: boolean

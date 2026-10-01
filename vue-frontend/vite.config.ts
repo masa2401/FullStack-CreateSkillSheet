@@ -4,7 +4,6 @@ import { URL, fileURLToPath } from 'node:url'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { configDefaults, defineConfig } from 'vitest/config'
 
-// https://vite.dev/config/
 export default defineConfig({
   base: '/',
   plugins: [vue(), vueDevTools(), tailwindcss()],

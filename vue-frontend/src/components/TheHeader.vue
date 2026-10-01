@@ -22,6 +22,7 @@ const handleTitleClick = () => {
     <div
       class="mx-auto flex w-full max-w-5xl items-center justify-center gap-2 px-4 py-4 sm:gap-3 sm:px-6 sm:py-5"
     >
+      <!-- 右端の ThemeToggle と同じ幅の空き。タイトルを中央に置くため -->
       <div
         class="size-9 shrink-0"
         aria-hidden="true"

@@ -104,6 +104,7 @@ export const useSurveyStore = defineStore(
   },
   {
     persist: {
+      // isIdVerified は含めない。再読み込み後に一度だけ保存済み ID の存在を確認させるため
       pick: ['userName', 'selections', 'savedSheetId', 'savedDataSnapshot'],
     },
   },

@@ -37,21 +37,17 @@ public class SkillSheetService {
     @Value("${sheet.expiry.days:5}")
     private long expiryDays;
 
-    /** スキルシートを保存してIDを返す */
     public UUID save(SaveSheetRequest req) {
-        // 1. SkillSheetエンティティを作る
         SkillSheet sheet = new SkillSheet();
         sheet.setUserName(req.userName());
-        sheet.setShareToken(UUID.randomUUID().toString()); // 共有トークン生成
+        sheet.setShareToken(UUID.randomUUID().toString());
         sheet.setExpiresAt(LocalDateTime.now().plusDays(expiryDays));
 
-        // 2. カテゴリをエンティティに変換して追加
         for (CategoryDto catDto : req.categories()) {
             SheetCategory category = new SheetCategory();
             category.setCategoryId(catDto.categoryId());
-            category.setSkillSheet(sheet); // 親への参照をセット
+            category.setSkillSheet(sheet);
 
-            // 3. 回答をエンティティに変換して追加
             for (QuestionDto qDto : catDto.questions()) {
                 for (AnswerDto aDto : qDto.answers()) {
                     SheetAnswer answer = new SheetAnswer();
@@ -68,7 +64,6 @@ public class SkillSheetService {
 
         UUID savedId = sheetRepository.save(sheet).getId();
 
-        // 保存成功後にPDF生成を非同期リクエスト（失敗してもsave()自体は成功扱い）
         lambdaPdfService.requestGenerationAsync(savedId, req.userName());
 
         return savedId;
@@ -83,12 +78,10 @@ public class SkillSheetService {
         }
     }
 
-    /** IDでスキルシートを取得する */
     @Transactional(readOnly = true)
     public SheetResponse findById(UUID id) {
         SkillSheet sheet = findActiveSheet(id);
 
-        // エンティティ → DTOに変換して返す（逆方向の変換）
         List<CategoryDto> categories = sheet.getCategories().stream()
                 .map(cat -> new CategoryDto(cat.getCategoryId(), buildQuestions(cat.getAnswers()))).toList();
 
@@ -115,7 +108,6 @@ public class SkillSheetService {
         return sheet;
     }
 
-    // 回答リストから質問DTO一覧を組み立てるヘルパー
     private List<QuestionDto> buildQuestions(List<SheetAnswer> answers) {
         return answers.stream().collect(Collectors.groupingBy(a -> a.getQuestionId())).entrySet().stream()
                 .map(entry -> {
