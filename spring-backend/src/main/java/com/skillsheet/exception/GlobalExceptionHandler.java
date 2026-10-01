@@ -20,7 +20,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // 404：リソースが見つからない
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(NoSuchElementException e) {
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
@@ -29,7 +28,6 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
-    // 410：共有リンクの期限切れ
     @ExceptionHandler(SheetExpiredException.class)
     public ResponseEntity<ProblemDetail> handleExpired(SheetExpiredException e) {
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.GONE, e.getMessage());
@@ -39,7 +37,6 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
-    // 400：バリデーションエラー（より詳細なメッセージを返す）
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException e) {
         String message = e.getBindingResult()
@@ -53,7 +50,6 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
-    // 404 / 400：パラメータの型変換に失敗した
     // パスのIDがUUIDの形式でない場合（/api/sheets/abc など）は、該当するリソースが無いものとして404を返す
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
@@ -63,7 +59,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(ProblemDetail.forStatusAndDetail(status, detail));
     }
 
-    // 400：リクエストボディを読み取れない（JSONの構文エラーなど）
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleNotReadable(HttpMessageNotReadableException e) {
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "リクエストの形式が不正です");
@@ -77,7 +72,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
-    // 429：同一クライアントからのシート作成リクエストが短時間に集中した場合のスロットリング
     @ExceptionHandler(TooManyRequestsException.class)
     public ResponseEntity<ProblemDetail> handleTooManyRequests(TooManyRequestsException e) {
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());

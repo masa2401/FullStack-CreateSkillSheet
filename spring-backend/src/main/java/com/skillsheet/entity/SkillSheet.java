@@ -43,8 +43,6 @@ public class SkillSheet {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    // CascadeType.ALL → シートを削除すれば子も消える
-    // orphanRemoval → シートから外れたカテゴリも消える
     @OneToMany(mappedBy = "skillSheet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SheetCategory> categories = new ArrayList<>();
 }

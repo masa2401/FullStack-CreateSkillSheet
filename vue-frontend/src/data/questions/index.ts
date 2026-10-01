@@ -3,6 +3,10 @@ import { designerQuestions } from '@/data/questions/designer'
 import { engineerQuestions } from '@/data/questions/engineer'
 import type { CategoryMaster } from '@/types'
 
+/**
+ * カテゴリ・設問・回答の id は、保存済みのシート（DB）と共有 URL に記録される。
+ * 項目を並べ替える・削除する場合も、既存の id を振り直したり別の項目へ使い回したりしない。
+ */
 export const CATEGORY_MASTERS: CategoryMaster[] = [
   {
     id: 1,

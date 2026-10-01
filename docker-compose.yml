@@ -1,5 +1,4 @@
 services:
-  # 1. データベース (PostgreSQL)
   db:
     image: postgres:18.4-alpine
     container_name: app_db
@@ -9,7 +8,6 @@ services:
       POSTGRES_PASSWORD: postgres_password
     ports:
       - '5432:5432'
-    # Railway（本番）に合わせたリソース制限コマンド
     command:
       [
         'postgres',
@@ -34,11 +32,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. バックエンド (Spring Boot)
   backend:
     build:
       context: ./spring-backend
-      dockerfile: Dockerfile.dev # 開発用のDockerfileを指定
+      dockerfile: Dockerfile.dev
     container_name: app_backend
     ports:
       - '8080:8080'
@@ -58,13 +55,12 @@ services:
           memory: 768M
     volumes:
       - ./spring-backend:/app
-      - backend_target:/app/target/ # コンテナ内のビルド成果物をローカルに逆流させない
-      - ~/.m2:/root/.m2 # Mavenのライブラリキャッシュを保持
+      - backend_target:/app/target/
+      - ~/.m2:/root/.m2
     depends_on:
       db:
-        condition: service_healthy # DBの起動（Healthcheck）が成功してから起動
+        condition: service_healthy
 
-  # 3. フロントエンド (Vue)
   frontend:
     build:
       context: ./vue-frontend
@@ -80,11 +76,10 @@ services:
       - ./vue-frontend:/app
       - frontend_node_modules:/app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true # ホットリロードが検知されない場合の対策
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
 
-# データの永続化用ボリューム
 volumes:
   pgdata:
   backend_target:

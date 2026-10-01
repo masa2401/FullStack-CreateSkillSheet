@@ -1,6 +1,3 @@
-# ─── 依存ステージ：本番依存と Chrome for Testing を取得する。
-#     package-lock.json が変わらない限り再実行されないため、
-#     ソースや tsconfig の変更で Chrome が再ダウンロードされることがない。 ───
 FROM node:24-slim AS deps
 
 # @puppeteer/browsers は yauzl を任意の peer dependency として扱い、
@@ -17,9 +14,6 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 
-# ─── ビルドステージ：TypeScript → JavaScript へトランスパイル。
-#     tsc しか使わないため --ignore-scripts を付け、
-#     deps ステージと二重に Chrome を取得することを避ける。 ───
 FROM node:24-slim AS builder
 
 WORKDIR /build
@@ -32,10 +26,8 @@ COPY src ./src
 RUN npm run build
 
 
-# ─── 実行ステージ：Lambda用ベースイメージ ───
 FROM public.ecr.aws/lambda/nodejs:24
 
-# Chrome for Testing（puppeteerが自動取得するフルビルド）実行に必要な共有ライブラリ + 日本語フォント
 RUN dnf install -y \
     atk \
     cups-libs \

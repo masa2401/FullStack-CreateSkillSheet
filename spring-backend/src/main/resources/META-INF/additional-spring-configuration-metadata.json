@@ -7,18 +7,18 @@
     },
     {
       "name": "sheet.expiry.days",
-      "type": "java.lang.String",
+      "type": "java.lang.Long",
       "description": "DBへ保存するシートの保存期間（日数）"
     },
     {
       "name": "sheet.save.rate-limit.max-requests",
-      "type": "java.lang.String",
-      "description": "DBへ保存 最大回数"
+      "type": "java.lang.Integer",
+      "description": "同一クライアントが window-seconds の間に作成できるシートの上限数"
     },
     {
       "name": "sheet.save.rate-limit.window-seconds",
-      "type": "java.lang.String",
-      "description": "DBへ保存 最小間隔（秒）"
+      "type": "java.lang.Long",
+      "description": "シート作成数を数える期間（秒）"
     },
     {
       "name": "aws.region",

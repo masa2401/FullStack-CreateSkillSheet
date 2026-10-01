@@ -168,6 +168,8 @@ const errorMessage = computed(() => {
     <div class="mt-8 space-y-6 print:mt-4 print:space-y-4">
       <ResultSkeleton v-if="pageStatus.type === 'loading'" />
 
+      <!-- WebKit は column フレックスのページ分割に対応しておらず、中の break-inside: avoid が効かない。
+       印刷時はブロックにして分割できるようにし、効かなくなる gap の代わりに mt-4 で間隔を取る -->
       <Card
         v-for="category in displayCategories"
         :key="category.id"

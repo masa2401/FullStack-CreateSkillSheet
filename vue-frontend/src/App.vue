@@ -12,6 +12,8 @@ usePrintColorScheme()
     <div class="flex min-h-svh flex-col print:min-h-0">
       <TheHeader />
       <main class="flex flex-1 flex-col print:block">
+        <!-- ResultPage はクエリを setup で一度だけ読む。ResultPage の表示中にアドレスバーから
+         別の共有 URL へ移動すると、コンポーネントが再利用されて表示が切り替わらないため、:key に URL を渡して作り直す -->
         <router-view v-slot="{ Component, route }">
           <transition
             mode="out-in"

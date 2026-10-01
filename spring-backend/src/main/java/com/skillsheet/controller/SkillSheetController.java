@@ -28,7 +28,6 @@ public class SkillSheetController {
     private final SkillSheetService service;
     private final SaveRateLimiter saveRateLimiter;
 
-    // POST /api/sheets → 保存
     @PostMapping
     public ResponseEntity<SaveSheetResponse> save(@RequestBody @Valid SaveSheetRequest req,
             HttpServletRequest request) {
@@ -37,7 +36,6 @@ public class SkillSheetController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new SaveSheetResponse(id));
     }
 
-    // GET /api/sheets/{id} → 取得
     @GetMapping("/{id}")
     public ResponseEntity<SheetResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));

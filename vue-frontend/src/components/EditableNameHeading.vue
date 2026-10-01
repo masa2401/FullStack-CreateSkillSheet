@@ -68,6 +68,8 @@ const isEditProgressCollapsed = ref<boolean>(false)
 watch(showEditButton, (visible) => {
   if (!visible) return
   isEditProgressCollapsed.value = false
+  // w-full を一度描画させてから w-0 へ切り替えないと transition が走らない。
+  // 1回目の rAF は描画の前に実行されるため、2回待つ
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       isEditProgressCollapsed.value = true
@@ -88,7 +90,8 @@ watch(showEditButton, (visible) => {
   >
     <div class="grid max-w-full min-w-0 items-baseline">
       <!-- 入力値の複製。visibility:hidden なので見えないまま場所を占有し、この幅がグリッドの
-           列幅＝入力欄（確定後は表示用テキスト）の幅になる。フォントは preflight の font:inherit で input と一致する -->
+       列幅＝入力欄（確定後は表示用テキスト）の幅になる。フォントは preflight の font:inherit で input と一致する。
+       input の size="1" は、既定の幅（20文字分）が列幅を押し広げないようにするため -->
       <span
         class="invisible col-start-1 row-start-1 overflow-hidden px-2 whitespace-pre"
         aria-hidden="true"
