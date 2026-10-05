@@ -7,8 +7,6 @@ on:
       - '**.md'
   pull_request:
     branches: ['main']
-    paths-ignore:
-      - '**.md'
   workflow_dispatch:
     inputs:
       deploy_target:
@@ -361,3 +359,12 @@ jobs:
         with:
           name: deploy-flags
           path: flags/
+
+  ci-result:
+    needs: [changes, frontend-test, e2e-test, backend-test, lambda-build-check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
