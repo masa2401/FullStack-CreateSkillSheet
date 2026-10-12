@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.skillsheet.entity.SkillSheet;
 
 public interface SkillSheetRepository extends JpaRepository<SkillSheet, UUID> {
-    List<SkillSheet> findByExpiresAtBefore(LocalDateTime dateTime);
+  List<SkillSheet> findByExpiresAtBefore(LocalDateTime dateTime);
 }

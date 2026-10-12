@@ -15,6 +15,6 @@ import jakarta.validation.constraints.Size;
  * 設問・回答の上限は CategoryDto・QuestionDto を参照。
  */
 public record SaveSheetRequest(
-                @NotBlank @Size(max = 100) String userName,
-                @NotNull @Size(max = 10) @Valid List<CategoryDto> categories) {
+    @NotBlank @Size(max = 100) String userName,
+    @NotNull @Size(max = 10) @Valid List<CategoryDto> categories) {
 }

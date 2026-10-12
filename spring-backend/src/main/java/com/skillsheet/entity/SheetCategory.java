@@ -26,18 +26,18 @@ import lombok.Setter;
 @NoArgsConstructor
 
 public class SheetCategory {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sheet_categories_seq")
-    @SequenceGenerator(name = "sheet_categories_seq", sequenceName = "sheet_categories_id_seq", allocationSize = 1)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sheet_categories_seq")
+  @SequenceGenerator(name = "sheet_categories_seq", sequenceName = "sheet_categories_id_seq", allocationSize = 1)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sheet_id", nullable = false)
-    private SkillSheet skillSheet;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "sheet_id", nullable = false)
+  private SkillSheet skillSheet;
 
-    @Column(name = "category_id")
-    private Integer categoryId;
+  @Column(name = "category_id")
+  private Integer categoryId;
 
-    @OneToMany(mappedBy = "sheetCategory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SheetAnswer> answers = new ArrayList<>();
+  @OneToMany(mappedBy = "sheetCategory", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<SheetAnswer> answers = new ArrayList<>();
 }

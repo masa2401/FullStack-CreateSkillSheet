@@ -31,89 +31,89 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class SkillSheetService {
 
-    private final SkillSheetRepository sheetRepository;
-    private final LambdaPdfService lambdaPdfService;
+  private final SkillSheetRepository sheetRepository;
+  private final LambdaPdfService lambdaPdfService;
 
-    @Value("${sheet.expiry.days:5}")
-    private long expiryDays;
+  @Value("${sheet.expiry.days:5}")
+  private long expiryDays;
 
-    public UUID save(SaveSheetRequest req) {
-        SkillSheet sheet = new SkillSheet();
-        sheet.setUserName(req.userName());
-        sheet.setShareToken(UUID.randomUUID().toString());
-        sheet.setExpiresAt(LocalDateTime.now().plusDays(expiryDays));
+  public UUID save(SaveSheetRequest req) {
+    SkillSheet sheet = new SkillSheet();
+    sheet.setUserName(req.userName());
+    sheet.setShareToken(UUID.randomUUID().toString());
+    sheet.setExpiresAt(LocalDateTime.now().plusDays(expiryDays));
 
-        for (CategoryDto catDto : req.categories()) {
-            SheetCategory category = new SheetCategory();
-            category.setCategoryId(catDto.categoryId());
-            category.setSkillSheet(sheet);
+    for (CategoryDto catDto : req.categories()) {
+      SheetCategory category = new SheetCategory();
+      category.setCategoryId(catDto.categoryId());
+      category.setSkillSheet(sheet);
 
-            for (QuestionDto qDto : catDto.questions()) {
-                for (AnswerDto aDto : qDto.answers()) {
-                    SheetAnswer answer = new SheetAnswer();
-                    answer.setQuestionId(qDto.questionId());
-                    answer.setAnswerId(aDto.answerId());
-                    answer.setValue(aDto.value());
-                    answer.setSheetCategory(category);
-                    category.getAnswers().add(answer);
-                }
-            }
-
-            sheet.getCategories().add(category);
+      for (QuestionDto qDto : catDto.questions()) {
+        for (AnswerDto aDto : qDto.answers()) {
+          SheetAnswer answer = new SheetAnswer();
+          answer.setQuestionId(qDto.questionId());
+          answer.setAnswerId(aDto.answerId());
+          answer.setValue(aDto.value());
+          answer.setSheetCategory(category);
+          category.getAnswers().add(answer);
         }
+      }
 
-        UUID savedId = sheetRepository.save(sheet).getId();
-
-        lambdaPdfService.requestGenerationAsync(savedId, req.userName());
-
-        return savedId;
+      sheet.getCategories().add(category);
     }
 
-    @Scheduled(cron = "${sheet.cleanup.cron:0 0 3 * * *}")
-    public void deleteExpiredSheets() {
-        List<SkillSheet> expiredSheets = sheetRepository.findByExpiresAtBefore(LocalDateTime.now());
-        if (!expiredSheets.isEmpty()) {
-            log.info("期限切れスキルシートを{}件削除します", expiredSheets.size());
-            sheetRepository.deleteAll(expiredSheets);
-        }
+    UUID savedId = sheetRepository.save(sheet).getId();
+
+    lambdaPdfService.requestGenerationAsync(savedId, req.userName());
+
+    return savedId;
+  }
+
+  @Scheduled(cron = "${sheet.cleanup.cron:0 0 3 * * *}")
+  public void deleteExpiredSheets() {
+    List<SkillSheet> expiredSheets = sheetRepository.findByExpiresAtBefore(LocalDateTime.now());
+    if (!expiredSheets.isEmpty()) {
+      log.info("期限切れスキルシートを{}件削除します", expiredSheets.size());
+      sheetRepository.deleteAll(expiredSheets);
     }
+  }
 
-    @Transactional(readOnly = true)
-    public SheetResponse findById(UUID id) {
-        SkillSheet sheet = findActiveSheet(id);
+  @Transactional(readOnly = true)
+  public SheetResponse findById(UUID id) {
+    SkillSheet sheet = findActiveSheet(id);
 
-        List<CategoryDto> categories = sheet.getCategories().stream()
-                .map(cat -> new CategoryDto(cat.getCategoryId(), buildQuestions(cat.getAnswers()))).toList();
+    List<CategoryDto> categories = sheet.getCategories().stream()
+        .map(cat -> new CategoryDto(cat.getCategoryId(), buildQuestions(cat.getAnswers()))).toList();
 
-        return new SheetResponse(sheet.getUserName(), categories);
+    return new SheetResponse(sheet.getUserName(), categories);
+  }
+
+  /**
+   * IDでシートの名前だけを取得する（PDF再生成用）。
+   * 回答（categories）は遅延ロードのため読み込まれず、findById より軽い。
+   */
+  @Transactional(readOnly = true)
+  public String findUserNameById(UUID id) {
+    return findActiveSheet(id).getUserName();
+  }
+
+  // 未存在・期限切れのシートは例外にする（GlobalExceptionHandlerが404・410に変換する）
+  private SkillSheet findActiveSheet(UUID id) {
+    SkillSheet sheet = sheetRepository.findById(id)
+        .orElseThrow(() -> new NoSuchElementException("スキルシートが見つかりません"));
+
+    if (sheet.getExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new SheetExpiredException("この共有リンクの有効期限は切れています", expiryDays);
     }
+    return sheet;
+  }
 
-    /**
-     * IDでシートの名前だけを取得する（PDF再生成用）。
-     * 回答（categories）は遅延ロードのため読み込まれず、findById より軽い。
-     */
-    @Transactional(readOnly = true)
-    public String findUserNameById(UUID id) {
-        return findActiveSheet(id).getUserName();
-    }
-
-    // 未存在・期限切れのシートは例外にする（GlobalExceptionHandlerが404・410に変換する）
-    private SkillSheet findActiveSheet(UUID id) {
-        SkillSheet sheet = sheetRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("スキルシートが見つかりません"));
-
-        if (sheet.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new SheetExpiredException("この共有リンクの有効期限は切れています", expiryDays);
-        }
-        return sheet;
-    }
-
-    private List<QuestionDto> buildQuestions(List<SheetAnswer> answers) {
-        return answers.stream().collect(Collectors.groupingBy(a -> a.getQuestionId())).entrySet().stream()
-                .map(entry -> {
-                    List<AnswerDto> answerDtos = entry.getValue().stream()
-                            .map(a -> new AnswerDto(a.getAnswerId(), a.getValue())).toList();
-                    return new QuestionDto(entry.getKey(), answerDtos);
-                }).toList();
-    }
+  private List<QuestionDto> buildQuestions(List<SheetAnswer> answers) {
+    return answers.stream().collect(Collectors.groupingBy(a -> a.getQuestionId())).entrySet().stream()
+        .map(entry -> {
+          List<AnswerDto> answerDtos = entry.getValue().stream()
+              .map(a -> new AnswerDto(a.getAnswerId(), a.getValue())).toList();
+          return new QuestionDto(entry.getKey(), answerDtos);
+        }).toList();
+  }
 }

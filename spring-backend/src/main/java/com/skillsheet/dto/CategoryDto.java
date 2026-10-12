@@ -12,6 +12,6 @@ import jakarta.validation.constraints.Size;
  * 現在のマスタで最も多いカテゴリでも設問は10件のため、マスタの追加に余裕を持たせて30件としている。
  */
 public record CategoryDto(
-        @NotNull Integer categoryId,
-        @NotNull @Size(max = 30) @Valid List<QuestionDto> questions) {
+    @NotNull Integer categoryId,
+    @NotNull @Size(max = 30) @Valid List<QuestionDto> questions) {
 }

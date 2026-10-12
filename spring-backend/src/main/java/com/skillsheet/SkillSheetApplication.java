@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class SkillSheetApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SkillSheetApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(SkillSheetApplication.class, args);
+  }
 
 }

@@ -21,20 +21,20 @@ import lombok.Setter;
 @NoArgsConstructor
 
 public class SheetAnswer {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sheet_answers_seq")
-    @SequenceGenerator(name = "sheet_answers_seq", sequenceName = "sheet_answers_id_seq", allocationSize = 1)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sheet_answers_seq")
+  @SequenceGenerator(name = "sheet_answers_seq", sequenceName = "sheet_answers_id_seq", allocationSize = 1)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private SheetCategory sheetCategory;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "category_id", nullable = false)
+  private SheetCategory sheetCategory;
 
-    @Column(name = "question_id")
-    private Integer questionId;
+  @Column(name = "question_id")
+  private Integer questionId;
 
-    @Column(name = "answer_id")
-    private Integer answerId;
+  @Column(name = "answer_id")
+  private Integer answerId;
 
-    private Integer value;
+  private Integer value;
 }
