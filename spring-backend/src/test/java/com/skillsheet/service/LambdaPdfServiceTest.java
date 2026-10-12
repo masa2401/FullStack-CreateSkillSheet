@@ -1,6 +1,10 @@
 package com.skillsheet.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
 import java.util.Map;
@@ -17,8 +21,20 @@ class LambdaPdfServiceTest {
 
   @BeforeEach
   void setUp() {
-    // 記録の削除だけを検証するため、Lambda クライアントと JsonMapper は使わない
+    // Lambda クライアントと JsonMapper は使わない。Invoke を伴う処理はスパイで差し替える
     service = new LambdaPdfService(null, null);
+  }
+
+  @Test
+  @DisplayName("保存イベントを受け取ると、同じシートIDと名前でPDF生成を依頼する")
+  void onSheetSaved_requestsGeneration() {
+    LambdaPdfService spyService = spy(service);
+    doNothing().when(spyService).requestGenerationAsync(any(), any());
+    UUID sheetId = UUID.randomUUID();
+
+    spyService.onSheetSaved(new SheetSavedEvent(sheetId, "山田太郎"));
+
+    verify(spyService).requestGenerationAsync(sheetId, "山田太郎");
   }
 
   @Test

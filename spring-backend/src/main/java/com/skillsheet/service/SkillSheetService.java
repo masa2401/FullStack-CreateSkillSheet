@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import com.skillsheet.entity.SheetAnswer;
 import com.skillsheet.entity.SheetCategory;
 import com.skillsheet.entity.SkillSheet;
 import com.skillsheet.exception.SheetExpiredException;
+import com.skillsheet.repository.SheetCategoryRepository;
 import com.skillsheet.repository.SkillSheetRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SkillSheetService {
 
   private final SkillSheetRepository sheetRepository;
-  private final LambdaPdfService lambdaPdfService;
+  private final SheetCategoryRepository categoryRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Value("${sheet.expiry.days:5}")
   private long expiryDays;
@@ -64,7 +67,7 @@ public class SkillSheetService {
 
     UUID savedId = sheetRepository.save(sheet).getId();
 
-    lambdaPdfService.requestGenerationAsync(savedId, req.userName());
+    eventPublisher.publishEvent(new SheetSavedEvent(savedId, req.userName()));
 
     return savedId;
   }
@@ -82,7 +85,7 @@ public class SkillSheetService {
   public SheetResponse findById(UUID id) {
     SkillSheet sheet = findActiveSheet(id);
 
-    List<CategoryDto> categories = sheet.getCategories().stream()
+    List<CategoryDto> categories = categoryRepository.findWithAnswersBySheetId(id).stream()
         .map(cat -> new CategoryDto(cat.getCategoryId(), buildQuestions(cat.getAnswers()))).toList();
 
     return new SheetResponse(sheet.getUserName(), categories);

@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,17 @@ public class LambdaPdfService {
     return true;
   }
 
-  /** 保存直後に呼ぶ非同期生成リクエスト。失敗してもログのみで例外を上位に投げない。 */
+  /**
+   * シート保存のコミット後に PDF 生成を依頼する。
+   * コミット前に Invoke すると、Lambda が未コミットのシートを取得しにいく可能性があるため。
+   * トランザクションの外で発行されたイベントは捨てられるので、発行側（SkillSheetService.save）は @Transactional が前提
+   */
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void onSheetSaved(SheetSavedEvent event) {
+    requestGenerationAsync(event.sheetId(), event.userName());
+  }
+
+  /** 非同期生成リクエスト。失敗してもログのみで例外を上位に投げない。 */
   public void requestGenerationAsync(UUID sheetId, String userName) {
     try {
       // 共有リンク（ID方式）の形式。フロントエンドの shareUtils.ts（createShareUrlById）と合わせる

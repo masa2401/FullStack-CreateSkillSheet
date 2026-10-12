@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { storeToRefs } from 'pinia'
 
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { GUEST_HINT_MESSAGE, useGuestGate } from '@/composables/useGuestGate'
-import { usePdfStatus } from '@/composables/usePdfStatus'
+import { type PdfGenerationState, usePdfStatus } from '@/composables/usePdfStatus'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { isBackendEnabled } from '@/utils/api'
 
@@ -34,17 +34,44 @@ const {
   retry: retryPdf,
 } = usePdfStatus(savedSheetId)
 
+const isSaving = ref<boolean>(false)
+const saveFailed = ref<boolean>(false)
+
+const preparePdf = async (): Promise<void> => {
+  isSaving.value = true
+  try {
+    await store.getSavedIdOrSave()
+    saveFailed.value = false
+    startPdfStatus()
+  } catch (error) {
+    console.error('シート保存エラー:', error)
+    saveFailed.value = true
+  } finally {
+    isSaving.value = false
+  }
+}
+
+/** PDF の生成状態に、保存の状態を重ねたもの。保存の失敗も再試行できるよう `error` として見せる */
+const pdfButtonState = computed<PdfGenerationState>(() => {
+  if (isSaving.value) return 'waiting'
+  if (saveFailed.value) return 'error'
+  return pdfState.value
+})
+
+/**
+ * 保存の失敗は保存から、生成の失敗は regenerate でやり直す。
+ * 保存に失敗した時の savedSheetId は変更前のシートを指していることがあり、regenerate すると古い内容の PDF になるため
+ */
+const handlePdfRetry = (): void => {
+  void (saveFailed.value ? preparePdf() : retryPdf())
+}
+
 const openMenu = async (): Promise<void> => {
   showMenu.value = true
 
   if (!isBackendEnabled()) return
 
-  try {
-    await store.getSavedIdOrSave()
-    startPdfStatus()
-  } catch (error) {
-    console.error('シート保存エラー:', error)
-  }
+  await preparePdf()
 }
 
 const handleOpenChange = (open: boolean): void => {
@@ -115,10 +142,10 @@ const handlePdfDownload = (): void => {
       <ShareUrlButton @done="closeMenu" />
       <PdfButton
         v-if="isBackendEnabled()"
-        :state="pdfState"
-        :progress="pdfProgress"
+        :state="pdfButtonState"
+        :progress="isSaving ? 0 : pdfProgress"
         @download="handlePdfDownload"
-        @retry="retryPdf"
+        @retry="handlePdfRetry"
       />
     </DropdownMenuContent>
   </DropdownMenu>

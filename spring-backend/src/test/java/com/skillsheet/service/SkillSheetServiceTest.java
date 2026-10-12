@@ -19,13 +19,18 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.skillsheet.dto.AnswerDto;
 import com.skillsheet.dto.CategoryDto;
 import com.skillsheet.dto.QuestionDto;
 import com.skillsheet.dto.request.SaveSheetRequest;
+import com.skillsheet.dto.response.SheetResponse;
+import com.skillsheet.entity.SheetAnswer;
+import com.skillsheet.entity.SheetCategory;
 import com.skillsheet.entity.SkillSheet;
 import com.skillsheet.exception.SheetExpiredException;
+import com.skillsheet.repository.SheetCategoryRepository;
 import com.skillsheet.repository.SkillSheetRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +40,10 @@ class SkillSheetServiceTest {
   private SkillSheetRepository sheetRepository;
 
   @Mock
-  private LambdaPdfService lambdaPdfService;
+  private SheetCategoryRepository categoryRepository;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private SkillSheetService service;
@@ -64,8 +72,34 @@ class SkillSheetServiceTest {
     // リポジトリのsaveメソッドが本当に呼ばれたかどうかの検証
     verify(sheetRepository).save(ArgumentMatchers.<SkillSheet>any());
 
-    // PDF生成の非同期リクエストが保存直後に呼ばれることを検証
-    verify(lambdaPdfService).requestGenerationAsync(expectedId, "山田太郎");
+    // PDF生成のきっかけとなる保存イベントが発行されることを検証（Invoke はコミット後にリスナーが行う）
+    verify(eventPublisher).publishEvent(new SheetSavedEvent(expectedId, "山田太郎"));
+  }
+
+  @Test
+  @DisplayName("findById: カテゴリと回答をまとめて取得し、設問ごとにまとめて返すこと")
+  void findById_Success() {
+    // GIVEN: 有効期限内のシートと、回答を2件持つカテゴリ
+    UUID targetId = UUID.randomUUID();
+    SkillSheet sheet = new SkillSheet();
+    sheet.setUserName("山田太郎");
+    sheet.setExpiresAt(LocalDateTime.now().plusDays(1));
+
+    SheetCategory category = new SheetCategory();
+    category.setCategoryId(2);
+    category.getAnswers().add(answer(1, 10, 3));
+    category.getAnswers().add(answer(1, 11, 4));
+
+    when(sheetRepository.findById(targetId)).thenReturn(Optional.of(sheet));
+    when(categoryRepository.findWithAnswersBySheetId(targetId)).thenReturn(List.of(category));
+
+    // WHEN
+    SheetResponse response = service.findById(targetId);
+
+    // THEN
+    assertThat(response.userName()).isEqualTo("山田太郎");
+    assertThat(response.categories()).containsExactly(
+        new CategoryDto(2, List.of(new QuestionDto(1, List.of(new AnswerDto(10, 3), new AnswerDto(11, 4))))));
   }
 
   @Test
@@ -162,5 +196,13 @@ class SkillSheetServiceTest {
     verify(sheetRepository).save(captor.capture());
     assertThat(captor.getValue().getCategories()).hasSize(1);
     assertThat(captor.getValue().getCategories().get(0).getAnswers()).hasSize(1);
+  }
+
+  private SheetAnswer answer(int questionId, int answerId, int value) {
+    SheetAnswer answer = new SheetAnswer();
+    answer.setQuestionId(questionId);
+    answer.setAnswerId(answerId);
+    answer.setValue(value);
+    return answer;
   }
 }

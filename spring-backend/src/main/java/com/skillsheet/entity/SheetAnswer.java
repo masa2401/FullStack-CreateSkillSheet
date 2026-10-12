@@ -27,7 +27,7 @@ public class SheetAnswer {
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "category_id", nullable = false)
+  @JoinColumn(name = "sheet_category_id", nullable = false)
   private SheetCategory sheetCategory;
 
   @Column(name = "question_id")
