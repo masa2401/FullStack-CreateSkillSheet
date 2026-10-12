@@ -57,9 +57,9 @@ class SkillSheetServiceTest {
     when(sheetRepository.save(ArgumentMatchers.<SkillSheet>any())).thenReturn(savedSheet);
 
     // WHEN: テスト対象メソッドの実行
-    UUID acutualId = service.save(request);
+    UUID actualId = service.save(request);
     // THEN: アサーション（AssertJのassertThatを使用）
-    assertThat(acutualId);
+    assertThat(actualId).isEqualTo(expectedId);
 
     // リポジトリのsaveメソッドが本当に呼ばれたかどうかの検証
     verify(sheetRepository).save(ArgumentMatchers.<SkillSheet>any());

@@ -269,5 +269,76 @@ describe('useSurveyStore', () => {
       expect(apiUtils.saveSheet).toHaveBeenCalledTimes(2)
       expect(id).toBe('id-after-change')
     })
+
+    it('未チェックの回答の値だけが変わった場合は、保存し直さずに既存 ID を返す', async () => {
+      vi.mocked(apiUtils.saveSheet).mockResolvedValueOnce('existing-id')
+      const store = useSurveyStore()
+      await store.getSavedIdOrSave()
+
+      // チェックして習熟度を付けた後でチェックを外すと、値だけが残る（AnswerItem.vue の挙動）
+      store.setAnswerSelection(1, 1, 1, { isChecked: true, value: 4 })
+      store.setAnswerSelection(1, 1, 1, { isChecked: false })
+
+      const id = await store.getSavedIdOrSave()
+
+      expect(apiUtils.saveSheet).toHaveBeenCalledOnce()
+      expect(id).toBe('existing-id')
+    })
+
+    it('保存中に重ねて呼ばれても saveSheet は1回だけ呼ばれ、同じ ID を返す', async () => {
+      let resolveSave!: (id: string) => void
+      vi.mocked(apiUtils.saveSheet).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveSave = resolve
+        }),
+      )
+      const store = useSurveyStore()
+
+      const first = store.getSavedIdOrSave()
+      const second = store.getSavedIdOrSave()
+      resolveSave('new-id')
+
+      expect(await first).toBe('new-id')
+      expect(await second).toBe('new-id')
+      expect(apiUtils.saveSheet).toHaveBeenCalledOnce()
+    })
+
+    it('保存中に内容が変わった場合は、前の保存が終わってから1回だけ保存し直す', async () => {
+      let resolveSave!: (id: string) => void
+      vi.mocked(apiUtils.saveSheet)
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveSave = resolve
+          }),
+        )
+        .mockResolvedValueOnce('id-after-change')
+      const store = useSurveyStore()
+
+      const first = store.getSavedIdOrSave()
+      // 判定は前の呼び出しの完了を待ってから始まるため、1回目の保存が始まってから内容を変える
+      await vi.waitFor(() => expect(apiUtils.saveSheet).toHaveBeenCalledOnce())
+      store.setUserName('山田太郎')
+      const second = store.getSavedIdOrSave()
+      resolveSave('id-before-change')
+
+      expect(await first).toBe('id-before-change')
+      expect(await second).toBe('id-after-change')
+      expect(apiUtils.saveSheet).toHaveBeenCalledTimes(2)
+      expect(store.savedSheetId).toBe('id-after-change')
+    })
+
+    it('前の保存が失敗しても、次の呼び出しはあらためて保存を試みる', async () => {
+      vi.mocked(apiUtils.saveSheet)
+        .mockRejectedValueOnce(new Error('保存に失敗しました'))
+        .mockResolvedValueOnce('retry-id')
+      const store = useSurveyStore()
+
+      const first = store.getSavedIdOrSave()
+      const second = store.getSavedIdOrSave()
+
+      await expect(first).rejects.toThrow('保存に失敗しました')
+      expect(await second).toBe('retry-id')
+      expect(apiUtils.saveSheet).toHaveBeenCalledTimes(2)
+    })
   })
 })

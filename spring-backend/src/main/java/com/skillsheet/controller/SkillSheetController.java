@@ -41,12 +41,18 @@ public class SkillSheetController {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    // Railway等のリバースプロキシ経由ではgetRemoteAddr()がプロキシのIPを返すため、
-    // X-Forwarded-Forが存在すればそちらの先頭（＝実際のクライアント）を優先する
+    // Railway のエッジプロキシ経由では getRemoteAddr() がプロキシの IP を返すため、ヘッダーから取得する。
+    // X-Real-IP はプロキシが接続元の IP で上書きするので、クライアントは偽装できない。
+    // X-Forwarded-For はクライアントが送った値の末尾にプロキシが接続元を付け足すため、先頭は偽装でき、末尾だけが信頼できる
     private String resolveClientIp(HttpServletRequest request) {
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.trim();
+        }
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
+            String[] addresses = forwardedFor.split(",");
+            return addresses[addresses.length - 1].trim();
         }
         return request.getRemoteAddr();
     }
