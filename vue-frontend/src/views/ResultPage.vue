@@ -19,7 +19,7 @@ import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { SurveyState } from '@/types'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
 import { LEVEL_LABELS } from '@/utils/constants'
-import { getDataFromQuery, getIdFromQuery } from '@/utils/shareUtils'
+import { getSurveyStateFromQuery, getIdFromQuery } from '@/utils/shareUtils'
 import { normalizeSurveyState } from '@/utils/surveyState'
 
 const store = useSurveyStore()
@@ -45,7 +45,7 @@ type PageStatus =
 const pageStatus = ref<PageStatus>({ type: 'loading' })
 const route = useRoute()
 const sharedId = getIdFromQuery(route.query)
-const urlData = getDataFromQuery(route.query)
+const urlData = getSurveyStateFromQuery(route.query)
 const isSharedView = (!!sharedId && isBackendEnabled()) || urlData !== null
 
 onMounted(async () => {

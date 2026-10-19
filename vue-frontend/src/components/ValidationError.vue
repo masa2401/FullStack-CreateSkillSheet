@@ -29,11 +29,11 @@ const groupedErrors = computed<GroupedError[]>(() => {
   const groups: Record<string, GroupedError> = {}
 
   errors.forEach((error) => {
-    const key = `${error.category}|${error.text ?? ''}`
+    const key = `${error.categoryLabel}|${error.questionTitle ?? ''}`
     if (!groups[key]) {
       groups[key] = {
-        category: error.category,
-        text: error.text,
+        categoryLabel: error.categoryLabel,
+        questionTitle: error.questionTitle,
         count: 0,
       }
     }
@@ -81,13 +81,13 @@ const groupedErrors = computed<GroupedError[]>(() => {
             />
             <span class="flex flex-col">
               <span class="flex flex-wrap items-center gap-1">
-                <strong class="font-bold">{{ group.category }}</strong>
+                <strong class="font-bold">{{ group.categoryLabel }}</strong>
                 <span class="text-sm font-bold">（{{ group.count }}件）</span>
               </span>
               <span
-                v-if="group.text"
+                v-if="group.questionTitle"
                 class="text-sm leading-snug opacity-80"
-                >{{ group.text }}</span
+                >{{ group.questionTitle }}</span
               >
             </span>
           </li>

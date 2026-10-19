@@ -77,7 +77,7 @@ describe('userSurveyValidation', () => {
 
     validate()
     expect(validationErrors.value).toHaveLength(1)
-    expect(validationErrors.value[0]!.category).toBe('共通')
+    expect(validationErrors.value[0]!.categoryLabel).toBe('共通')
   })
 
   it('isChecked が false のカテゴリはバリデーション対象外', () => {

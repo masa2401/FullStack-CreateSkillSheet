@@ -28,10 +28,10 @@ const text = computed<string>(() => {
   return 'PDFを準備中...'
 })
 
-const variant = computed<'default' | 'success' | 'error'>(() => {
+const feedback = computed<'success' | 'error' | undefined>(() => {
   if (state === 'ready') return 'success'
   if (state === 'error') return 'error'
-  return 'default'
+  return undefined
 })
 
 const isBusy = computed<boolean>(
@@ -53,7 +53,7 @@ const handleClick = (): void => {
   <MenuItemButton
     :icon="icon"
     :text="text"
-    :variant="variant"
+    :feedback="feedback"
     :spin="isBusy"
     :disabled="isBusy"
     :close-on-select="false"

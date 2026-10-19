@@ -12,7 +12,7 @@ import * as apiUtils from '@/utils/api'
 
 import ShareButton from './ShareButton.vue'
 
-const mockStartPdfStatus = vi.fn()
+const mockRequestPdf = vi.fn()
 const mockRetryPdf = vi.fn()
 const mockPdfState = ref<PdfGenerationState>('waiting')
 const mockPdfProgress = ref<number>(0)
@@ -22,7 +22,7 @@ vi.mock('@/composables/usePdfStatus', () => ({
     state: mockPdfState,
     downloadUrl: ref(''),
     progress: mockPdfProgress,
-    start: mockStartPdfStatus,
+    request: mockRequestPdf,
     retry: mockRetryPdf,
   }),
 }))
@@ -214,7 +214,7 @@ describe('ShareButton', () => {
     it('表示しただけでは PDF の状態確認を開始しない', () => {
       renderShareButton({ savedSheetId: 'already-saved-id' })
 
-      expect(mockStartPdfStatus).not.toHaveBeenCalled()
+      expect(mockRequestPdf).not.toHaveBeenCalled()
     })
 
     it('メニューを開いて保存が済むと PDF の状態確認を開始する', async () => {
@@ -225,7 +225,7 @@ describe('ShareButton', () => {
 
       await user.click(shareTrigger())
 
-      await waitFor(() => expect(mockStartPdfStatus).toHaveBeenCalledOnce())
+      await waitFor(() => expect(mockRequestPdf).toHaveBeenCalledOnce())
     })
 
     it('保存に失敗するとメニューは開いたまま PDF 項目が再試行できる状態になり、状態確認は開始しない', async () => {
@@ -240,7 +240,7 @@ describe('ShareButton', () => {
       await flushPromises()
       expect(menu()).toBeInTheDocument()
       expect(pdfButton()).toHaveAttribute('data-state', 'error')
-      expect(mockStartPdfStatus).not.toHaveBeenCalled()
+      expect(mockRequestPdf).not.toHaveBeenCalled()
     })
 
     it('保存に失敗した後の再試行では、保存からやり直して状態確認を開始する', async () => {
@@ -255,7 +255,7 @@ describe('ShareButton', () => {
 
       await user.click(pdfButton())
 
-      await waitFor(() => expect(mockStartPdfStatus).toHaveBeenCalledOnce())
+      await waitFor(() => expect(mockRequestPdf).toHaveBeenCalledOnce())
       expect(store.getSavedIdOrSave).toHaveBeenCalledTimes(2)
       expect(mockRetryPdf).not.toHaveBeenCalled()
       expect(pdfButton()).toHaveAttribute('data-state', 'waiting')
@@ -267,7 +267,7 @@ describe('ShareButton', () => {
       const store = useSurveyStore()
       vi.mocked(store.getSavedIdOrSave).mockResolvedValue('saved-id')
       await user.click(shareTrigger())
-      await waitFor(() => expect(mockStartPdfStatus).toHaveBeenCalledOnce())
+      await waitFor(() => expect(mockRequestPdf).toHaveBeenCalledOnce())
       mockPdfState.value = 'error'
 
       await user.click(pdfButton())

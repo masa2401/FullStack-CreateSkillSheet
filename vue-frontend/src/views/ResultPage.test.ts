@@ -9,7 +9,7 @@ import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { CategorySelection, SurveyState } from '@/types/state'
 import * as apiUtils from '@/utils/api'
 import { ROUTES } from '@/utils/constants'
-import { encodeData } from '@/utils/shareUtils'
+import { encodeSurveyState } from '@/utils/shareUtils'
 
 import ResultPage from './ResultPage.vue'
 
@@ -71,7 +71,7 @@ describe('ResultPage', () => {
 
   /** 共有リンク（クエリ方式）で開いた状態にする。描画より前に呼ぶ */
   const openSharedByData = () =>
-    router.push({ path: ROUTES.RESULT, query: { data: encodeData(urlSurveyState)! } })
+    router.push({ path: ROUTES.RESULT, query: { data: encodeSurveyState(urlSurveyState)! } })
 
   const renderPage = (
     surveyState: Record<string, unknown> = {},

@@ -18,14 +18,14 @@ const MENU_ITEM_STUB = {
   props: {
     icon: String,
     text: String,
-    variant: String,
+    feedback: String,
     spin: Boolean,
     disabled: Boolean,
     closeOnSelect: Boolean,
   },
   emits: ['click'],
   template: `<button
-      :data-variant="variant"
+      :data-feedback="feedback"
       :data-disabled="disabled || undefined"
       @click="$emit('click')"
     >{{ text }}<slot /></button>`,
@@ -76,7 +76,7 @@ describe('PdfButton', () => {
 
     expect(menuItem()).toHaveTextContent('PDFをダウンロード')
     expect(progressBar()).not.toBeInTheDocument()
-    expect(menuItem()).toHaveAttribute('data-variant', 'success')
+    expect(menuItem()).toHaveAttribute('data-feedback', 'success')
     expect(menuItem()).not.toHaveAttribute('data-disabled')
   })
 
@@ -96,7 +96,7 @@ describe('PdfButton', () => {
 
     expect(menuItem()).toHaveTextContent('PDF生成に失敗（再試行）')
     expect(progressBar()).not.toBeInTheDocument()
-    expect(menuItem()).toHaveAttribute('data-variant', 'error')
+    expect(menuItem()).toHaveAttribute('data-feedback', 'error')
   })
 
   it('error 状態でクリックすると retry が emit される', async () => {

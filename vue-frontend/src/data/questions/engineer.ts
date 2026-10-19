@@ -1,6 +1,6 @@
-import type { Question } from '@/types'
+import type { QuestionMaster } from '@/types'
 
-export const engineerQuestions: Question[] = [
+export const engineerQuestions: QuestionMaster[] = [
   {
     id: 1,
     title: 'フロントエンド言語',

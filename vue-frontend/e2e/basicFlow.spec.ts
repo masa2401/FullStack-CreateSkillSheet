@@ -58,7 +58,7 @@ test.describe('名前の再編集', () => {
     resultPage,
   }) => {
     // 検証対象は名前の再編集のみ。ここまでの遷移は前提条件を作っているだけなので直接投入する。
-    // userName は空文字。名前未入力で到着した状態（useNameCommit の editing フェーズ）になる。
+    // userName は空文字。名前未入力で到着した状態（useNameCommit の inputting フェーズ）になる。
     await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
     await resultPage.fillName('山田太郎')
@@ -73,14 +73,14 @@ test.describe('名前の再編集', () => {
     // 確定を待つ（useNameCommitのconfirmDelayMs経過後）
     await expect(resultPage.heading).toContainText('田中次郎')
     // 1回目と異なり、確定直後に「名前を編集する」ボタンは再表示されない
-    // （editUsedフラグにより committed フェーズを経由せず locked へ直行するため）
+    // （hasUsedEdit フラグにより editable フェーズを経由せず locked へ直行するため）
     await expect(resultPage.page.getByRole('button', { name: '名前を編集する' })).toBeHidden()
   })
 })
 
 test.describe('名前のバリデーション', () => {
   test('先頭が数式記号の名前はエラーが表示され、修正すると消える', async ({ resultPage }) => {
-    // 検証対象はエラー表示の出方のみ。userName が空文字なら editing フェーズで到着する。
+    // 検証対象はエラー表示の出方のみ。userName が空文字なら inputting フェーズで到着する。
     await resultPage.seedAndGoto(buildMinimalSurveyState(''))
 
     await resultPage.nameInput.fill('=SUM(1)')

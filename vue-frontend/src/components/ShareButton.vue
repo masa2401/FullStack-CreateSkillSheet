@@ -21,7 +21,7 @@ import PdfButton from './PdfButton.vue'
 import ShareUrlButton from './ShareUrlButton.vue'
 
 const store = useSurveyStore()
-const showMenu = ref<boolean>(false)
+const isMenuOpen = ref<boolean>(false)
 
 const { isGuest, guard, goToNameInput } = useGuestGate()
 
@@ -30,7 +30,7 @@ const {
   state: pdfState,
   downloadUrl: pdfDownloadUrl,
   progress: pdfProgress,
-  start: startPdfStatus,
+  request: requestPdf,
   retry: retryPdf,
 } = usePdfStatus(savedSheetId)
 
@@ -42,7 +42,7 @@ const preparePdf = async (): Promise<void> => {
   try {
     await store.getSavedIdOrSave()
     saveFailed.value = false
-    startPdfStatus()
+    requestPdf()
   } catch (error) {
     console.error('シート保存エラー:', error)
     saveFailed.value = true
@@ -67,7 +67,7 @@ const handlePdfRetry = (): void => {
 }
 
 const openMenu = async (): Promise<void> => {
-  showMenu.value = true
+  isMenuOpen.value = true
 
   if (!isBackendEnabled()) return
 
@@ -76,7 +76,7 @@ const openMenu = async (): Promise<void> => {
 
 const handleOpenChange = (open: boolean): void => {
   if (!open) {
-    showMenu.value = false
+    isMenuOpen.value = false
     return
   }
   guard(() => {
@@ -85,7 +85,7 @@ const handleOpenChange = (open: boolean): void => {
 }
 
 const closeMenu = (): void => {
-  showMenu.value = false
+  isMenuOpen.value = false
 }
 
 const handlePrint = (): void => {
@@ -115,7 +115,7 @@ const handlePdfDownload = (): void => {
 
   <DropdownMenu
     v-else
-    :open="showMenu"
+    :open="isMenuOpen"
     :modal="false"
     @update:open="handleOpenChange"
   >

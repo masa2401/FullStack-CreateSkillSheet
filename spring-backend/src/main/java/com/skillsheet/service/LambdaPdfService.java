@@ -41,21 +41,20 @@ public class LambdaPdfService {
   @Value("${app.frontend-base-url}")
   private String frontendBaseUrl;
 
-  // 手動リトライ（regenerate）の連打防止用の簡易スロットリング。
-  // 判定に使うのは直近 MIN_RETRY_INTERVAL_SECONDS 以内の記録だけなので、それより古い記録は定期的に削除する
+  // 再生成（regenerate）の連打防止用の簡易スロットリング。保存時の Invoke も記録するため、間隔は直近の Invoke から数える。
+  // 判定に使うのは直近 MIN_INVOKE_INTERVAL_SECONDS 以内の記録だけなので、それより古い記録は定期的に削除する
   private final ConcurrentHashMap<UUID, Instant> lastInvokedAt = new ConcurrentHashMap<>();
-  private static final long MIN_RETRY_INTERVAL_SECONDS = 15;
+  private static final long MIN_INVOKE_INTERVAL_SECONDS = 15;
 
   /** 「再試行」ボタンから呼ばれる。直近のInvokeから間隔が短すぎる場合はスキップする。 */
-  public boolean retryGeneration(UUID sheetId, String userName) {
+  public void regenerate(UUID sheetId, String userName) {
     Instant now = Instant.now();
     Instant last = lastInvokedAt.get(sheetId);
-    if (last != null && now.minusSeconds(MIN_RETRY_INTERVAL_SECONDS).isBefore(last)) {
+    if (last != null && now.minusSeconds(MIN_INVOKE_INTERVAL_SECONDS).isBefore(last)) {
       log.info("PDF再生成リクエストをスロットリングしました: sheetId={}", sheetId);
-      return false;
+      return;
     }
     requestGenerationAsync(sheetId, userName);
-    return true;
   }
 
   /**
@@ -105,7 +104,7 @@ public class LambdaPdfService {
 
   // 基準時刻を受け取る版。テストから任意の時刻で呼べるようにしている
   void removeExpiredInvocationRecordsAt(Instant now) {
-    Instant threshold = now.minusSeconds(MIN_RETRY_INTERVAL_SECONDS);
+    Instant threshold = now.minusSeconds(MIN_INVOKE_INTERVAL_SECONDS);
     // ConcurrentHashMap の removeIf は、判定後に値が更新されていれば削除しない
     lastInvokedAt.values().removeIf(last -> last.isBefore(threshold));
   }

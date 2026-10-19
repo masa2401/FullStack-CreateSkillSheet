@@ -25,20 +25,20 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/sheets")
 @RequiredArgsConstructor
 public class SkillSheetController {
-  private final SkillSheetService service;
+  private final SkillSheetService skillSheetService;
   private final SaveRateLimiter saveRateLimiter;
 
   @PostMapping
   public ResponseEntity<SaveSheetResponse> save(@RequestBody @Valid SaveSheetRequest req,
-      HttpServletRequest request) {
-    saveRateLimiter.checkAndRecord(resolveClientIp(request));
-    UUID id = service.save(req);
+      HttpServletRequest httpRequest) {
+    saveRateLimiter.checkAndRecord(resolveClientIp(httpRequest));
+    UUID id = skillSheetService.save(req);
     return ResponseEntity.status(HttpStatus.CREATED).body(new SaveSheetResponse(id));
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<SheetResponse> findById(@PathVariable UUID id) {
-    return ResponseEntity.ok(service.findById(id));
+    return ResponseEntity.ok(skillSheetService.findById(id));
   }
 
   // Railway のエッジプロキシ経由では getRemoteAddr() がプロキシの IP を返すため、ヘッダーから取得する。

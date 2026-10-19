@@ -63,7 +63,7 @@ describe('CsvButton', () => {
   // ─── ダウンロード成功 ──────────────────────────────────────────
 
   it('ダウンロード成功時に data-feedback が success になる', async () => {
-    vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
+    vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(true)
     const user = userEvent.setup()
     renderButton()
 
@@ -73,7 +73,7 @@ describe('CsvButton', () => {
   })
 
   it('ダウンロード成功時に「ダウンロード完了」と表示される', async () => {
-    vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
+    vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(true)
     const user = userEvent.setup()
     renderButton()
 
@@ -85,7 +85,7 @@ describe('CsvButton', () => {
   // ─── ダウンロード失敗 ──────────────────────────────────────────
 
   it('ダウンロード失敗時に data-feedback が error になる', async () => {
-    vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
+    vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(false)
     const user = userEvent.setup()
     renderButton()
 
@@ -95,7 +95,7 @@ describe('CsvButton', () => {
   })
 
   it('ダウンロード失敗時に「保存に失敗しました」と表示される', async () => {
-    vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
+    vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(false)
     const user = userEvent.setup()
     renderButton()
 
@@ -116,7 +116,7 @@ describe('CsvButton', () => {
     })
 
     it('成功の2秒後に done イベントが emit される', async () => {
-      vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(true)
+      vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(true)
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
       const { emitted } = renderButton()
 
@@ -130,7 +130,7 @@ describe('CsvButton', () => {
     })
 
     it('失敗表示は2秒後に元の表示へ戻る', async () => {
-      vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
+      vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(false)
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
       renderButton()
 
@@ -144,7 +144,7 @@ describe('CsvButton', () => {
     })
 
     it('失敗時は done イベントが emit されない', async () => {
-      vi.spyOn(csvUtils, 'downloadCSV').mockReturnValue(false)
+      vi.spyOn(csvUtils, 'downloadCsv').mockReturnValue(false)
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
       const { emitted } = renderButton()
 

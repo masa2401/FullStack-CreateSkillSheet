@@ -59,7 +59,7 @@ public class PdfController {
     String userName = skillSheetService.findUserNameById(id);
     // スロットリングで Invoke しなかった場合も 202 を返す。直近の Invoke による生成が進んでいるため、
     // フロントはそのままポーリングを続ければよい
-    lambdaPdfService.retryGeneration(id, userName);
+    lambdaPdfService.regenerate(id, userName);
     return ResponseEntity.accepted().body(PdfStatusResponse.generating());
   }
 

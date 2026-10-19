@@ -4,9 +4,9 @@ import { FORMULA_PREFIX, LEVEL_LABELS } from '@/utils/constants'
 
 /**
  * 回答を CSV 文字列に変換する。
- * 例外はここでは捕捉せず、呼び出し元（`downloadCSV`）でログを出して失敗として扱う。
+ * 例外はここでは捕捉せず、呼び出し元（`downloadCsv`）でログを出して失敗として扱う。
  */
-export const convertToCSV = (userName: string, selections: CategorySelection[]): string => {
+export const convertToCsv = (userName: string, selections: CategorySelection[]): string => {
   const rows: string[][] = [
     ['ユーザー名', userName],
     [],
@@ -53,22 +53,22 @@ export const convertToCSV = (userName: string, selections: CategorySelection[]):
     .map((row) =>
       row
         .map((cell) => {
-          const escaped = FORMULA_PREFIX.test(cell) ? `'${cell}` : cell
-          const correctValue = escaped.replace(/"/g, '""')
-          return `"${correctValue}"`
+          const formulaEscaped = FORMULA_PREFIX.test(cell) ? `'${cell}` : cell
+          const quoteEscaped = formulaEscaped.replace(/"/g, '""')
+          return `"${quoteEscaped}"`
         })
         .join(','),
     )
     .join('\r\n')
 }
 
-export const downloadCSV = (userName: string, selections: CategorySelection[]): boolean => {
+export const downloadCsv = (userName: string, selections: CategorySelection[]): boolean => {
   try {
     if (!userName || !selections || !selections.length) {
       console.error('無効なデータ')
       return false
     }
-    const csv = convertToCSV(userName, selections)
+    const csv = convertToCsv(userName, selections)
     const bom = '\uFEFF'
     const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)

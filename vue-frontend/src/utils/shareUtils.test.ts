@@ -7,10 +7,10 @@ import {
   copyToClipboard,
   createShareUrl,
   createShareUrlById,
-  decodeData,
-  encodeData,
-  getDataFromQuery,
+  decodeSurveyState,
+  encodeSurveyState,
   getIdFromQuery,
+  getSurveyStateFromQuery,
 } from './shareUtils'
 
 const mockSurveyState: SurveyState = {
@@ -29,27 +29,27 @@ const mockSurveyState: SurveyState = {
   ],
 }
 
-describe('encodeData', () => {
+describe('encodeSurveyState', () => {
   it('エンコード結果が文字列で返る', () => {
-    const result = encodeData(mockSurveyState)
+    const result = encodeSurveyState(mockSurveyState)
     expect(typeof result).toBe('string')
   })
 
   it('空のuserNameはエンコードできる', () => {
     const data = { ...mockSurveyState, userName: '' }
-    const result = encodeData(data)
+    const result = encodeSurveyState(data)
     expect(result).not.toBeNull()
   })
 
-  it('JSON変換に失敗した場合、encodeDataはnullを返す', () => {
+  it('JSON変換に失敗した場合、encodeSurveyStateはnullを返す', () => {
     const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementation(() => {
       throw new Error('boom')
     })
-    expect(encodeData(mockSurveyState)).toBeNull()
+    expect(encodeSurveyState(mockSurveyState)).toBeNull()
     stringifySpy.mockRestore()
   })
 
-  it('encodeDataが失敗した場合、createShareUrlは例外を投げる', () => {
+  it('encodeSurveyStateが失敗した場合、createShareUrlは例外を投げる', () => {
     const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementation(() => {
       throw new Error('boom')
     })
@@ -58,15 +58,15 @@ describe('encodeData', () => {
   })
 })
 
-describe('decodeData', () => {
+describe('decodeSurveyState', () => {
   it('エンコード→デコードで元のデータに戻る', () => {
-    const encoded = encodeData(mockSurveyState)!
-    const decoded = decodeData(encoded)
+    const encoded = encodeSurveyState(mockSurveyState)!
+    const decoded = decodeSurveyState(encoded)
     expect(decoded).toEqual(mockSurveyState)
   })
 
   it('不正な文字列はnullを返す', () => {
-    const result = decodeData('invalid-string')
+    const result = decodeSurveyState('invalid-string')
     expect(result).toBeNull()
   })
 })
@@ -97,32 +97,32 @@ describe('createShareUrlById', () => {
   })
 })
 
-describe('getDataFromQuery', () => {
+describe('getSurveyStateFromQuery', () => {
   it('data パラメータがあればデコードして返す', () => {
-    const encoded = encodeData(mockSurveyState)!
-    expect(getDataFromQuery({ data: encoded })).toEqual(mockSurveyState)
+    const encoded = encodeSurveyState(mockSurveyState)!
+    expect(getSurveyStateFromQuery({ data: encoded })).toEqual(mockSurveyState)
   })
 
   it('同名のパラメータが複数ある場合は先頭の値を使う', () => {
-    const encoded = encodeData(mockSurveyState)!
-    expect(getDataFromQuery({ data: [encoded, 'invalid-string'] })).toEqual(mockSurveyState)
+    const encoded = encodeSurveyState(mockSurveyState)!
+    expect(getSurveyStateFromQuery({ data: [encoded, 'invalid-string'] })).toEqual(mockSurveyState)
   })
 
   it('クエリが空の場合は null を返す', () => {
-    expect(getDataFromQuery({})).toBeNull()
+    expect(getSurveyStateFromQuery({})).toBeNull()
   })
 
   it('data パラメータが無い場合は null を返す', () => {
-    expect(getDataFromQuery({ id: 'abc' })).toBeNull()
+    expect(getSurveyStateFromQuery({ id: 'abc' })).toBeNull()
   })
 
   it('壊れたデータの場合は null を返す', () => {
-    expect(getDataFromQuery({ data: 'invalid-string' })).toBeNull()
+    expect(getSurveyStateFromQuery({ data: 'invalid-string' })).toBeNull()
   })
 
   it('構造が不正なデータの場合は null を返す', () => {
     const encoded = LZString.compressToEncodedURIComponent(JSON.stringify({ foo: 'bar' }))
-    expect(getDataFromQuery({ data: encoded })).toBeNull()
+    expect(getSurveyStateFromQuery({ data: encoded })).toBeNull()
   })
 })
 
