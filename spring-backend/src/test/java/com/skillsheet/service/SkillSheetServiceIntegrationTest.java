@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -94,6 +95,25 @@ class SkillSheetServiceIntegrationTest {
         new CategoryDto(2, List.of()));
   }
 
+  @Test
+  @DisplayName("期限切れのシートを削除すると、カテゴリと回答も連鎖して消え、期限内のシートは残ること")
+  void deleteExpiredSheets_CascadesToCategoriesAndAnswers() throws SQLException {
+    // GIVEN: 同じ内容のシートを2件保存し、片方だけ期限切れにする
+    when(lambdaClient.invoke(any(InvokeRequest.class))).thenReturn(InvokeResponse.builder().statusCode(202).build());
+    SaveSheetRequest request = new SaveSheetRequest("山田太郎", List.of(
+        new CategoryDto(1, List.of(new QuestionDto(1, List.of(new AnswerDto(10, 3)))))));
+    UUID expiredId = service.save(request);
+    UUID activeId = service.save(request);
+    expire(expiredId);
+
+    // WHEN
+    service.deleteExpiredSheets();
+
+    // THEN: [シート, カテゴリ, 回答] の件数。連鎖削除が無いと、外部キー制約で削除自体が失敗する
+    assertThat(countRowsOf(expiredId)).containsExactly(0, 0, 0);
+    assertThat(countRowsOf(activeId)).containsExactly(1, 1, 1);
+  }
+
   private UUID sheetIdOf(InvokeRequest request) {
     Matcher matcher = PAYLOAD_ID.matcher(request.payload().asUtf8String());
     if (!matcher.find()) {
@@ -111,6 +131,33 @@ class SkillSheetServiceIntegrationTest {
       try (ResultSet resultSet = statement.executeQuery()) {
         resultSet.next();
         return resultSet.getInt(1) == 1;
+      }
+    }
+  }
+
+  private void expire(UUID id) throws SQLException {
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement(
+            "update skill_sheets set expires_at = ? where id = ?")) {
+      statement.setObject(1, LocalDateTime.now().minusDays(1));
+      statement.setObject(2, id);
+      statement.executeUpdate();
+    }
+  }
+
+  private List<Integer> countRowsOf(UUID id) throws SQLException {
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement(
+            "select (select count(*) from skill_sheets where id = ?),"
+                + " (select count(*) from sheet_categories where sheet_id = ?),"
+                + " (select count(*) from sheet_answers a"
+                + " join sheet_categories c on c.id = a.sheet_category_id where c.sheet_id = ?)")) {
+      for (int i = 1; i <= 3; i++) {
+        statement.setObject(i, id);
+      }
+      try (ResultSet resultSet = statement.executeQuery()) {
+        resultSet.next();
+        return List.of(resultSet.getInt(1), resultSet.getInt(2), resultSet.getInt(3));
       }
     }
   }

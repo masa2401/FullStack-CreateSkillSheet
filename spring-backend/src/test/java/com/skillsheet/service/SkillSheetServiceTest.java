@@ -164,17 +164,16 @@ class SkillSheetServiceTest {
   }
 
   @Test
-  @DisplayName("deleteExpiredSheets: 期限切れのシートが削除されること")
-  void deleteExpiredSheets_DeletesExpiredOnly() {
-    SkillSheet expired = new SkillSheet();
-    expired.setExpiresAt(LocalDateTime.now().minusDays(1));
-
-    when(sheetRepository.findByExpiresAtBefore(ArgumentMatchers.any()))
-        .thenReturn(List.of(expired));
+  @DisplayName("deleteExpiredSheets: 現在時刻より前に期限が切れたシートの削除を依頼すること")
+  void deleteExpiredSheets_DeletesBeforeNow() {
+    LocalDateTime before = LocalDateTime.now();
+    when(sheetRepository.deleteExpiredBefore(ArgumentMatchers.any())).thenReturn(1);
 
     service.deleteExpiredSheets();
 
-    verify(sheetRepository).deleteAll(List.of(expired));
+    ArgumentCaptor<LocalDateTime> captor = ArgumentCaptor.forClass(LocalDateTime.class);
+    verify(sheetRepository).deleteExpiredBefore(captor.capture());
+    assertThat(captor.getValue()).isBetween(before, LocalDateTime.now());
   }
 
   @Test

@@ -74,10 +74,9 @@ public class SkillSheetService {
 
   @Scheduled(cron = "${sheet.cleanup.cron:0 0 3 * * *}")
   public void deleteExpiredSheets() {
-    List<SkillSheet> expiredSheets = sheetRepository.findByExpiresAtBefore(LocalDateTime.now());
-    if (!expiredSheets.isEmpty()) {
-      log.info("期限切れスキルシートを{}件削除します", expiredSheets.size());
-      sheetRepository.deleteAll(expiredSheets);
+    int deletedCount = sheetRepository.deleteExpiredBefore(LocalDateTime.now());
+    if (deletedCount > 0) {
+      log.info("期限切れスキルシートを{}件削除しました", deletedCount);
     }
   }
 
