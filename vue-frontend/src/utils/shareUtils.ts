@@ -6,7 +6,7 @@ import type { CategorySelection, SurveyState } from '@/types'
 
 // ─── 型ガード ──────────────────────────────────────────────
 
-const isCategoryState = (value: unknown): value is CategorySelection =>
+const isCategorySelection = (value: unknown): value is CategorySelection =>
   typeof value === 'object' &&
   value !== null &&
   typeof (value as CategorySelection).categoryId === 'number' &&
@@ -19,11 +19,11 @@ const isSurveyState = (value: unknown): value is SurveyState =>
   typeof (value as SurveyState).userName === 'string' &&
   !!(value as SurveyState).userName &&
   Array.isArray((value as SurveyState).selections) &&
-  (value as SurveyState).selections.every(isCategoryState)
+  (value as SurveyState).selections.every(isCategorySelection)
 
 // ─── データの圧縮・展開 ──────────────────────────────────────────
 
-export const encodeData = (data: SurveyState): string | null => {
+export const encodeSurveyState = (data: SurveyState): string | null => {
   try {
     const jsonString = JSON.stringify(data)
     return LZString.compressToEncodedURIComponent(jsonString)
@@ -33,7 +33,7 @@ export const encodeData = (data: SurveyState): string | null => {
   }
 }
 
-export const decodeData = (compressedString: string): SurveyState | null => {
+export const decodeSurveyState = (compressedString: string): SurveyState | null => {
   try {
     const jsonString = LZString.decompressFromEncodedURIComponent(compressedString)
     if (!jsonString) {
@@ -62,7 +62,7 @@ const buildResultUrl = (query: string): string => {
 
 /** 共有リンク（クエリ方式）の URL。回答データそのものを圧縮して URL に含める */
 export const createShareUrl = (surveyData: SurveyState): string => {
-  const encoded = encodeData(surveyData)
+  const encoded = encodeSurveyState(surveyData)
   if (!encoded) {
     throw new Error('データのエンコードに失敗しました')
   }
@@ -83,11 +83,11 @@ const firstQueryValue = (query: LocationQuery, key: string): string | null => {
   return (Array.isArray(value) ? value[0] : value) ?? null
 }
 
-export const getDataFromQuery = (query: LocationQuery): SurveyState | null => {
+export const getSurveyStateFromQuery = (query: LocationQuery): SurveyState | null => {
   try {
     const encodedData = firstQueryValue(query, 'data')
     if (!encodedData) return null
-    const decoded = decodeData(encodedData)
+    const decoded = decodeSurveyState(encodedData)
     if (!decoded) {
       console.error('データのデコードに失敗しました。URLが破損している可能性があります。')
       return null

@@ -12,6 +12,6 @@ import jakarta.validation.constraints.Size;
  * 現在のマスタで最も多い設問でも回答は8件のため、マスタの追加に余裕を持たせて30件としている。
  */
 public record QuestionDto(
-        @NotNull Integer questionId,
-        @NotNull @Size(max = 30) @Valid List<AnswerDto> answers) {
+    @NotNull Integer questionId,
+    @NotNull @Size(max = 30) @Valid List<AnswerDto> answers) {
 }

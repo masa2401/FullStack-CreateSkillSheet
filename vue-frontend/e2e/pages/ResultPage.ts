@@ -64,7 +64,7 @@ export class ResultPage {
 
   /**
    * 名前入力→blur後、useNameCommitのconfirmDelayMs（既定2000ms）経過を待って確定させる。
-   * 「名前を編集する」ボタンの出現（phase: committed）を確定の合図として待つ。
+   * 「名前を編集する」ボタンの出現（phase: editable）を確定の合図として待つ。
    */
   async fillName(name: string): Promise<void> {
     await this.nameInput.fill(name)
@@ -109,7 +109,7 @@ export class ResultPage {
     return this.page.locator('[data-slot="skill-card"]').nth(index)
   }
 
-  /** 「名前を編集する」ボタンから再編集を開始する（committedフェーズ中のみ有効） */
+  /** 「名前を編集する」ボタンから再編集を開始する（editableフェーズ中のみ有効） */
   async startNameEdit(): Promise<void> {
     await this.page.getByRole('button', { name: '名前を編集する' }).click()
   }

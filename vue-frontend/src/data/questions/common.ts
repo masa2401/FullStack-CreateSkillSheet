@@ -1,6 +1,6 @@
-import type { Question } from '@/types'
+import type { QuestionMaster } from '@/types'
 
-export const commonQuestions: Question[] = [
+export const commonQuestions: QuestionMaster[] = [
   {
     id: 1,
     title: 'オフィスソフト',

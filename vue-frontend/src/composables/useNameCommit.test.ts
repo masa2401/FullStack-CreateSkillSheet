@@ -13,12 +13,12 @@ describe('useNameCommit', () => {
     vi.useRealTimers()
   })
 
-  it('初期値が空文字の場合は editing から始まる', () => {
+  it('初期値が空文字の場合は inputting から始まる', () => {
     const { phase } = useNameCommit('', { onCommit: vi.fn() })
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
   })
 
-  it('初期値が既に入っている場合は locked から始まる（確認・訂正フローを経ない）', () => {
+  it('初期値が既に入っている場合は locked から始まる（確定待ち・編集の段階を経ない）', () => {
     const onCommit = vi.fn()
     const { phase } = useNameCommit('山田太郎', { onCommit })
     expect(phase.value).toBe('locked')
@@ -30,17 +30,17 @@ describe('useNameCommit', () => {
     const { phase, draft, requestCommit } = useNameCommit('', { onCommit })
     draft.value = '   '
     requestCommit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
     vi.runAllTimers()
     expect(onCommit).not.toHaveBeenCalled()
   })
 
-  it('先頭が数式記号の名前はrequestCommitしても確定しない（editingのまま留まる）', () => {
+  it('先頭が数式記号の名前はrequestCommitしても確定しない（inputtingのまま留まる）', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit } = useNameCommit('', { onCommit })
     draft.value = '=SUM(1)'
     requestCommit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
     vi.runAllTimers()
     expect(onCommit).not.toHaveBeenCalled()
   })
@@ -53,13 +53,13 @@ describe('useNameCommit', () => {
     })
     draft.value = '@山田太郎'
     requestCommit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
 
     draft.value = '山田太郎'
     requestCommit()
     vi.advanceTimersByTime(1000)
 
-    expect(phase.value).toBe('committed')
+    expect(phase.value).toBe('editable')
     expect(onCommit).toHaveBeenCalledExactlyOnceWith('山田太郎')
   })
 
@@ -74,7 +74,7 @@ describe('useNameCommit', () => {
     expect(errorMessage.value).toBe('')
   })
 
-  it('非空でrequestCommit → confirming → 自動タイムアウトでcommittedになりonCommitが呼ばれる', () => {
+  it('非空でrequestCommit → confirming → 自動タイムアウトでeditableになりonCommitが呼ばれる', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit } = useNameCommit('', {
       onCommit,
@@ -87,11 +87,11 @@ describe('useNameCommit', () => {
 
     vi.advanceTimersByTime(1000)
 
-    expect(phase.value).toBe('committed')
+    expect(phase.value).toBe('editable')
     expect(onCommit).toHaveBeenCalledExactlyOnceWith('田中太郎')
   })
 
-  it('confirming中に再フォーカス（cancelPendingCommit）すると editing に戻り確定しない', () => {
+  it('confirming中に再フォーカス（cancelPendingCommit）すると inputting に戻り確定しない', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit, cancelPendingCommit } = useNameCommit('', {
       onCommit,
@@ -102,13 +102,13 @@ describe('useNameCommit', () => {
     expect(phase.value).toBe('confirming')
 
     cancelPendingCommit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
 
     vi.advanceTimersByTime(5000)
     expect(onCommit).not.toHaveBeenCalled()
   })
 
-  it('confirming中に入力値が変化すると自動的にキャンセルされeditingに戻る', async () => {
+  it('confirming中に入力値が変化すると自動的にキャンセルされinputtingに戻る', async () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit } = useNameCommit('', {
       onCommit,
@@ -121,12 +121,12 @@ describe('useNameCommit', () => {
     draft.value = '田中次郎'
     await nextTick()
 
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
     vi.advanceTimersByTime(5000)
     expect(onCommit).not.toHaveBeenCalled()
   })
 
-  it('committed状態は一定時間で自動的にlockedへ進む', () => {
+  it('editable状態は一定時間で自動的にlockedへ進む', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit } = useNameCommit('', {
       onCommit,
@@ -136,13 +136,13 @@ describe('useNameCommit', () => {
     draft.value = '田中太郎'
     requestCommit()
     vi.advanceTimersByTime(100)
-    expect(phase.value).toBe('committed')
+    expect(phase.value).toBe('editable')
 
     vi.advanceTimersByTime(500)
     expect(phase.value).toBe('locked')
   })
 
-  it('committed中にstartCorrectionを使うとeditingに戻れるが、次の確定では訂正リンクを経ずlockedに進む', () => {
+  it('editable中にstartEditを使うとinputtingに戻れるが、次の確定ではeditableを経ずlockedに進む', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit, startEdit } = useNameCommit('', {
       onCommit,
@@ -152,10 +152,10 @@ describe('useNameCommit', () => {
     draft.value = '田中太郎'
     requestCommit()
     vi.advanceTimersByTime(100)
-    expect(phase.value).toBe('committed')
+    expect(phase.value).toBe('editable')
 
     startEdit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
 
     draft.value = '田中次郎'
     requestCommit()
@@ -176,7 +176,7 @@ describe('useNameCommit', () => {
     expect(onCommit).not.toHaveBeenCalled()
   })
 
-  it('committed状態でstartCorrectionを二重に使うことはできない', () => {
+  it('editable状態でstartEditを二重に使うことはできない', () => {
     const onCommit = vi.fn()
     const { phase, draft, requestCommit, startEdit } = useNameCommit('', {
       onCommit,
@@ -185,12 +185,12 @@ describe('useNameCommit', () => {
     draft.value = '田中太郎'
     requestCommit()
     vi.advanceTimersByTime(100)
-    expect(phase.value).toBe('committed')
+    expect(phase.value).toBe('editable')
 
     startEdit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
 
     startEdit()
-    expect(phase.value).toBe('editing')
+    expect(phase.value).toBe('inputting')
   })
 })

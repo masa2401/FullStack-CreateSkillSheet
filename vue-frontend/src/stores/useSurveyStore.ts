@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 
 import type { AnswerSelection, CategorySelection, SurveyState } from '@/types'
 import { fetchSheet, saveSheet } from '@/utils/api'
+import { toSheetDto } from '@/utils/sheetMapper'
 import { buildInitialSelections, buildQuestionsForCategory } from '@/utils/surveyState'
 
 export const useSurveyStore = defineStore(
@@ -59,8 +60,11 @@ export const useSurveyStore = defineStore(
       if (aSel) Object.assign(aSel, patch)
     }
 
-    const getSavedIdOrSave = async (): Promise<string> => {
-      const currentSnapshot = JSON.stringify(surveyState.value)
+    /** 実行中の getSavedIdOrSave の完了を待つための Promise。ページ内の実行状態なので永続化・公開しない */
+    let pendingSave: Promise<unknown> = Promise.resolve()
+
+    const resolveSavedId = async (): Promise<string> => {
+      const currentSnapshot = JSON.stringify(toSheetDto(surveyState.value))
 
       if (savedSheetId.value && savedDataSnapshot.value === currentSnapshot) {
         if (isIdVerified.value) {
@@ -87,6 +91,16 @@ export const useSurveyStore = defineStore(
       savedDataSnapshot.value = currentSnapshot
       isIdVerified.value = true
       return id
+    }
+
+    /**
+     * 名前確定時の先行保存と共有メニューの操作が重なっても二重に保存しないよう、
+     * 前の呼び出しが終わってから判定する。前の呼び出しが失敗しても、次の呼び出しは実行する
+     */
+    const getSavedIdOrSave = (): Promise<string> => {
+      const run = pendingSave.then(resolveSavedId)
+      pendingSave = run.catch(() => undefined)
+      return run
     }
 
     return {

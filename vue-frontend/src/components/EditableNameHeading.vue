@@ -25,11 +25,11 @@ const NAME_PLACEHOLDER = 'お名前を入力'
 const {
   phase: namePhase,
   draft: nameDraft,
-  isEditable: isNameEditable,
+  isNameInputting,
   showEditButton,
   errorMessage: nameErrorMessage,
   editableWindowMs,
-  requestCommit: commitNameDraft,
+  requestCommit: requestNameCommit,
   cancelPendingCommit: cancelNameCommit,
   startEdit: startNameEdit,
 } = useNameCommit(props.initialName, {
@@ -40,8 +40,8 @@ const {
  * 確定済みで入力欄を表示しない状態。確定待ち（confirming）は再フォーカスで確定を
  * キャンセルできる仕様のため、入力欄のまま残す
  */
-const isNameLocked = computed<boolean>(
-  () => namePhase.value === 'committed' || namePhase.value === 'locked',
+const isNameCommitted = computed<boolean>(
+  () => namePhase.value === 'editable' || namePhase.value === 'locked',
 )
 
 const nameInputRef = useTemplateRef<HTMLInputElement>('nameInput')
@@ -55,7 +55,7 @@ const handleStartEdit = async (): Promise<void> => {
 
 const handleNameFocus = (): void => cancelNameCommit()
 
-const handleNameBlur = (): void => commitNameDraft()
+const handleNameBlur = (): void => requestNameCommit()
 
 const handleNameKeydown = (event: KeyboardEvent): void => {
   if (event.key !== 'Enter') return
@@ -100,7 +100,7 @@ watch(showEditButton, (visible) => {
       <!-- 確定後は入力欄ではなく表示用テキストにする。読み上げは sr-only の h2 が担うため aria-hidden。
            px-2 と透明な border-b-2 は入力欄と位置・高さを揃えるため -->
       <span
-        v-if="isNameLocked"
+        v-if="isNameCommitted"
         data-slot="name-display"
         class="col-start-1 row-start-1 min-w-0 overflow-hidden border-b-2 border-transparent px-2 text-center text-ellipsis whitespace-pre"
         aria-hidden="true"
@@ -114,7 +114,7 @@ watch(showEditButton, (visible) => {
         data-slot="name-input"
         size="1"
         class="col-start-1 row-start-1 w-full min-w-0 rounded-lg border-b-2 border-dashed border-transparent bg-field px-2 text-center transition-colors placeholder:text-muted-foreground read-only:cursor-default read-only:bg-transparent hover:border-ring read-only:hover:border-transparent focus:border-ring read-only:focus:border-transparent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none print:break-after-avoid print:border-none print:ring-0"
-        :readonly="!isNameEditable"
+        :readonly="!isNameInputting"
         :maxlength="NAME_MAX_LENGTH"
         :aria-label="`お名前（${NAME_MAX_LENGTH}文字まで）`"
         :aria-invalid="Boolean(nameErrorMessage)"

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import { ROUTES } from '@/utils/constants'
-import { encodeData } from '@/utils/shareUtils'
+import { encodeSurveyState } from '@/utils/shareUtils'
 
 import router, { requiresAnswersGuard } from './index'
 
@@ -27,7 +27,7 @@ describe('router', () => {
     expect(router.currentRoute.value.name).toBe('result')
 
     await router.push('/no-such-path')
-    expect(router.currentRoute.value.name).toBe('NotFound')
+    expect(router.currentRoute.value.name).toBe('notFound')
   })
 
   it('scrollBehavior: savedPosition があればそれを返す', () => {
@@ -94,7 +94,7 @@ describe('requiresAnserGuard', () => {
 
   it('URLに共有データ（data=）が含まれる場合は、回答の有無に関わらず /result に遷移できる', () => {
     useSurveyStore()
-    const data = encodeData({ userName: 'x', selections: [] })!
+    const data = encodeSurveyState({ userName: 'x', selections: [] })!
     const next = vi.fn()
 
     requiresAnswersGuard(buildTo(true, { data }), {} as RouteLocationNormalized, next)

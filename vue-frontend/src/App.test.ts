@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CategorySelection, SurveyState } from '@/types/state'
 import * as apiUtils from '@/utils/api'
 import { ROUTES } from '@/utils/constants'
-import { encodeData } from '@/utils/shareUtils'
+import { encodeSurveyState } from '@/utils/shareUtils'
 import ResultPage from '@/views/ResultPage.vue'
 
 import App from './App.vue'
@@ -101,14 +101,14 @@ describe('App（ページ遷移）', () => {
     renderApp()
     await findHeading('自分')
 
-    await router.push({ path: ROUTES.RESULT, query: { data: encodeData(sharedState)! } })
+    await router.push({ path: ROUTES.RESULT, query: { data: encodeSurveyState(sharedState)! } })
 
     expect(await findHeading('共有ユーザー')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '自分のスキルシートを作成' })).toBeInTheDocument()
   })
 
   it('共有シートから自分の結果ページへクエリだけ変わる遷移をすると、自分のシートに切り替わる', async () => {
-    await router.push({ path: ROUTES.RESULT, query: { data: encodeData(sharedState)! } })
+    await router.push({ path: ROUTES.RESULT, query: { data: encodeSurveyState(sharedState)! } })
     renderApp()
     await findHeading('共有ユーザー')
 

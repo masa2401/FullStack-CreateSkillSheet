@@ -33,17 +33,20 @@ export interface UsePdfStatusReturn {
   downloadUrl: Ref<string>
   /** 0〜100。`SLOW_THRESHOLD_MS` を100%として経過時間から算出する */
   progress: ComputedRef<number>
-  /** ポーリングを開始する。進行中・失敗の状態では何もしない */
-  start: () => void
+  /**
+   * PDF を要求する。待機中ならポーリングを始め、`ready` ならダウンロードURLを取り直す。
+   * 生成中・失敗の状態では何もしない
+   */
+  request: () => void
   retry: () => Promise<void>
 }
 
 /**
  * シートIDに紐づくPDF生成状態をポーリングするcomposable。
- * ポーリングは `start()` を呼んだ時に開始する。sheetId が入っているだけでは開始しない。
+ * ポーリングは `request()` を呼んだ時に開始する。sheetId が入っているだけでは開始しない。
  * 永続化された sheetId はページ読み込み時に復元されるため、自動で開始すると
  * 打ち切り（`TIMEOUT_MS`）までの時間が読み込み時点から数えられてしまう。
- * `start()` の後に sheetId が変わった場合は、新しい ID でやり直す。
+ * `request()` の後に sheetId が変わった場合は、新しい ID でやり直す。
  * AWS Lambda（非同期Invoke）からの明示的な完了通知が無い構成のため、
  * S3オブジェクトの有無を一定間隔で確認する方式を取る。
  *
@@ -67,7 +70,7 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
   let tickTimer: ReturnType<typeof setInterval> | undefined
   /** 打ち切り後に遅れて返ってきたレスポンスを弾くための世代番号 */
   let runToken = 0
-  /** `start()` が呼ばれたか。sheetId が null に戻ると解除する */
+  /** `request()` が呼ばれたか。sheetId が null に戻ると解除する */
   let isRequested = false
   /** リトライ可能な失敗の連続回数。成功すると0に戻す */
   let failureCount = 0
@@ -179,7 +182,7 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
     }
   }
 
-  const start = (): void => {
+  const request = (): void => {
     const id = sheetId.value
     if (!id) return
 
@@ -255,5 +258,5 @@ export const usePdfStatus = (sheetId: Ref<string | null>): UsePdfStatusReturn =>
   })
   onUnmounted(stopPolling)
 
-  return { state, downloadUrl, progress, start, retry }
+  return { state, downloadUrl, progress, request, retry }
 }

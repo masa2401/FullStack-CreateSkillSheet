@@ -7,8 +7,8 @@ type IncompleteAnswer = {
   categoryId: number
   questionId: number
   answerId: number
-  category: string
-  text: string
+  categoryLabel: string
+  questionTitle: string
 }
 
 const isSameAnswer = (a: IncompleteAnswer, b: IncompleteAnswer): boolean =>
@@ -32,8 +32,8 @@ export const useSurveyValidation = (mergedCategories: ComputedRef<MergedCategory
               categoryId: cat.id,
               questionId: q.id,
               answerId: a.id,
-              category: cat.label,
-              text: q.title,
+              categoryLabel: cat.label,
+              questionTitle: q.title,
             })
           }
         })
@@ -49,7 +49,7 @@ export const useSurveyValidation = (mergedCategories: ComputedRef<MergedCategory
   const validationErrors = computed<ValidationErrorItem[]>(() =>
     collectIncomplete()
       .filter((item) => flaggedAnswers.value.some((flagged) => isSameAnswer(flagged, item)))
-      .map(({ category, text }) => ({ category, text })),
+      .map(({ categoryLabel, questionTitle }) => ({ categoryLabel, questionTitle })),
   )
 
   const validate = (): boolean => {

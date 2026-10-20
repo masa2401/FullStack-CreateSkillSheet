@@ -47,14 +47,14 @@ const text = computed(() => {
   if (isSaving.value) return '保存中...'
   return 'URLをコピー'
 })
-const variant = computed(() => (copySuccess.value ? 'success' : 'default'))
+const feedback = computed(() => (copySuccess.value ? 'success' : undefined))
 </script>
 
 <template>
   <MenuItemButton
     :icon="icon"
     :text="text"
-    :variant="variant"
+    :feedback="feedback"
     :spin="isSaving"
     :disabled="isSaving"
     :close-on-select="false"

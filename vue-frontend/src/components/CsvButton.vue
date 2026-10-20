@@ -5,7 +5,7 @@ import { useTimeoutFn } from '@vueuse/core'
 
 import { useSuccessFeedback } from '@/composables/useSuccessFeedback'
 import { useSurveyStore } from '@/stores/useSurveyStore'
-import { downloadCSV } from '@/utils/csvUtils'
+import { downloadCsv } from '@/utils/csvUtils'
 
 import MenuItemButton from './MenuItemButton.vue'
 
@@ -25,8 +25,8 @@ const { start: startFailureReset } = useTimeoutFn(
   { immediate: false },
 )
 
-const handleDownloadCSV = () => {
-  if (downloadCSV(store.userName, store.selections)) {
+const handleDownloadCsv = () => {
+  if (downloadCsv(store.userName, store.selections)) {
     downloadFailed.value = false
     trigger()
     return
@@ -45,10 +45,10 @@ const text = computed(() => {
   if (downloadFailed.value) return '保存に失敗しました'
   return 'CSVとして保存'
 })
-const variant = computed<'default' | 'success' | 'error'>(() => {
+const feedback = computed<'success' | 'error' | undefined>(() => {
   if (downloadSuccess.value) return 'success'
   if (downloadFailed.value) return 'error'
-  return 'default'
+  return undefined
 })
 </script>
 
@@ -56,8 +56,8 @@ const variant = computed<'default' | 'success' | 'error'>(() => {
   <MenuItemButton
     :icon="icon"
     :text="text"
-    :variant="variant"
+    :feedback="feedback"
     :close-on-select="false"
-    @click="handleDownloadCSV"
+    @click="handleDownloadCsv"
   />
 </template>

@@ -1,5 +1,5 @@
 import type { SurveyState } from '@/types'
-import { encodeData } from '@/utils/shareUtils'
+import { encodeSurveyState } from '@/utils/shareUtils'
 
 import { expect, test } from './fixture'
 import { mockPdfRegenerate, mockPdfStatusSequence, mockSaveSheet, mockSharedSheet } from './mocks'
@@ -8,7 +8,7 @@ import { buildMinimalSurveyState } from './testData'
 test.describe('共有URL（クエリ方式）', () => {
   test('共有URLに直接アクセスすると共有ビューが表示される', async ({ resultPage }) => {
     const sharedState: SurveyState = buildMinimalSurveyState('テストユーザー')
-    const encoded = encodeData(sharedState)!
+    const encoded = encodeSurveyState(sharedState)!
 
     await resultPage.gotoWithData(encoded)
 
