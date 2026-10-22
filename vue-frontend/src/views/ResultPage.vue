@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { TriangleAlert } from '@lucide/vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 import AnimatedIconButton from '@/components/AnimatedIconButton.vue'
 import EditableNameHeading from '@/components/EditableNameHeading.vue'
@@ -18,7 +19,7 @@ import { useMergedSurvey } from '@/composables/useMergedSurvey'
 import { useSurveyStore } from '@/stores/useSurveyStore'
 import type { SurveyState } from '@/types'
 import { fetchSheet, isBackendEnabled } from '@/utils/api'
-import { LEVEL_LABELS } from '@/utils/constants'
+import { LEVEL_LABELS, PDF_SUSPENDED } from '@/utils/constants'
 import { getSurveyStateFromQuery, getIdFromQuery } from '@/utils/shareUtils'
 import { normalizeSurveyState } from '@/utils/surveyState'
 
@@ -224,6 +225,18 @@ const errorMessage = computed(() => {
         </CardContent>
       </Card>
     </div>
+
+    <!-- 障がい対応 -->
+    <Alert
+      v-if="PDF_SUSPENDED && !isSharedView && isBackendEnabled()"
+      role="note"
+      class="mx-auto mt-10 w-fit print:hidden"
+    >
+      <AlertDescription>
+        PDF出力機能は、Railwayで発生したセキュリティインシデントへの対応のため、一時停止しています（2026年10月22日〜）。
+      </AlertDescription>
+    </Alert>
+    <!-- ここまで -->
 
     <div
       data-slot="result-actions"
