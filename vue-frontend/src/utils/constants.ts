@@ -19,5 +19,3 @@ export const ROUTES = {
  * （入力欄側は trim 後に判定するため、そちらでは発火しない）。
  */
 export const FORMULA_PREFIX = /^[=+\-@\t\r]/
-
-export const PDF_SUSPENDED = true
